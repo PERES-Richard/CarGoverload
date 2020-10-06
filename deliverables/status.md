@@ -19,3 +19,5 @@ Nous prévoyons de commencer à mettre en place le code.
 
 ## Les blocages et risques
 Nous avons longement réfléchi à l'architecture du diagramme de composant, cependant, si les nouveaux retours sont négatifs concernant celui-ci ou les scénarios, nous aurons surement du mal à rattraper ce retard.
+
+## Flag of the week : YELLOW
