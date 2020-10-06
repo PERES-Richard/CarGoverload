@@ -1,4 +1,6 @@
-# Week 40
+#Current flag : Week 41 - YELLOW (due to some uncertainties)
+
+# Week 40 : GREEN
 
 ## Ce que l'on a fait
 Cette semaine nous avons réfléchi au scénario principal ainsi qu'aux scénarios alternatifs de notre système. Nous avons également créé un diagramme de cas d'utilisation.
@@ -20,4 +22,3 @@ Nous prévoyons de commencer à mettre en place le code.
 ## Les blocages et risques
 Nous avons longement réfléchi à l'architecture du diagramme de composant, cependant, si les nouveaux retours sont négatifs concernant celui-ci ou les scénarios, nous aurons surement du mal à rattraper ce retard.
 
-## Flag of the week : YELLOW
