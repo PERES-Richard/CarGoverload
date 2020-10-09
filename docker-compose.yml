@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
 
-  bookingProcess:
+  booking-process:
     build: ./bookingProcess
     image: cargoverload/booking-process
     restart: unless-stopped
-    container_name: bookingProcess
+    container_name: booking-process
     environment:
       - PORT=3000
       - MONGO_HOST=mongo
@@ -22,11 +22,11 @@ services:
       - services
       - proxy
 
-  carAvailability:
+  car-availability:
     build: ./carAvailability
     image: cargoverload/car-availability
     restart: unless-stopped
-    container_name: carAvailability
+    container_name: car-availability
     environment:
       - PORT=3001
       - MONGO_HOST=mongo
@@ -42,11 +42,11 @@ services:
       - services
       - proxy
 
-  carBooking:
+  car-booking:
     build: ./carBooking
     image: cargoverload/car-booking
     restart: unless-stopped
-    container_name: carBooking
+    container_name: car-booking
     environment:
       - PORT=3002
       - MONGO_HOST=mongo
@@ -62,11 +62,11 @@ services:
       - services
       - proxy
 
-  carSearching:
+  car-searching:
     build: ./carSearching
     image: cargoverload/car-searching
     restart: unless-stopped
-    container_name: carSearching
+    container_name: car-searching
     environment:
       - PORT=3003
       - MONGO_HOST=mongo
@@ -98,15 +98,20 @@ services:
     networks:
       - services
 
-#  nginx:
-#    image: nginx:latest
-#    container_name: nginx
-#    volumes:
-#      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
-#    networks:
-#      - proxy
-#    ports:
-#      - 80:80
+  nginx:
+    image: nginx:latest
+    container_name: cargoverload-nginx
+    volumes:
+      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
+    networks:
+      - proxy
+    depends_on:
+      - booking-process
+      - car-availability
+      - car-booking
+      - car-searching
+    ports:
+      - 80:80
 
 networks:
   services:
