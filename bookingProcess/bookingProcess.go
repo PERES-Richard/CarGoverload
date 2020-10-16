@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bookingProcess/controllers"
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
@@ -27,7 +28,7 @@ func main() {
 
 	// Create a new router to serve routes
 	router := mux.NewRouter()
-
+	controllers.MakeSellHandlers(router);
 	// All the routes of the app
 	router.HandleFunc("/booking-process/ok", ok).Methods("GET")
 
