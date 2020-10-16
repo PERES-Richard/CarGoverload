@@ -1,7 +1,6 @@
 package model
 
-type Node struct {
-	Name string
+type Car struct {
 	Id int
-	AvailableTypes []CarType
+	Type CarType
 }

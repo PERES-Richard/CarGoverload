@@ -1,6 +1,6 @@
 package model
 
-type Node struct {
+type CarType struct {
 	Name string
 	Id int
 }
