@@ -20,9 +20,16 @@ type JSONError struct {
 
 // A Car representation for this svc
 type Car struct {
-	Id        int       `json:"id"`
-	WagonType string    `json:"wagonType"` // TODO replace with enum ?
-	Date      time.Time `json:"date"`
+	Id      int       `json:"id"`
+	CarType string    `json:"carType"` // TODO replace with enum ?
+	Date    time.Time `json:"date"`
+}
+
+// A Car representation for this svc from carBooking
+type Booking struct {
+	Date time.Time `json:"date"`
+	Id   int       `json:"id"`
+	Car  Car       `json:"car"`
 }
 
 var carBookingURL string
@@ -50,21 +57,36 @@ func getJson(url string, target interface{}) error {
 
 // TODO Should return the list of car booked from DB and/or CarBooking service
 func carsBookedList() []Car {
-	carsBooked := make([]Car, 0)
+	bookings := make([]Booking, 0)
 
-	getJson("http://"+carBookingURL+getBookingRoute, carsBooked)
+	getJson("http://"+carBookingURL+getBookingRoute, bookings)
 
-	return carsBooked
+	return bookingsToCars(bookings)
+}
+
+// Refactor Bookings list to Cars list
+func bookingsToCars(bookings []Booking) []Car {
+	cars := make([]Car, 0)
+
+	for _, book := range bookings {
+		cars = append(cars, Car{
+			Id:      book.Car.Id,
+			CarType: book.Car.CarType,
+			Date:    book.Date,
+		})
+	}
+
+	return cars
 }
 
 // Filters & returns the list of all booked cars by filters
-func getNonAvailableCars(date time.Time, wagonType string) []Car {
+func getNonAvailableCars(date time.Time, carType string) []Car {
 	var carsBookedFiltered []Car
 	carsBooked := carsBookedList()
 
 	// TODO logic
 	var i interface{} = filter.Choose(carsBooked, func(car Car) bool {
-		return car.WagonType == wagonType && car.Date.YearDay() == date.YearDay()
+		return car.CarType == carType && car.Date.YearDay() == date.YearDay()
 	})
 	carsBookedFiltered, ok := i.([]Car)
 
@@ -94,15 +116,15 @@ func getNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Get the wagonType from parameter
-	wagonTypeParam, ok := params["wagonType"]
+	// Get the carType from parameter
+	carTypeParam, ok := params["carType"]
 	if !ok {
-		log.Fatalln("Error getNonAvailableCarsRoute : WagonType parameter not provided")
+		log.Fatalln("Error getNonAvailableCarsRoute : CarType parameter not provided")
 		return
 	}
-	wagonType := wagonTypeParam[0]
+	carType := carTypeParam[0]
 
-	cars := getNonAvailableCars(date, wagonType)
+	cars := getNonAvailableCars(date, carType)
 
 	// Return logs as a JSON object
 	jsonError := json.NewEncoder(w).Encode(cars)
