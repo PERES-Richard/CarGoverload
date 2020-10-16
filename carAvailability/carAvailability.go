@@ -25,6 +25,9 @@ type Car struct {
 	Date      time.Time `json:"date"`
 }
 
+var carBookingURL string
+var getBookingRoute string
+
 // Basic OK route for healthcheck
 func ok(w http.ResponseWriter, req *http.Request) {
 	_, err := io.WriteString(w, "ok")
@@ -33,11 +36,23 @@ func ok(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// Return the JSON data from the given URL
+func getJson(url string, target interface{}) error {
+	var myClient = &http.Client{Timeout: 10 * time.Second}
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	return json.NewDecoder(r.Body).Decode(target)
+}
+
 // TODO Should return the list of car booked from DB and/or CarBooking service
 func carsBookedList() []Car {
 	carsBooked := make([]Car, 0)
 
-	// TODO logic
+	getJson("http://"+carBookingURL+getBookingRoute, carsBooked)
 
 	return carsBooked
 }
@@ -106,6 +121,13 @@ func main() {
 	if port = os.Getenv("PORT"); port == "" {
 		port = "3001"
 		// OR raise error
+	}
+
+	if carBookingURL = os.Getenv("CARBOOKING_URL"); carBookingURL == "" {
+		carBookingURL = "localhost"
+	}
+	if getBookingRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); getBookingRoute == "" {
+		getBookingRoute = "/car-booking/findAll"
 	}
 
 	// Create a new router to serve routes
