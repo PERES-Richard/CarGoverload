@@ -52,15 +52,18 @@ func getJson(url string, target interface{}) error {
 	}
 	defer r.Body.Close()
 
+
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
 // TODO Should return the list of car booked from DB and/or CarBooking service
 func carsBookedList() []Car {
 	bookings := make([]Booking, 0)
-
-	getJson("http://"+carBookingURL+getBookingRoute, bookings)
-
+	err := getJson("http://"+carBookingURL+getBookingRoute, bookings)
+	if err != nil{
+		log.Println(err)
+	}
+	log.Println(bookings)
 	return bookingsToCars(bookings)
 }
 
@@ -105,13 +108,13 @@ func getNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 	// Get the date from parameter
 	dateParam, ok := params["date"]
 	if !ok {
-		log.Println("Error getNonAvailableCarsRoute : Date parameter not provided")
+		log.Println("Error 1 getNonAvailableCarsRoute : Date parameter not provided")
 		return
 	}
 	// Convert DateParam into date
 	date, err := time.Parse(time.RFC3339, dateParam[0])
 	if err != nil {
-		log.Println("Error getNonAvailableCarsRoute : Date parameter incorrect")
+		log.Println("Error 2 getNonAvailableCarsRoute : Date parameter incorrect")
 		log.Panic(err)
 		return
 	}
@@ -119,7 +122,7 @@ func getNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 	// Get the carType from parameter
 	carTypeParam, ok := params["carType"]
 	if !ok {
-		log.Fatalln("Error getNonAvailableCarsRoute : CarType parameter not provided")
+		log.Fatalln("Error 3 getNonAvailableCarsRoute : CarType parameter not provided")
 		return
 	}
 	carType := carTypeParam[0]
