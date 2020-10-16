@@ -42,7 +42,7 @@ func getJson(url string, target interface{}) error {
 // Get booked cars from carAvailability
 func getBookedCars(carType string, date string) ([]Car, error) {
 	var res []Car
-	err := getJson("http://" + CAR_AVAILABILITY_URL + "/car-availability/getNonAvailableCars?type=" + carType + "&date=" + date, res)
+	err := getJson("http://" + CAR_AVAILABILITY_URL + "/getNonAvailableCars?type=" + carType + "&date=" + date, res)
 	return res, err
 }
 
