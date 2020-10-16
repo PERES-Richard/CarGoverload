@@ -1,2 +1,4 @@
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
+github.com/robpike/filter v0.0.0-20150108201509-2984852a2183 h1:qDhD/wJDGyWrXKLIKmEKpKK/ejaZlguyeEaLZzmrtzo=
+github.com/robpike/filter v0.0.0-20150108201509-2984852a2183/go.mod h1:3dvYi47BCPInRb2ILlNnrXfl++XpwTWLbIxPyJsUvCw=
