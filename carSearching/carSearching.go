@@ -11,6 +11,8 @@ import (
 	"os"
 )
 
+var CAR_AVAILABILITY_URL string
+
 type Car struct {
 	Id int
 	Type string
@@ -28,7 +30,7 @@ func remove(s []Car, i int) []Car {
 
 // Get booked cars from carAvailability
 func getBookedCars(carType string, date string) ([]Car, error) {
-	resp, err := http.Get("http://localhost:3001/getNonAvailableCars") // TODO: use env variables
+	resp, err := http.Get(CAR_AVAILABILITY_URL + "/car-availability/getNonAvailableCars?type=" + carType + "&date=" + date) // TODO: use env variables
 	if err != nil {
 		return []Car{}, err
 	}
@@ -100,6 +102,11 @@ func main() {
 	var port string
 	if port = os.Getenv("PORT"); port == "" {
 		port = "3003"
+		// OR raise error
+	}
+
+	if port = os.Getenv("CAR_AVAILABILITY_URL"); port == "" {
+		CAR_AVAILABILITY_URL = "localhost:3001"
 		// OR raise error
 	}
 
