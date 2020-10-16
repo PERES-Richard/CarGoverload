@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type JSONError struct {
@@ -24,14 +25,14 @@ type SearchParams struct {
 }
 
 // Basic OK route for healthcheck
-func ok(w http.ResponseWriter, req *http.Request) {
+func ok(w http.ResponseWriter, _ *http.Request) {
 	_, err := io.WriteString(w, "ok")
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func findBookedCars(w http.ResponseWriter, req *http.Request){
+func findBookedCars(w http.ResponseWriter, _ *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 	jsonError := json.NewEncoder(w).Encode(repository.FindAllBookings())
 	if jsonError != nil {
@@ -76,8 +77,18 @@ func bookCar(w http.ResponseWriter, req *http.Request){
 		return
 	}
 
+	date, err := time.Parse(time.RFC3339, sp.Date)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_, err  := io.WriteString(w, err.Error())
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
 	//TODO check if car is not already used
-	repository.CreateBook(sp.Date, car, sp.Supplier, nodeDeparture, nodeArrival)
+	repository.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival)
 	w.WriteHeader(http.StatusCreated)
 	_, err = io.WriteString(w, "Ok it's booked")
 	if err != nil {
@@ -95,6 +106,9 @@ func main() {
 
 	// Create a new router to serve routes
 	router := mux.NewRouter()
+
+	//TODO remove when bdd is up
+	repository.InitMock()
 
 	// All the routes of the app
 	router.HandleFunc("/car-booking/ok", ok).Methods("GET")
