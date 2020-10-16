@@ -1,6 +1,8 @@
 package main
 
 import (
+	"carBooking/repository"
+	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
@@ -9,9 +11,75 @@ import (
 	"os"
 )
 
+type JSONError struct {
+	Message string `json:"Message"`
+}
+
+type SearchParams struct {
+	Date string `json:"date"`
+	CarId int `json:"carId"`
+	Supplier string `json:"supplier"`
+	NodeDepartureId int `json:"departureId"`
+	NodeArrivalId int `json:"arrivalId"`
+}
+
 // Basic OK route for healthcheck
 func ok(w http.ResponseWriter, req *http.Request) {
 	_, err := io.WriteString(w, "ok")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func findBookedCars(w http.ResponseWriter, req *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	jsonError := json.NewEncoder(w).Encode(repository.FindAllBookings())
+	if jsonError != nil {
+		e := JSONError{Message: "Internal Server Error"}
+		w.WriteHeader(http.StatusInternalServerError)
+		err2 := json.NewEncoder(w).Encode(e)
+		log.Panic(jsonError, err2)
+	}
+}
+
+func bookCar(w http.ResponseWriter, req *http.Request){
+	var sp SearchParams
+	_ = json.NewDecoder(req.Body).Decode(&sp)
+
+	nodeDeparture, err := repository.GetNodeFromId(sp.NodeDepartureId)
+	if err != nil{
+		w.WriteHeader(http.StatusNotFound)
+		_, err  := io.WriteString(w, err.Error())
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	nodeArrival, err := repository.GetNodeFromId(sp.NodeArrivalId)
+	if err != nil{
+		w.WriteHeader(http.StatusNotFound)
+		_, err  := io.WriteString(w, err.Error())
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	car, err := repository.GetCarFromId(sp.CarId)
+	if err != nil{
+		w.WriteHeader(http.StatusNotFound)
+		_, err  := io.WriteString(w, err.Error())
+		if err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
+
+	//TODO check if car is not already used
+	repository.CreateBook(sp.Date, car, sp.Supplier, nodeDeparture, nodeArrival)
+	w.WriteHeader(http.StatusCreated)
+	_, err = io.WriteString(w, "Ok it's booked")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,6 +98,8 @@ func main() {
 
 	// All the routes of the app
 	router.HandleFunc("/car-booking/ok", ok).Methods("GET")
+	router.HandleFunc("/car-booking/findAll", findBookedCars).Methods("GET")
+	router.HandleFunc("/car-booking/book", bookCar).Methods("POST")
 
 	fmt.Println("Server is running on port " + port)
 
