@@ -5,6 +5,6 @@ import "time"
 type Sell struct {
 	ID        uint      `json:"id"`
 	CustomerName      string    `json:"customerName"`
-	Goods       string    `json:"goods"`
+	WagonType       string    `json:"wagonType"`
 	BookDate time.Time `json:"bookDate"`
 }

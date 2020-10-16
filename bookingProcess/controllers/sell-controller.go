@@ -16,7 +16,7 @@ func listSells()  http.Handler{
 		tmp := models.Sell{
 			ID: 1,
 			CustomerName: "UPS",
-			Goods: "Liquide",
+			WagonType: "Liquide",
 			BookDate: time.Now(),
 		}
 		if err := json.NewEncoder(w).Encode(tmp); err != nil {
@@ -32,7 +32,7 @@ func createSell()  http.Handler{
 		errorMessage := "Error creating sell"
 		var input struct {
 			CustomerName    string `json:"customerName"`
-			Goods   string `json:"goodsType"`
+			WagonType   string `json:"goodsType"`
 		}
 		err := json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {
@@ -44,7 +44,7 @@ func createSell()  http.Handler{
 		tmp := models.Sell{
 			ID:        0,
 			CustomerName:     input.CustomerName,
-			Goods:    input.Goods,
+			WagonType:    input.WagonType,
 			BookDate:     time.Now(),
 		}
 
