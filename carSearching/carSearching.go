@@ -30,7 +30,7 @@ func remove(s []Car, i int) []Car {
 
 // Get booked cars from carAvailability
 func getBookedCars(carType string, date string) ([]Car, error) {
-	resp, err := http.Get(CAR_AVAILABILITY_URL + "/car-availability/getNonAvailableCars?type=" + carType + "&date=" + date) // TODO: use env variables
+	resp, err := http.Get(CAR_AVAILABILITY_URL + "/car-availability/getNonAvailableCars?type=" + carType + "&date=" + date)
 	if err != nil {
 		return []Car{}, err
 	}
