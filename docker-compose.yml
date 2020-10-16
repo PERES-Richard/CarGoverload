@@ -72,6 +72,7 @@ services:
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=cargoverload
+      - CAR_AVAILABILITY_URL=localhost:3001
     depends_on:
       - mongo
     expose:
