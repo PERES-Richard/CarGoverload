@@ -1,10 +1,10 @@
 package model
 
 type CarBooking struct {
-	Supplier string
-	Date  string
-	Id int
-	Arrival Node
-	Departure Node
-	Car Car
+	Supplier 		string		`json:"supplier"`
+	Date  			string		`json:"date"`
+	Id 				int			`json:"id"`
+	Arrival 		Node		`json:"arrivalNode"`
+	Departure 		Node		`json:"departureNode"`
+	Car 			Car			`json:"car"`
 }
