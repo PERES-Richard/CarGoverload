@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 var CAR_AVAILABILITY_URL string
@@ -28,17 +28,22 @@ func remove(s []Car, i int) []Car {
 	return s[:len(s)-1]
 }
 
+func getJson(url string, target interface{}) error {
+	var myClient = &http.Client{Timeout: 10 * time.Second}
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	return json.NewDecoder(r.Body).Decode(target)
+}
+
 // Get booked cars from carAvailability
 func getBookedCars(carType string, date string) ([]Car, error) {
-	resp, err := http.Get(CAR_AVAILABILITY_URL + "/car-availability/getNonAvailableCars?type=" + carType + "&date=" + date)
-	if err != nil {
-		return []Car{}, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	log.Println(body)
 	var res []Car
-	return res, nil /*err*/
+	err := getJson("http://" + CAR_AVAILABILITY_URL + "/car-availability/getNonAvailableCars?type=" + carType + "&date=" + date, res)
+	return res, err
 }
 
 // Basic OK route for healthcheck
@@ -105,8 +110,8 @@ func main() {
 		// OR raise error
 	}
 
-	if port = os.Getenv("CAR_AVAILABILITY_URL"); port == "" {
-		CAR_AVAILABILITY_URL = "localhost:3001"
+	if CAR_AVAILABILITY_URL = os.Getenv("CAR_AVAILABILITY_URL"); CAR_AVAILABILITY_URL == "" {
+		CAR_AVAILABILITY_URL = "localhost/car-availability"
 		// OR raise error
 	}
 
