@@ -60,10 +60,10 @@ func createSell()  http.Handler{
 }
 
 func MakeSellHandlers(r *mux.Router) {
-	r.Handle("/booking-process/books", listSells(),
+	r.Handle("/booking-process/sells", listSells(),
 	).Methods("GET", "OPTIONS").Name("listSells")
 
-	r.Handle("/booking-process/books", createSell(),
+	r.Handle("/booking-process/sells", createSell(),
 	).Methods("POST", "OPTIONS").Name("createSell")
 
 }
