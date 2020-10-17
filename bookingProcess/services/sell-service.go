@@ -7,10 +7,12 @@ import (
 
 type Service struct {
 	//repo Repository
+	currentSells []models.Sell
 }
 
 func NewService() *Service {
 	return &Service{
+		currentSells: make([]models.Sell,0),
 	}
 }
 
@@ -21,13 +23,10 @@ func (s *Service) CreateSell(customerName string, wagonType string, bookDate tim
 		WagonType:    wagonType,
 		BookDate:     bookDate,
 	}
+	s.currentSells = append(s.currentSells, sell)
 	return sell;
 }
 
 func (s *Service) ListSells() ([]models.Sell) {
-	var sells []models.Sell
-	sells = append(sells, s.CreateSell("UPS", "Liquide", time.Now()))
-	sells = append(sells, s.CreateSell("Amazon", "Solide", time.Now()))
-
-	return sells;
+	return s.currentSells;
 }
