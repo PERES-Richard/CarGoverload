@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"bookingProcess/models"
+	"bookingProcess/services"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
@@ -9,17 +9,11 @@ import (
 	"time"
 )
 
-func listSells()  http.Handler{
+func listSells(sellService *services.Service)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Error reading sells"
 
-		tmp := models.Sell{
-			ID: 1,
-			CustomerName: "UPS",
-			WagonType: "Liquide",
-			BookDate: time.Now(),
-		}
-		if err := json.NewEncoder(w).Encode(tmp); err != nil {
+		if err := json.NewEncoder(w).Encode(sellService.ListSells()); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(errorMessage))
 		}
@@ -27,12 +21,12 @@ func listSells()  http.Handler{
 
 }
 
-func createSell()  http.Handler{
+func createSell(sellService *services.Service)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Error creating sell"
 		var input struct {
 			CustomerName    string `json:"customerName"`
-			WagonType   string `json:"goodsType"`
+			WagonType   string `json:"wagonType"`
 		}
 		err := json.NewDecoder(r.Body).Decode(&input)
 		if err != nil {
@@ -41,12 +35,7 @@ func createSell()  http.Handler{
 			w.Write([]byte(errorMessage))
 			return
 		}
-		tmp := models.Sell{
-			ID:        0,
-			CustomerName:     input.CustomerName,
-			WagonType:    input.WagonType,
-			BookDate:     time.Now(),
-		}
+		tmp := sellService.CreateSell(input.CustomerName, input.WagonType, time.Now())
 
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(tmp); err != nil {
@@ -59,11 +48,11 @@ func createSell()  http.Handler{
 
 }
 
-func MakeSellHandlers(r *mux.Router) {
-	r.Handle("/booking-process/sells", listSells(),
+func MakeSellHandlers(r *mux.Router, sellService *services.Service) {
+	r.Handle("/booking-process/sells", listSells(sellService),
 	).Methods("GET", "OPTIONS").Name("listSells")
 
-	r.Handle("/booking-process/sells", createSell(),
+	r.Handle("/booking-process/sells", createSell(sellService),
 	).Methods("POST", "OPTIONS").Name("createSell")
 
 }
