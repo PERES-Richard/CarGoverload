@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -52,8 +53,8 @@ func paySell(sellService *services.Service)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Error reading sells"
 		vars := mux.Vars(r)
-		log.Printf(vars["id"])
-		if err := json.NewEncoder(w).Encode(sellService.PaySell("test")); err != nil {
+		tmp, _ := strconv.Atoi(vars["id"])
+		if err := json.NewEncoder(w).Encode(sellService.PaySell(tmp)); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(errorMessage))
 		}

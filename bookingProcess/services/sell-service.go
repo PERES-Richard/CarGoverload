@@ -3,6 +3,7 @@ package services
 import (
 	"bookingProcess/entities"
 	"bookingProcess/utils"
+	"math/rand"
 	"time"
 )
 
@@ -29,7 +30,7 @@ func (s *Service) useBank(bank utils.BankAPI) {
 
 func (s *Service) CreateSell(customerName string, wagonType string, bookDate time.Time, price float32) (entities.Sell) {
 	sell := entities.Sell{
-		ID:        0,
+		ID:        rand.Int(),
 		CustomerName:     customerName,
 		WagonType:    wagonType,
 		BookDate:     bookDate,
@@ -43,11 +44,11 @@ func (s *Service) ListSells() ([]entities.Sell) {
 	return s.currentSells;
 }
 
-func (s *Service) PaySell(customerName string) bool {
+func (s *Service) PaySell(id int) bool {
 
 	for _, n := range s.currentSells {
-		if n.CustomerName == customerName {
-			return s.bankAPI.PerformPayment(customerName, n.Price)
+		if n.ID == id {
+			return s.bankAPI.PerformPayment(n.CustomerName, n.Price)
 
 		}
 	}
