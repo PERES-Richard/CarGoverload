@@ -35,7 +35,7 @@ func createSell(sellService *services.Service)  http.Handler{
 			w.Write([]byte(errorMessage))
 			return
 		}
-		tmp := sellService.CreateSell(input.CustomerName, input.WagonType, time.Now())
+		tmp := sellService.CreateSell(input.CustomerName, input.WagonType, time.Now(), 10.5)
 
 		w.WriteHeader(http.StatusCreated)
 		if err := json.NewEncoder(w).Encode(tmp); err != nil {
@@ -48,11 +48,27 @@ func createSell(sellService *services.Service)  http.Handler{
 
 }
 
+func paySell(sellService *services.Service)  http.Handler{
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		errorMessage := "Error reading sells"
+		vars := mux.Vars(r)
+		log.Printf(vars["id"])
+		if err := json.NewEncoder(w).Encode(sellService.PaySell("test")); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(errorMessage))
+		}
+	})
+
+}
+
 func MakeSellHandlers(r *mux.Router, sellService *services.Service) {
 	r.Handle("/booking-process/sells", listSells(sellService),
 	).Methods("GET", "OPTIONS").Name("listSells")
 
 	r.Handle("/booking-process/sells", createSell(sellService),
 	).Methods("POST", "OPTIONS").Name("createSell")
+
+	r.Handle("/booking-process/sell/{id}/payment", paySell(sellService),
+	).Methods("POST", "OPTIONS").Name("paySell")
 
 }
