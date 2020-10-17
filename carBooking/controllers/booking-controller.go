@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"carBooking/repository"
+	"carBooking/services"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"io"
@@ -22,10 +23,10 @@ type SearchParams struct {
 	NodeArrivalId int `json:"arrivalId"`
 }
 
-func findBookedCars()  http.Handler{
+func findBookedCars(bookingService *services.BookingService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		jsonError := json.NewEncoder(w).Encode(repository.FindAllBookings())
+		jsonError := json.NewEncoder(w).Encode(bookingService.FindAllBookings())
 		if jsonError != nil {
 			e := JSONError{Message: "Internal Server Error"}
 			w.WriteHeader(http.StatusInternalServerError)
@@ -36,7 +37,7 @@ func findBookedCars()  http.Handler{
 
 }
 
-func bookCar()  http.Handler {
+func bookCar(bookingService *services.BookingService)  http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var sp SearchParams
 		_ = json.NewDecoder(r.Body).Decode(&sp)
@@ -82,7 +83,7 @@ func bookCar()  http.Handler {
 		}
 
 		//TODO check if car is not already used
-		repository.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival)
+		bookingService.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival)
 		w.WriteHeader(http.StatusCreated)
 		_, err = io.WriteString(w, "Ok it's booked")
 		if err != nil {
@@ -92,11 +93,11 @@ func bookCar()  http.Handler {
 }
 
 
-func MakeBookingHandlers(r *mux.Router) {
-	r.Handle("/car-booking/findAll", findBookedCars(),
+func MakeBookingHandlers(r *mux.Router, bookingService *services.BookingService) {
+	r.Handle("/car-booking/findAll", findBookedCars(bookingService),
 	).Methods("GET", "OPTIONS").Name("listSells")
 
-	r.Handle("/car-booking/book", bookCar(),
+	r.Handle("/car-booking/book", bookCar(bookingService),
 	).Methods("POST", "OPTIONS").Name("createSell")
 
 

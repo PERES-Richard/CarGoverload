@@ -2,7 +2,7 @@ package main
 
 import (
 	"carBooking/controllers"
-	"carBooking/repository"
+	"carBooking/services"
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
@@ -35,11 +35,11 @@ func main() {
 	router := mux.NewRouter()
 
 	//TODO remove when bdd is up
-	repository.InitMock()
+	bookingService := services.NewService()
 
 	// All the routes of the app
 	router.HandleFunc("/car-booking/ok", ok).Methods("GET")
-	controllers.MakeBookingHandlers(router)
+	controllers.MakeBookingHandlers(router, bookingService)
 
 	fmt.Println("Server is running on port " + port)
 
