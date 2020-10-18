@@ -1,13 +1,11 @@
 package controllers
 
 import (
-	"carSearching/entities"
 	"carSearching/services"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"os"
 )
 
 
@@ -27,7 +25,7 @@ func search(searchingService *services.SearchingService)  http.Handler{
 		w.Header().Set("Content-Type", "application/json")
 		params := req.URL.Query()
 
-		typeParams, ok := params["type"]
+		typeParams, ok := params["carType"]
 		if !ok {
 			log.Println("Error search : Type parameter not provided")
 		}

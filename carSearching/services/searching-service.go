@@ -15,7 +15,7 @@ type SearchingService struct {
 func NewService() *SearchingService {
 	var carURL string;
 	if carURL = os.Getenv("CAR_AVAILABILITY_URL"); carURL == "" {
-		carURL = "localhost/car-availability"
+		carURL = "localhost:3001/car-availability"
 		// OR raise error
 	}
 	return &SearchingService{
@@ -69,6 +69,6 @@ func (s *SearchingService) Search(carType string, date string) []entities.Car{
 // Get booked cars from carAvailability
 func (s *SearchingService) getBookedCars(carType string, date string) ([]entities.Car, error) {
 	var res []entities.Car
-	err := s.getJson("http://" + s.CAR_AVAILABILITY_URL + "/getNonAvailableCars?type=" + carType + "&date=" + date, res)
+	err := s.getJson("http://" + s.CAR_AVAILABILITY_URL + "/getNonAvailableCars?carType=" + carType + "&date=" + date, res)
 	return res, err
 }
