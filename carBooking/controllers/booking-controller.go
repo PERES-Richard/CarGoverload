@@ -95,10 +95,10 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 
 func MakeBookingHandlers(r *mux.Router, bookingService *services.BookingService) {
 	r.Handle("/car-booking/findAll", findBookedCars(bookingService),
-	).Methods("GET", "OPTIONS").Name("listSells")
+	).Methods("GET", "OPTIONS").Name("findAllBookings")
 
 	r.Handle("/car-booking/book", bookCar(bookingService),
-	).Methods("POST", "OPTIONS").Name("createSell")
+	).Methods("POST", "OPTIONS").Name("bookCar")
 
 
 }
