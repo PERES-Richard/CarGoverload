@@ -1,6 +1,7 @@
 package main
 
 import (
+	"carSearching/entities"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -13,17 +14,14 @@ import (
 
 var CAR_AVAILABILITY_URL string
 
-type Car struct {
-	Id int
-	Type string
-}
+
 
 // Custom error to return in case of a JSON parsing error
 type JSONError struct {
 	Message string `json:"Message"`
 }
 
-func remove(s []Car, i int) []Car {
+func remove(s []entities.Car, i int) []entities.Car {
 	s[len(s)-1], s[i] = s[i], s[len(s)-1]
 	return s[:len(s)-1]
 }
@@ -40,8 +38,8 @@ func getJson(url string, target interface{}) error {
 }
 
 // Get booked cars from carAvailability
-func getBookedCars(carType string, date string) ([]Car, error) {
-	var res []Car
+func getBookedCars(carType string, date string) ([]entities.Car, error) {
+	var res []entities.Car
 	err := getJson("http://" + CAR_AVAILABILITY_URL + "/getNonAvailableCars?type=" + carType + "&date=" + date, res)
 	return res, err
 }
@@ -77,7 +75,7 @@ func search(w http.ResponseWriter, req *http.Request) {
 
 	// carTracking service mocking
 	// TODO: created carTracking service with mocking
-	res := []Car{Car{Id: 1, Type: typeParams[0]}, Car{Id: 3, Type: typeParams[0]}}
+	res := []entities.Car{entities.Car{Id: 1, CarType: typeParams[0]}, entities.Car{Id: 3, CarType: typeParams[0]}}
 
 	// Remove booked cars from result
 	for i, c := range res {
