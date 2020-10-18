@@ -149,7 +149,7 @@ func main() {
 	}
 
 	if carBookingURL = os.Getenv("CARBOOKING_URL"); carBookingURL == "" {
-		carBookingURL = "localhost"
+		carBookingURL = "localhost:3002"
 	}
 	if getBookingRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); getBookingRoute == "" {
 		getBookingRoute = "/car-booking/findAll"

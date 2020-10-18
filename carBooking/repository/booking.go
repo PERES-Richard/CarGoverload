@@ -1,53 +1,53 @@
 package repository
 
 import (
-	"carBooking/model"
+	"carBooking/entities"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
 )
 
-var carType = model.CarType{
+var carType = entities.CarType{
 	Name: "Liquid",
 	Id:   1,
 }
-var carType2 = model.CarType{
+var carType2 = entities.CarType{
 	Name: "Solid",
 	Id:   2,
 }
 
-var node = model.Node{
+var node = entities.Node{
 	Name:           "Nice",
 	Id:             1,
-	AvailableCarTypes: []model.CarType{carType},
+	AvailableCarTypes: []entities.CarType{carType},
 }
-var node2 = model.Node{
+var node2 = entities.Node{
 	Name:           "Marseilles",
 	Id:             2,
-	AvailableCarTypes: []model.CarType{carType},
+	AvailableCarTypes: []entities.CarType{carType},
 }
-var nodes = []model.Node{
+var nodes = []entities.Node{
 	node, node2,
 }
 
-var car = model.Car{
+var car = entities.Car{
 	Id: 1,
 	CarType: carType,
 }
-var car2 = model.Car{
+var car2 = entities.Car{
 	Id: 1,
 	CarType: carType2,
 }
-var cars = []model.Car{
+var cars = []entities.Car{
 	car, car2,
 }
 
-var bookings []model.CarBooking
+var bookings []entities.CarBooking
 
 func InitMock(){
 	date, _ := time.Parse(time.RFC3339, "2020-01-10T10:30:00+02:00")
-	bookings = append(bookings, model.CarBooking{
+	bookings = append(bookings, entities.CarBooking{
 		Supplier: "Dracip",
 		Date: date,
 		Id: 1,
@@ -57,7 +57,7 @@ func InitMock(){
 	})
 
 	date, _ = time.Parse(time.RFC3339, "2020-01-10T15:30:00+02:00")
-	bookings = append(bookings, model.CarBooking{
+	bookings = append(bookings, entities.CarBooking{
 		Supplier: "Tahcapot",
 		Date: date,
 		Id: 2,
@@ -69,14 +69,14 @@ func InitMock(){
 
 
 
-func CreateBook(Date time.Time, Car model.Car , Supplier string, NodeDeparture model.Node, NodeArrival model.Node){
+func CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDeparture entities.Node, NodeArrival entities.Node){
 	fmt.Println(Date)
 	fmt.Println(Car)
 	fmt.Println(Supplier)
 	fmt.Println(NodeDeparture)
 	fmt.Println(NodeArrival)
 
-	bookings = append(bookings, model.CarBooking{
+	bookings = append(bookings, entities.CarBooking{
 		Date: Date,
 		Supplier: Supplier,
 		Departure: NodeDeparture,
@@ -86,24 +86,24 @@ func CreateBook(Date time.Time, Car model.Car , Supplier string, NodeDeparture m
 	//TODO use mongo
 }
 
-func FindAllBookings() []model.CarBooking{
+func FindAllBookings() []entities.CarBooking{
 	return bookings
 }
 
-func GetNodeFromId(id int) (model.Node, error){
+func GetNodeFromId(id int) (entities.Node, error){
 	for _, node := range nodes{
 		if node.Id == id{
 			return node, nil
 		}
 	}
-	return model.Node{}, errors.New("Error 404: Node with id " + strconv.Itoa(id) + " not found")
+	return entities.Node{}, errors.New("Error 404: Node with id " + strconv.Itoa(id) + " not found")
 }
 
-func GetCarFromId(id int) (model.Car, error){
+func GetCarFromId(id int) (entities.Car, error){
 	for _, car := range cars{
 		if car.Id == id{
 			return car, nil
 		}
 	}
-	return model.Car{}, errors.New("Error 404: Node with id " + strconv.Itoa(id) + " not found")
+	return entities.Car{}, errors.New("Error 404: Node with id " + strconv.Itoa(id) + " not found")
 }
