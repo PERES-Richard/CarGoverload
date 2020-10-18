@@ -2,6 +2,7 @@ package main
 
 import (
 	"carSearching/controllers"
+	"carSearching/services"
 	"fmt"
 	"github.com/gorilla/mux"
 	"io"
@@ -31,9 +32,11 @@ func main() {
 	// Create a new router to serve routes
 	router := mux.NewRouter()
 
+	searchingService := services.NewService()
+
 	// All the routes of the app
 	router.HandleFunc("/car-searching/ok", ok).Methods("GET")
-	controllers.MakeSearchingHandlers(router)
+	controllers.MakeSearchingHandlers(router, searchingService)
 
 	fmt.Println("Server is running on port " + port)
 
