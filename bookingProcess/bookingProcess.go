@@ -2,6 +2,7 @@ package main
 
 import (
 	"bookingProcess/controllers"
+	"bookingProcess/entities"
 	"bookingProcess/services"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -29,8 +30,14 @@ func main() {
 
 	// Create a new router to serve routes
 	router := mux.NewRouter()
-	sellService := services.NewService();
-	controllers.MakeSellHandlers(router, sellService);
+	MockedSupplier := entities.Supplier{
+		ID:5,
+		Name:"Amazon",
+		Offers: []entities.Offer{},
+	}
+
+	offerService := services.NewService([]entities.Supplier{MockedSupplier});
+	controllers.MakeOfferHandlers(router, offerService);
 	// All the routes of the app
 	router.HandleFunc("/booking-process/ok", ok).Methods("GET")
 
