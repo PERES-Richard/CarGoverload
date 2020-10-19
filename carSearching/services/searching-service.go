@@ -3,6 +3,7 @@ package services
 import (
 	"carSearching/entities"
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -48,8 +49,10 @@ func (s *SearchingService) Search(carType string, date string) []entities.Car{
 
 	// carTracking service mocking
 	// TODO: created carTracking service with mocking
-	res := []entities.Car{entities.Car{Id: 1, CarType: carType}, entities.Car{Id: 3, CarType: carType}}
+	res := []entities.Car{entities.Car{Id: 1, CarType: entities.CarType{Name:"Liquid", Id:1}}, entities.Car{Id: 3, CarType: entities.CarType{Name:"Solid", Id:2}}}
+	log.Println(res)
 
+	return res //Todo Fix Length Error on the remove so returned res here
 	// Remove booked cars from result
 	for i, c := range res {
 		b := false
@@ -69,6 +72,7 @@ func (s *SearchingService) Search(carType string, date string) []entities.Car{
 // Get booked cars from carAvailability
 func (s *SearchingService) getBookedCars(carType string, date string) ([]entities.Car, error) {
 	var res []entities.Car
-	err := s.getJson("http://" + s.CAR_AVAILABILITY_URL + "/getNonAvailableCars?carType=" + carType + "&date=" + date, res)
+	err := s.getJson("http://" + s.CAR_AVAILABILITY_URL + "/getNonAvailableCars?carType=" + carType + "&date=" + date, &res)
+	log.Println(res)
 	return res, err
 }
