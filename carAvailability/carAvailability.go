@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/robpike/filter"
+	"robpike.io/filter"
 )
 
 // Custom error to return in case of a JSON parsing error
@@ -21,15 +21,21 @@ type JSONError struct {
 // A Car representation for this svc
 type Car struct {
 	Id      int       `json:"id"`
-	CarType string    `json:"carType"` // TODO replace with enum ?
-	Date    time.Time `json:"date"`
+	CarType CarType    `json:"carType"` // TODO replace with enum ?
+	//Date    time.Time `json:"date"`
 }
 
 // A Car representation for this svc from carBooking
 type Booking struct {
+	Supplier 		string		`json:"supplier"`
 	Date time.Time `json:"date"`
 	Id   int       `json:"id"`
 	Car  Car       `json:"car"`
+}
+
+type CarType struct {
+	Name 	string		`json:"name"`
+	Id 		int			`json:"id"`
 }
 
 var carBookingURL string
@@ -59,7 +65,7 @@ func getJson(url string, target interface{}) error {
 // TODO Should return the list of car booked from DB and/or CarBooking service
 func carsBookedList() []Car {
 	bookings := make([]Booking, 0)
-	err := getJson("http://"+carBookingURL+getBookingRoute, bookings)
+	err := getJson("http://"+carBookingURL+getBookingRoute, &bookings)
 	if err != nil{
 		log.Println(err)
 	}
@@ -75,7 +81,7 @@ func bookingsToCars(bookings []Booking) []Car {
 		cars = append(cars, Car{
 			Id:      book.Car.Id,
 			CarType: book.Car.CarType,
-			Date:    book.Date,
+			//Date:    book.Date,
 		})
 	}
 
@@ -89,7 +95,7 @@ func getNonAvailableCars(date time.Time, carType string) []Car {
 
 	// TODO logic
 	var i interface{} = filter.Choose(carsBooked, func(car Car) bool {
-		return car.CarType == carType && car.Date.YearDay() == date.YearDay()
+		return car.CarType.Name == carType /*&& car.Date.YearDay() == date.YearDay()*/
 	})
 	carsBookedFiltered, ok := i.([]Car)
 
