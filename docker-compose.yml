@@ -34,7 +34,7 @@ services:
       - MONGO_DB=cargoverload
       - CARBOOKING_GETBOOKING_URL=/car-booking/findAll
       - CAR_BOOKING_PORT=3002
-      - CARBOOKING_HOST=car-booking
+      - CAR_BOOKING_HOST=car-booking
     depends_on:
       - mongo
     expose:
