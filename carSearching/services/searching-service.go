@@ -3,6 +3,7 @@ package services
 import (
 	"carSearching/entities"
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -23,7 +24,7 @@ func NewService() *SearchingService {
 	}
 	var carAvHost string;
 	if carAvHost = os.Getenv("CAR_AVAILABILITY_HOST"); carAvHost == "" {
-		carAvHost = "car-availability"
+		carAvHost = "localhost"
 		// OR raise error
 	}
 	return &SearchingService{
@@ -46,26 +47,26 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 
 // Main search algorithm
 func (s *SearchingService) Search(carType string, date string) []entities.Car{
-	log.Println("Initiating search algorithm")
 	bookedCars, err := s.getBookedCars(carType, date)
+	log.Println("Booked cars: ",bookedCars,"Err: ",err)
 	if err != nil {
 		return []entities.Car{}
 	}
 
 	// carTracking service mocking
 	res := []entities.Car{entities.Car{Id: 1, CarType: entities.CarType{Name:"Liquid", Id:1}}, entities.Car{Id: 3, CarType: entities.CarType{Name:"Solid", Id:2}}}
-	log.Println(res)
+	log.Println("Available cars, ",res)
 
 	// Remove booked cars from result
-	for i, c := range res {
-		b := false
-		for _, bc := range bookedCars {
-			if bc.Id == c.Id {
-				b = true
+	for _, car := range res {
+		booked := false
+		for _, bookedCar := range bookedCars {
+			if bookedCar.Id == car.Id {
+				booked = true
 			}
 		}
-		if b {
-			res = remove(res, i)
+		if booked {
+			res, _ = removeCar(res, car)
 		}
 	}
 	return res
@@ -74,14 +75,21 @@ func (s *SearchingService) Search(carType string, date string) []entities.Car{
 // Get booked cars from carAvailability
 func (s *SearchingService) getBookedCars(carType string, date string) ([]entities.Car, error) {
 	var res []entities.Car
-	log.Println(s.CAR_AVAILABILITY_PORT + ":" + s.CAR_AVAILABILITY_HOST)
 	err := s.sendRequest("http://" + s.CAR_AVAILABILITY_HOST + ":" + s.CAR_AVAILABILITY_PORT + "/car-availability/getNonAvailableCars?carType=" + carType + "&date=" + date, &res)
 	log.Println(res)
 	return res, err
 }
 
 // Remove element from array or splice
-func remove(s []entities.Car, i int) []entities.Car {
-	s[len(s)-1], s[i] = s[i], s[len(s)-1]
-	return s[:len(s)-1]
+func removeCar(carList []entities.Car, car entities.Car) ([]entities.Car, error) {
+	err := errors.New("Remove error: car not found")
+	var result []entities.Car
+	for _, c := range carList {
+		if c.Id != car.Id {
+			result = append(result, c)
+		} else {
+			err = errors.New("")
+		}
+	}
+	return result, err
 }
