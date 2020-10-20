@@ -10,27 +10,30 @@ import (
 )
 
 type SearchingService struct {
-	CAR_AVAILABILITY_URL string
+	CAR_AVAILABILITY_PORT string
+	CAR_AVAILABILITY_HOST string
 }
 
+// Instantiate new service
 func NewService() *SearchingService {
-	var carURL string;
-	if carURL = os.Getenv("CAR_AVAILABILITY_URL"); carURL == "" {
-		carURL = "localhost:3001/car-availability"
+	var carAvPort string;
+	if carAvPort = os.Getenv("CAR_AVAILABILITY_PORT"); carAvPort == "" {
+		carAvPort = "3001"
+		// OR raise error
+	}
+	var carAvHost string;
+	if carAvHost = os.Getenv("CAR_AVAILABILITY_HOST"); carAvHost == "" {
+		carAvHost = "car-availability"
 		// OR raise error
 	}
 	return &SearchingService{
-		CAR_AVAILABILITY_URL: carURL,
+		CAR_AVAILABILITY_PORT: carAvPort,
+		CAR_AVAILABILITY_HOST: carAvHost,
 	}
 }
 
-func remove(s []entities.Car, i int) []entities.Car {
-	s[len(s)-1], s[i] = s[i], s[len(s)-1]
-	return s[:len(s)-1]
-}
-
-
-func (s *SearchingService) getJson(url string, target interface{}) error {
+// Send request and store JSON result into target interface
+func (s *SearchingService) sendRequest(url string, target interface{}) error {
 	var myClient = &http.Client{Timeout: 10 * time.Second}
 	r, err := myClient.Get(url)
 	if err != nil {
@@ -41,18 +44,18 @@ func (s *SearchingService) getJson(url string, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
+// Main search algorithm
 func (s *SearchingService) Search(carType string, date string) []entities.Car{
+	log.Println("Initiating search algorithm")
 	bookedCars, err := s.getBookedCars(carType, date)
 	if err != nil {
 		return []entities.Car{}
 	}
 
 	// carTracking service mocking
-	// TODO: created carTracking service with mocking
 	res := []entities.Car{entities.Car{Id: 1, CarType: entities.CarType{Name:"Liquid", Id:1}}, entities.Car{Id: 3, CarType: entities.CarType{Name:"Solid", Id:2}}}
 	log.Println(res)
 
-	return res //Todo Fix Length Error on the remove so returned res here
 	// Remove booked cars from result
 	for i, c := range res {
 		b := false
@@ -65,14 +68,20 @@ func (s *SearchingService) Search(carType string, date string) []entities.Car{
 			res = remove(res, i)
 		}
 	}
-
 	return res
 }
 
 // Get booked cars from carAvailability
 func (s *SearchingService) getBookedCars(carType string, date string) ([]entities.Car, error) {
 	var res []entities.Car
-	err := s.getJson("http://" + s.CAR_AVAILABILITY_URL + "/getNonAvailableCars?carType=" + carType + "&date=" + date, &res)
+	log.Println(s.CAR_AVAILABILITY_PORT + ":" + s.CAR_AVAILABILITY_HOST)
+	err := s.sendRequest("http://" + s.CAR_AVAILABILITY_HOST + ":" + s.CAR_AVAILABILITY_PORT + "/car-availability/getNonAvailableCars?carType=" + carType + "&date=" + date, &res)
 	log.Println(res)
 	return res, err
+}
+
+// Remove element from array or splice
+func remove(s []entities.Car, i int) []entities.Car {
+	s[len(s)-1], s[i] = s[i], s[len(s)-1]
+	return s[:len(s)-1]
 }

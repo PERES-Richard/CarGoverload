@@ -11,7 +11,6 @@ import (
 	"os"
 )
 
-
 // Basic OK route for healthcheck
 func ok(w http.ResponseWriter, req *http.Request) {
 	_, err := io.WriteString(w, "ok")
@@ -27,7 +26,6 @@ func main() {
 		port = "3003"
 		// OR raise error
 	}
-
 
 	// Create a new router to serve routes
 	router := mux.NewRouter()
