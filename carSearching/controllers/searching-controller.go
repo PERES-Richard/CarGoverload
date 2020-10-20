@@ -8,17 +8,10 @@ import (
 	"net/http"
 )
 
-
-
-
 // Custom error to return in case of a JSON parsing error
 type JSONError struct {
 	Message string `json:"Message"`
 }
-
-
-
-
 
 func search(searchingService *services.SearchingService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
@@ -48,7 +41,5 @@ func search(searchingService *services.SearchingService)  http.Handler{
 }
 
 func MakeSearchingHandlers(r *mux.Router, searchingService *services.SearchingService) {
-
 	r.Handle("/car-searching/search", search(searchingService),).Methods("GET", "OPTIONS").Name("search")
-
 }
