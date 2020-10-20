@@ -14,66 +14,92 @@ import (
 	"time"
 )
 
-var Database *mongo.Database
-
 var CollectionNode = "node"
 var CollectionBooking = "booking"
 var CollectionCarType = "car_type"
 var CollectionCar = "car"
 
-func InitDatabase(){
+var databaseName string
+
+func getDatabaseClient() *mongo.Client{
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://" + os.Getenv("MONGO_HOST") + ":" + os.Getenv("MONGO_PORT")))
 	if err != nil{
 		log.Fatal("Error to connect to database")
 	}
-	defer func() {
-		if err = client.Disconnect(ctx); err != nil {
-			panic(err)
-		}
-	}()
-	Database = client.Database(os.Getenv("MONGO_DB"))
+	return client
+}
 
-	collection := Database.Collection(CollectionCarType)
+func InitDatabase(){
+	databaseName = os.Getenv("MONGO_DB")
+
+	client := getDatabaseClient()
+	database := client.Database(databaseName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	collection := database.Collection(CollectionCarType)
 	var carSolid = entities.CarType{Name: "Solid", Id:   1}
 	_, _ = collection.InsertOne(ctx, carSolid)
 	var carLiquid = entities.CarType{Name: "Liquid", Id:   2}
 	_, _ = collection.InsertOne(ctx, carLiquid)
 
-	collection = Database.Collection(CollectionNode)
+	collection = database.Collection(CollectionNode)
 	var nodeNice = entities.Node{Name:           "Nice", Id:             1, AvailableCarTypes: []entities.CarType{carLiquid}}
 	_, _ = collection.InsertOne(ctx, nodeNice)
 	var nodeMarseille = entities.Node{Name:           "Marseilles", Id:             2, AvailableCarTypes: []entities.CarType{carLiquid, carSolid}}
 	_, _ = collection.InsertOne(ctx, nodeMarseille)
 
-	collection = Database.Collection(CollectionCar)
+	collection = database.Collection(CollectionCar)
 	var car = entities.Car{Id:             1, CarType: carLiquid}
 	_, _ = collection.InsertOne(ctx, car)
 	var car2 = entities.Car{Id:             2, CarType: carSolid}
 	_, _ = collection.InsertOne(ctx, car2)
+
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	CreateBook(time.Now(), car, "Picard", nodeNice, nodeMarseille)
 }
 
 func CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDeparture entities.Node, NodeArrival entities.Node){
+	client := getDatabaseClient()
+	database := client.Database(databaseName)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, _ = Database.Collection(CollectionBooking).InsertOne(ctx, entities.CarBooking{
+	_, _ = database.Collection(CollectionBooking).InsertOne(ctx, entities.CarBooking{
 		Date: Date,
 		Supplier: Supplier,
 		Departure: NodeDeparture,
 		Arrival: NodeArrival,
 		Car: Car,
 	})
+
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
 }
 
 func FindAllBookings() []entities.CarBooking{
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	log.Println("Entering find all")
+
+	client := getDatabaseClient()
+	database := client.Database(databaseName)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := Database.Collection(CollectionBooking).Find(ctx, bson.D{})
+	cur, err := database.Collection(CollectionBooking).Find(ctx, bson.D{})
 	if err != nil { log.Fatal(err) }
 	defer cur.Close(ctx)
 
-	var toReturn []entities.CarBooking
+	var toReturn = []entities.CarBooking{}
+
+	log.Println("Find all 2")
 
 	for cur.Next(ctx) {
 		var result bson.M
@@ -134,15 +160,25 @@ func FindAllBookings() []entities.CarBooking{
 	if err := cur.Err(); err != nil {
 		log.Fatal(err)
 	}
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
 
+	log.Println("End find all 2")
+	log.Println(toReturn)
 	return toReturn
 }
 
 func GetNodeFromId(id int) (entities.Node, error){
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	client := getDatabaseClient()
+	database := client.Database(databaseName)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	var result bson.M
-	err := Database.Collection(CollectionNode).FindOne(ctx, bson.M{"id": id}).Decode(&result)
+	err := database.Collection(CollectionNode).FindOne(ctx, bson.M{"id": id}).Decode(&result)
 	if err != nil {
 		return entities.Node{}, errors.New("Error 404: Node with id " + strconv.Itoa(id) + " not found")
 	}
@@ -157,6 +193,12 @@ func GetNodeFromId(id int) (entities.Node, error){
 		})
 	}
 
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
 	return entities.Node{
 		Id: result["id"].(int32),
 		Name: result["name"].(string),
@@ -165,10 +207,13 @@ func GetNodeFromId(id int) (entities.Node, error){
 }
 
 func GetCarFromId(id int) (entities.Car, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	client := getDatabaseClient()
+	database := client.Database(databaseName)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	var result bson.M
-	err := Database.Collection(CollectionCar).FindOne(ctx, bson.M{"id": id}).Decode(&result)
+	err := database.Collection(CollectionCar).FindOne(ctx, bson.M{"id": id}).Decode(&result)
 	if err != nil {
 		return entities.Car{}, errors.New("Error 404: Car with id " + strconv.Itoa(id) + " not found")
 	}
@@ -178,6 +223,12 @@ func GetCarFromId(id int) (entities.Car, error) {
 		Name: theMap["name"].(string),
 		Id:   theMap["id"].(int32),
 	}
+
+	defer func() {
+		if err := client.Disconnect(ctx); err != nil {
+			panic(err)
+		}
+	}()
 
 	return entities.Car{
 		Id: result["id"].(int32),
