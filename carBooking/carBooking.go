@@ -2,6 +2,7 @@ package main
 
 import (
 	"carBooking/controllers"
+	"carBooking/repository"
 	"carBooking/services"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -11,8 +12,6 @@ import (
 	"os"
 )
 
-
-
 // Basic OK route for healthcheck
 func ok(w http.ResponseWriter, _ *http.Request) {
 	_, err := io.WriteString(w, "ok")
@@ -20,8 +19,6 @@ func ok(w http.ResponseWriter, _ *http.Request) {
 		log.Fatal(err)
 	}
 }
-
-
 
 func main() {
 	// If there is a port variable set in env
@@ -34,12 +31,10 @@ func main() {
 	// Create a new router to serve routes
 	router := mux.NewRouter()
 
-	//TODO remove when bdd is up
-	bookingService := services.NewService()
-
 	// All the routes of the app
 	router.HandleFunc("/car-booking/ok", ok).Methods("GET")
-	controllers.MakeBookingHandlers(router, bookingService)
+	repository.InitDatabase()
+	controllers.MakeBookingHandlers(router, services.NewService())
 
 	fmt.Println("Server is running on port " + port)
 

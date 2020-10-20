@@ -11,7 +11,7 @@ type BookingService struct {
 }
 
 func NewService() *BookingService {
-	repository.InitMock()
+	//repository.InitMock()
 	return &BookingService{
 
 	}
