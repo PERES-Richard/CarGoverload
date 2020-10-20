@@ -20,7 +20,7 @@ Cette semaine nous avons revu notre scénario principal suite aux retours. Nous 
 Nous prévoyons de commencer à mettre en place le code.
 
 ## Les blocages et risques
-Nous avons longement réfléchi à l'architecture du diagramme de composant, cependant, si les nouveaux retours sont négatifs concernant celui-ci ou les scénarios, nous aurons surement du mal à rattraper ce retard.
+Nous avons longuement réfléchi à l'architecture du diagramme de composant, cependant, si les nouveaux retours sont négatifs concernant celui-ci ou les scénarios, nous aurons surement du mal à rattraper ce retard.
 
 # Week 42: GREEN
 
@@ -35,3 +35,23 @@ Pour la semaine prochaine, nous finirons d'intégrer la CI (Circle CI), et comme
 ## Les blocages et risques
 
 Le risque principal provient de la technologie choisie qui est nouvelle pour nous (à la fois concernant Golang et CircleCI). En dehors de cela, il n'y a pas de problème particulier en vue pour l'instant.
+
+# Week 43: GREEN
+
+## Ce que l'on a fait
+
+- Intégration de tous les composants (OK à 90%)
+- Refactor de la structure de nos composants
+- Début de la persistance de nos réservations
+- Avancement de la logique métier nécessaire pour la POC (Notamment au niveau de la recherche et de la proposition d'offres disponibles à nos fournisseurs)
+ 
+## Ce que l'on a prévu
+
+- Finir l'intégration
+- Finir la persistance (que ce soit au niveau des réservations ou bien du stockage des offres proposés aux fournisseurs)
+- Finir la configuration de la CI 
+- Continuer la logique métier
+
+## Les blocages et risques
+
+Pas de problème prévisible pour le moment
