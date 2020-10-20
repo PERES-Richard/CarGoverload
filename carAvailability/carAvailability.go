@@ -155,16 +155,15 @@ func main() {
 	}
 
 	var carBookingHost, carBookingPort string
-	if carBookingHost := os.Getenv("CAR_BOOKING_HOST"); carBookingHost == "" {
+	if carBookingHost = os.Getenv("CAR_BOOKING_HOST"); carBookingHost == "" {
 		carBookingHost = "localhost"
 	}
 
-	if carBookingPort := os.Getenv("CAR_BOOKING_PORT"); carBookingPort == "" {
+	if carBookingPort = os.Getenv("CAR_BOOKING_PORT"); carBookingPort == "" {
 		carBookingPort = "3002"
 	}
 
 	carBookingURL = carBookingHost + ":" + carBookingPort
-
 
 	if getBookingRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); getBookingRoute == "" {
 		getBookingRoute = "/car-booking/findAll"
