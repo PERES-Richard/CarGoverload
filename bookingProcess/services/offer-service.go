@@ -15,14 +15,22 @@ type OfferService struct {
 	//repo Repository
 	suppliers []entities.Supplier
 	bankAPI utils.BankAPI
-	CAR_SEARCHING_URL string
+
+	CAR_SEARCHING_PORT string
+	CAR_SEARCHING_HOST string
 
 }
 
 func NewService(suppliers []entities.Supplier) *OfferService {
-	var carURL string;
-	if carURL = os.Getenv("CAR_SEARCHING_URL"); carURL == "" {
-		carURL = "localhost:3003/car-searching"
+
+	var carSrPort string;
+	if carSrPort = os.Getenv("CAR_SEARCHING_PORT"); carSrPort == "" {
+		carSrPort = "3003"
+		// OR raise error
+	}
+	var carSrHost string;
+	if carSrHost = os.Getenv("CAR_SEARCHING_HOST"); carSrHost == "" {
+		carSrHost = "localhost"
 		// OR raise error
 	}
 	return &OfferService{
@@ -32,7 +40,9 @@ func NewService(suppliers []entities.Supplier) *OfferService {
 			Port:"9090",
 			PaymentEP: "/pay",
 		},
-		CAR_SEARCHING_URL:carURL,
+		CAR_SEARCHING_HOST:carSrHost,
+		CAR_SEARCHING_PORT:carSrPort,
+
 	}
 }
 
@@ -55,7 +65,7 @@ func (s *OfferService) getJson(url string, target interface{}) error {
 func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time) ([]entities.Offer, error) {
 
 	var results []entities.Car
-	err := s.getJson("http://"+s.CAR_SEARCHING_URL+"/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339), &results)
+	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339), &results)
 	log.Println(results)
 
 	var offers []entities.Offer
