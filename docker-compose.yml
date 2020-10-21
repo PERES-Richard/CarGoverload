@@ -14,6 +14,8 @@ services:
       - MONGO_DB=cargoverload
       - CAR_SEARCHING_HOST=car-searching
       - CAR_SEARCHING_PORT=3003
+      - CAR_BOOKING_PORT=3002
+      - CAR_BOOKING_HOST=car-booking
     depends_on:
       - mongo
     expose:

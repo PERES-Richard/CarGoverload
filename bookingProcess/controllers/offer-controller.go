@@ -58,7 +58,14 @@ func payOffer(offerService *services.OfferService)  http.Handler{
 		errorMessage := "Payment error"
 		vars := mux.Vars(r)
 		tmp, _ := strconv.Atoi(vars["id"])
-		if err := json.NewEncoder(w).Encode(offerService.PayOffer(tmp)); err != nil {
+		payment, offer, supplier :=offerService.PayOffer(tmp)
+		if !payment {
+			log.Println(payment)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(errorMessage))
+			return
+		}
+		if err := json.NewEncoder(w).Encode(offerService.BookOffer(offer, supplier)); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(errorMessage))
 		}
