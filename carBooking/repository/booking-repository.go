@@ -86,14 +86,20 @@ func CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDepartur
 	}()
 }
 
-func FindAllBookings() []entities.CarBooking{
+func FindAllBookings(typeId int) []entities.CarBooking{
 	log.Println("Entering find all")
 
 	client := getDatabaseClient()
 	database := client.Database(databaseName)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	cur, err := database.Collection(CollectionBooking).Find(ctx, bson.D{})
+
+	var req = bson.M{}
+	if typeId != -1{
+		req = bson.M{"car.cartype.id": typeId}
+	}
+
+	cur, err := database.Collection(CollectionBooking).Find(ctx, req)
 	if err != nil { log.Fatal(err) }
 	defer cur.Close(ctx)
 
