@@ -1,0 +1,56 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2.1
+jobs:
+  car-availability-build:
+    docker:
+      # specify the version
+      - image: circleci/golang:1.15
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+    parameters:
+      folder:
+        type: string
+        default: '.'
+
+    #### TEMPLATE_NOTE: go expects specific checkout path representing url
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go build"
+          command: |
+            cd << parameters.folder >>
+            go build
+
+  car-availability-tests:
+    docker:
+      # specify the version
+      - image: circleci/golang:1.15
+      # documented at https://circleci.com/docs/2.0/circleci-images/
+    parameters:
+      folder:
+        type: string
+        default: '.'
+
+    #### TEMPLATE_NOTE: go expects specific checkout path representing url
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go test"
+          command: |
+            cd << parameters.folder >>
+            go test
+
+
+
+workflows:
+  version : 2
+  car-availability-tests:
+    jobs:
+      - car-availability-build:
+          folder: './carAvailability'
+      - car-availability-tests:
+          folder: './carAvailability'
+
