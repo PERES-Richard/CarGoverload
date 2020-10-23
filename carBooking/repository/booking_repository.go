@@ -21,6 +21,10 @@ var CollectionCar = "car"
 
 var databaseName string
 
+func setDatabaseName(database string){
+	databaseName = database
+}
+
 func getDatabaseClient() *mongo.Client{
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -82,24 +86,27 @@ func InitDatabase(){
 	CreateBook(time.Now(), car2, "Amazoom", nodeDraguignang, nodeMarseille)
 }
 
-func CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDeparture entities.Node, NodeArrival entities.Node){
+func CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDeparture entities.Node, NodeArrival entities.Node) entities.CarBooking{
 	client := getDatabaseClient()
 	database := client.Database(databaseName)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, _ = database.Collection(CollectionBooking).InsertOne(ctx, entities.CarBooking{
+	var booking = entities.CarBooking{
 		Date: Date,
 		Supplier: Supplier,
 		Departure: NodeDeparture,
 		Arrival: NodeArrival,
 		Car: Car,
-	})
+	}
+	_, _ = database.Collection(CollectionBooking).InsertOne(ctx, booking)
 
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
 			panic(err)
 		}
 	}()
+
+	return booking
 }
 
 func FindAllBookings(typeId int) []entities.CarBooking{
