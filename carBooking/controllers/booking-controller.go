@@ -101,14 +101,14 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 			return
 		}
 
-		//TODO check if car is not already used
-		bookingService.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival)
-		w.WriteHeader(http.StatusCreated)
-		_, err = io.WriteString(w, "Ok it's booked")
-		if err != nil {
-			log.Fatal(err)
-		}}	)
-
+		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival))
+		if jsonError != nil {
+			e := JSONError{Message: "Internal Server Error"}
+			w.WriteHeader(http.StatusInternalServerError)
+			err2 := json.NewEncoder(w).Encode(e)
+			log.Panic(jsonError, err2)
+		}
+	})
 }
 
 
