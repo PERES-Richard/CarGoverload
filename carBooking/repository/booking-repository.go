@@ -39,6 +39,12 @@ func InitDatabase(){
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	_ = database.Collection(CollectionNode).Drop(ctx)
+	_ = database.Collection(CollectionBooking).Drop(ctx)
+	_ = database.Collection(CollectionCarType).Drop(ctx)
+	_ = database.Collection(CollectionCar).Drop(ctx)
+
 	collection := database.Collection(CollectionCarType)
 	var carSolid = entities.CarType{Name: "Solid", Id:   1}
 	_, _ = collection.InsertOne(ctx, carSolid)
@@ -46,16 +52,25 @@ func InitDatabase(){
 	_, _ = collection.InsertOne(ctx, carLiquid)
 
 	collection = database.Collection(CollectionNode)
-	var nodeNice = entities.Node{Name:           "Nice", Id:             1, AvailableCarTypes: []entities.CarType{carLiquid}}
+	var nodeNice = entities.Node{Name: "Nice", Id: 1, AvailableCarTypes: []entities.CarType{carLiquid}}
 	_, _ = collection.InsertOne(ctx, nodeNice)
-	var nodeMarseille = entities.Node{Name:           "Marseilles", Id:             2, AvailableCarTypes: []entities.CarType{carLiquid, carSolid}}
+	var nodeMarseille = entities.Node{Name: "Marseilles", Id: 2, AvailableCarTypes: []entities.CarType{carLiquid, carSolid}}
 	_, _ = collection.InsertOne(ctx, nodeMarseille)
+	var nodeDraguignang = entities.Node{Name: "Draguignan", Id: 7, AvailableCarTypes: []entities.CarType{carLiquid, carSolid}}
+	_, _ = collection.InsertOne(ctx, nodeDraguignang)
+	_, _ = collection.InsertOne(ctx, entities.Node{Name: "Toulon", Id: 3, AvailableCarTypes: []entities.CarType{carLiquid, carSolid}})
+	_, _ = collection.InsertOne(ctx, entities.Node{Name: "Lyon", Id: 4, AvailableCarTypes: []entities.CarType{carSolid}})
+	_, _ = collection.InsertOne(ctx, entities.Node{Name: "Paris", Id: 5, AvailableCarTypes: []entities.CarType{carLiquid}})
+	_, _ = collection.InsertOne(ctx, entities.Node{Name: "Avignon", Id: 6, AvailableCarTypes: []entities.CarType{carLiquid, carSolid}})
 
 	collection = database.Collection(CollectionCar)
 	var car = entities.Car{Id:             1, CarType: carLiquid}
 	_, _ = collection.InsertOne(ctx, car)
 	var car2 = entities.Car{Id:             2, CarType: carSolid}
 	_, _ = collection.InsertOne(ctx, car2)
+	_, _ = collection.InsertOne(ctx, entities.Car{Id: 3, CarType: carSolid})
+	_, _ = collection.InsertOne(ctx, entities.Car{Id: 4, CarType: carSolid})
+	_, _ = collection.InsertOne(ctx, entities.Car{Id: 5, CarType: carLiquid})
 
 	defer func() {
 		if err := client.Disconnect(ctx); err != nil {
@@ -64,6 +79,7 @@ func InitDatabase(){
 	}()
 
 	CreateBook(time.Now(), car, "Picard", nodeNice, nodeMarseille)
+	CreateBook(time.Now(), car2, "Amazoom", nodeDraguignang, nodeMarseille)
 }
 
 func CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDeparture entities.Node, NodeArrival entities.Node){
@@ -87,8 +103,6 @@ func CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDepartur
 }
 
 func FindAllBookings(typeId int) []entities.CarBooking{
-	log.Println("Entering find all")
-
 	client := getDatabaseClient()
 	database := client.Database(databaseName)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -104,8 +118,6 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 	defer cur.Close(ctx)
 
 	var toReturn = []entities.CarBooking{}
-
-	log.Println("Find all 2")
 
 	for cur.Next(ctx) {
 		var result bson.M
@@ -171,9 +183,6 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 			panic(err)
 		}
 	}()
-
-	log.Println("End find all 2")
-	log.Println(toReturn)
 	return toReturn
 }
 
