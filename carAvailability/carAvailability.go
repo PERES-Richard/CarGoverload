@@ -20,22 +20,23 @@ type JSONError struct {
 
 // A Car representation for this svc
 type Car struct {
-	Id      int       `json:"id"`
-	CarType CarType    `json:"carType"` // TODO replace with enum ?
+	Id      int     `json:"id"`
+	CarType CarType `json:"carType"` // TODO replace with enum ?
 	//Date    time.Time `json:"date"`
 }
 
-// A Car representation for this svc from carBooking
+// A Booking representation for this svc from carBooking
 type Booking struct {
-	Supplier 		string		`json:"supplier"`
-	Date time.Time `json:"date"`
-	Id   int       `json:"id"`
-	Car  Car       `json:"car"`
+	Supplier string    `json:"supplier"`
+	Date     time.Time `json:"date"`
+	Id       int       `json:"id"`
+	Car      Car       `json:"car"`
 }
 
+// A CarType representation for this svc from carBooking
 type CarType struct {
-	Name 	string		`json:"name"`
-	Id 		int			`json:"id"`
+	Name string `json:"name"`
+	Id   int    `json:"id"`
 }
 
 var carBookingURL string
@@ -58,7 +59,6 @@ func getJson(url string, target interface{}) error {
 	}
 	defer r.Body.Close()
 
-
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
@@ -66,7 +66,7 @@ func getJson(url string, target interface{}) error {
 func carsBookedList() []Car {
 	bookings := make([]Booking, 0)
 	err := getJson("http://"+carBookingURL+getBookingRoute, &bookings)
-	if err != nil{
+	if err != nil {
 		log.Println(err)
 	}
 	log.Println(bookings)
