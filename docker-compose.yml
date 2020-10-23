@@ -8,23 +8,20 @@ services:
     restart: unless-stopped
     container_name: booking-process
     environment:
-      - PORT=3000
+      - PORT=80
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=cargoverload
       - CAR_SEARCHING_HOST=car-searching
-      - CAR_SEARCHING_PORT=3003
-      - CAR_BOOKING_PORT=3002
+      - CAR_SEARCHING_PORT=80
+      - CAR_BOOKING_PORT=80
       - CAR_BOOKING_HOST=car-booking
     depends_on:
       - mongo
     expose:
-      - "3000"
-    ports:
-      - "3000:3000"
-    networks:
-      - services
-      - proxy
+      - 80
+    labels:
+      - "traefik.http.routers.booking-process.rule=PathPrefix(`/booking-process`)"
 
   car-availability:
     build: ./carAvailability
@@ -32,22 +29,19 @@ services:
     restart: unless-stopped
     container_name: car-availability
     environment:
-      - PORT=3001
+      - PORT=80
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=cargoverload
       - CARBOOKING_GETBOOKING_URL=/car-booking/findAll
-      - CAR_BOOKING_PORT=3002
+      - CAR_BOOKING_PORT=80
       - CAR_BOOKING_HOST=car-booking
     depends_on:
       - mongo
     expose:
-      - "3001"
-    ports:
-      - 3001:3001
-    networks:
-      - services
-      - proxy
+      - 80
+    labels:
+      - "traefik.http.routers.car-availability.rule=PathPrefix(`/car-availability`)"
 
   car-booking:
     build: ./carBooking
@@ -55,19 +49,16 @@ services:
     restart: unless-stopped
     container_name: car-booking
     environment:
-      - PORT=3002
+      - PORT=80
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=cargoverload
     depends_on:
       - mongo
     expose:
-      - "3002"
-    ports:
-      - 3002:3002
-    networks:
-      - services
-      - proxy
+      - 80
+    labels:
+      - "traefik.http.routers.car-booking.rule=PathPrefix(`/car-booking`)"
 
   car-searching:
     build: ./carSearching
@@ -75,21 +66,18 @@ services:
     restart: unless-stopped
     container_name: car-searching
     environment:
-      - PORT=3003
+      - PORT=80
       - MONGO_HOST=mongo
       - MONGO_PORT=27017
       - MONGO_DB=cargoverload
       - CAR_AVAILABILITY_HOST=car-availability
-      - CAR_AVAILABILITY_PORT=3001
+      - CAR_AVAILABILITY_PORT=80
     depends_on:
       - mongo
     expose:
-      - "3003"
-    ports:
-      - 3003:3003
-    networks:
-      - services
-      - proxy
+      - 80
+    labels:
+      - "traefik.http.routers.car-searching.rule=PathPrefix(`/car-searching`)"
 
 
   mongo:
@@ -102,27 +90,30 @@ services:
       - MONGODB_DATABASE="cargoverload"
     expose:
       - 27017
-    ports:
-      - 27017:27017
-    networks:
-      - services
+#    ports:
+#      - 27017:27017
 
-  nginx:
-    image: nginx:latest
-    container_name: cargoverload-nginx
-    volumes:
-      - ./reverse_proxy.conf:/etc/nginx/nginx.conf
-    networks:
-      - proxy
+      ## REVERSE PROXY
+  traefik:
+    image: traefik:v2.3
+    container_name: cargoverload-traefik
+    restart: unless-stopped
+    # Enables the web UI and tells Traefik to listen to docker
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker"
     depends_on:
       - booking-process
       - car-availability
       - car-booking
       - car-searching
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - 80:80
+      # The HTTP port
+      - "80:80"
+      # The Web UI (enabled by --api.insecure=true)
+      - "8080:8080"
 
-networks:
-  services:
-  proxy:
 
