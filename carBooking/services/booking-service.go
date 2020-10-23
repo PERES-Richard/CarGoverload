@@ -21,6 +21,6 @@ func (b *BookingService) CreateBook(Date time.Time, Car entities.Car , Supplier 
 	repository.CreateBook(Date, Car, Supplier, NodeDeparture, NodeArrival)
 }
 
-func (b *BookingService) FindAllBookings() []entities.CarBooking{
-	return repository.FindAllBookings()
+func (b *BookingService) FindAllBookings(typeId int) []entities.CarBooking{
+	return repository.FindAllBookings(typeId)
 }
