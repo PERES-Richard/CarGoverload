@@ -43,11 +43,6 @@ func getDatabaseClient() *sql.DB{
 }
 
 func initTestDatabase(){
-	dbHost := "localhost"
-	dbPort := 5432
-	dbPassword := "superpassword"
-	dbUser := "cargoverload"
-	dbName := "cargoverload_test"
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPassword)
 	db, err := sql.Open("postgres", psqlInfo)

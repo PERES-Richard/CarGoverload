@@ -58,7 +58,7 @@ jobs:
     docker:
       - image: circleci/golang:1.15
         environment:
-          DB_HOST: postgres
+          DB_HOST: localhost
           DB_USER: cargoverload
           DB_PORT: 5432
           DB_NAME: cargoverload
