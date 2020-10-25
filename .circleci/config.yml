@@ -86,8 +86,10 @@ workflows:
           folder: './carAvailability'
       - car-availability-tests:
           folder: './carAvailability'
+  car-booking-tests:
+    jobs:
       - car-booking-build:
-          folder: './carAvailability'
+          folder: './carBooking'
       - car-booking-tests:
-          folder: './carAvailability/tests'
+          folder: './carBooking/tests'
 
