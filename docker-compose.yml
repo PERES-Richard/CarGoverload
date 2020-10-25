@@ -46,10 +46,10 @@ services:
     environment:
       - PORT=80
       - DB_HOST=postgres
-      - DB_USER=postgres
+      - DB_USER=cargo
       - DB_PORT=5432
-      - DB_NAME=postgres
-      - DB_PASSWORD=example
+      - DB_NAME=cargoverload
+      - DB_PASSWORD=superpassword
     depends_on:
       - postgres
     expose:
@@ -79,7 +79,9 @@ services:
     restart: always
     container_name: cargoverload-postgres
     environment:
-      POSTGRES_PASSWORD: example
+      POSTGRES_PASSWORD: superpassword
+      POSTGRES_DB: cargoverload
+      POSTGRES_USER: cargo
     expose:
       - 5432
   ## allow to have a graphical interface
