@@ -5,15 +5,11 @@ version: 2.1
 jobs:
   car-availability-build:
     docker:
-      # specify the version
       - image: circleci/golang:1.15
-      # documented at https://circleci.com/docs/2.0/circleci-images/
     parameters:
       folder:
         type: string
         default: '.'
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
@@ -25,15 +21,11 @@ jobs:
 
   car-availability-tests:
     docker:
-      # specify the version
       - image: circleci/golang:1.15
-      # documented at https://circleci.com/docs/2.0/circleci-images/
     parameters:
       folder:
         type: string
         default: '.'
-
-    #### TEMPLATE_NOTE: go expects specific checkout path representing url
     working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
     steps:
       - checkout
@@ -45,6 +37,47 @@ jobs:
 
 
 
+
+  car-booking-build:
+    docker:
+      - image: circleci/golang:1.15
+      - image: circleci/postgres:9.6-alpine
+        environment:
+          POSTGRES_PASSWORD: superpassword
+          POSTGRES_USER: cargoverload
+          POSTGRES_DB: cargoverload
+    parameters:
+      folder:
+        type: string
+        default: '.'
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go build"
+          command: |
+            cd << parameters.folder >>
+            go build
+
+  car-booking-tests:
+    docker:
+      - image: circleci/golang:1.15
+    parameters:
+      folder:
+        type: string
+        default: '.'
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go test"
+          command: |
+            cd << parameters.folder >>
+            go test
+
+
+
+
 workflows:
   version : 2
   car-availability-tests:
@@ -53,4 +86,8 @@ workflows:
           folder: './carAvailability'
       - car-availability-tests:
           folder: './carAvailability'
+      - car-booking-build:
+          folder: './carAvailability'
+      - car-booking-tests:
+          folder: './carAvailability/tests'
 
