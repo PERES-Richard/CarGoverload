@@ -46,7 +46,7 @@ services:
     environment:
       - PORT=80
       - DB_HOST=postgres
-      - DB_USER=cargo
+      - DB_USER=cargoverload
       - DB_PORT=5432
       - DB_NAME=cargoverload
       - DB_PASSWORD=superpassword
@@ -81,7 +81,9 @@ services:
     environment:
       POSTGRES_PASSWORD: superpassword
       POSTGRES_DB: cargoverload
-      POSTGRES_USER: cargo
+      POSTGRES_USER: cargoverload
+    ports:
+    - 5432:5432
     expose:
       - 5432
   ## allow to have a graphical interface

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	_ "github.com/lib/pq"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -18,6 +17,8 @@ var CollectionCarType = "car_type"
 var CollectionNodeCarType = "node_car_type"
 var CollectionCar = "car"
 
+var InTest = false
+
 func getDatabaseClient() *sql.DB{
 	dbHost := os.Getenv("DB_HOST")
 	dbPort, _ := strconv.Atoi(os.Getenv("DB_PORT"))
@@ -25,9 +26,16 @@ func getDatabaseClient() *sql.DB{
 	dbName := os.Getenv("DB_NAME")
 	dbUser := os.Getenv("DB_USER")
 
+	if InTest{
+		dbHost = "localhost"
+		dbPort = 5432
+		dbPassword = "superpassword"
+		dbUser = "cargoverload"
+		dbName = "cargoverload_test"
+	}
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPassword, dbName)
-	log.Println(psqlInfo)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 		panic(err)
@@ -40,6 +48,28 @@ func getDatabaseClient() *sql.DB{
 	}
 
 	return db
+}
+
+func initTestDatabase(){
+	dbHost := "localhost"
+	dbPort := 5432
+	dbPassword := "superpassword"
+	dbUser := "cargoverload"
+	dbName := "cargoverload_test"
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s sslmode=disable",
+		dbHost, dbPort, dbUser, dbPassword)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Exec("DROP DATABASE IF EXISTS " + dbName)
+	if err != nil {
+		panic(err)
+	}
+	_, err = db.Exec("CREATE DATABASE " + dbName)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func clearDatabase(db *sql.DB){
@@ -151,7 +181,7 @@ func populateTables(db *sql.DB){
 	if err != nil {
 		panic(err)
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Marseilles")
+	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Marseille")
 	if err != nil {
 		panic(err)
 	}
@@ -216,15 +246,7 @@ func populateTables(db *sql.DB){
 	if err != nil {
 		panic(err)
 	}
-}
 
-func InitDatabase(){
-	db := getDatabaseClient()
-	clearDatabase(db)
-	createTables(db)
-	populateTables(db)
-
-	log.Println(GetNodeFromId(1))
 	car1, _ := GetCarFromId(1)
 	car2, _ := GetCarFromId(2)
 	nodeNice, _ := GetNodeFromId(1)
@@ -232,6 +254,17 @@ func InitDatabase(){
 	nodeDraguignang, _ := GetNodeFromId(3)
 	CreateBook(time.Now(), car1, "Picard", nodeNice, nodeMarseille)
 	CreateBook(time.Now(), car2, "Amazoom", nodeDraguignang, nodeMarseille)
+}
+
+func InitDatabase(){
+	if InTest{
+		initTestDatabase()
+	}
+
+	db := getDatabaseClient()
+	clearDatabase(db)
+	createTables(db)
+	populateTables(db)
 }
 
 func CreateBook(date time.Time, car entities.Car , supplier string, nodeDeparture entities.Node, nodeArrival entities.Node) entities.CarBooking{
@@ -264,10 +297,10 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 	if typeId != -1 {
 		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure, cn.name, cb.arrival, cn2.name FROM ` + CollectionBooking +` cb 
 									INNER JOIN ` + CollectionCar + ` cc ON (cc.id = cb.car_id) 
-									INNER JOIN ` + CollectionCarType + ` cct ON (cct.id = cc.car_types)
+									INNER JOIN ` + CollectionCarType + ` cct ON (cct.id = cc.car_type)
 									INNER JOIN ` + CollectionNode + ` cn ON (cn.id = cb.departure)
 									INNER JOIN ` + CollectionNode + ` cn2 ON (cn2.id = cb.arrival)
-									WHERE cnt.node_id = $1`, typeId)
+									WHERE cct.id = $1`, typeId)
 	}else{
 		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure, cn.name, cb.arrival, cn2.name FROM ` + CollectionBooking +` cb 
 									INNER JOIN ` + CollectionCar + ` cc ON (cc.id = cb.car_id) 
@@ -277,7 +310,7 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 	}
 
 	if err != nil {
-		// handle this error better than this
+		_ = db.Close()
 		panic(err)
 	}
 
@@ -297,7 +330,6 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(&bookId, &carId, &typeId, &typeName, &supplier, &timestamp, &departureId, &departureName, &arrivalId, &arrivalName)
 		bookings = append(bookings, entities.CarBooking{
 			Supplier:  supplier,
 			Date:      time.Time{},
@@ -324,8 +356,10 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 	// get any error encountered during iteration
 	err = rows.Err()
 	if err != nil {
+		_ = db.Close()
 		panic(err)
 	}
+	_ = db.Close()
 	return bookings
 }
 
@@ -338,12 +372,15 @@ func GetNodeFromId(id int) (entities.Node, error){
 
 	switch err := row.Scan(&nodeId, &nodeName); err {
 	case sql.ErrNoRows:
+		_ = db.Close()
 		return entities.Node{}, errors.New("No node for id " + strconv.Itoa(id))
 	case nil:
-		fmt.Println(nodeId, nodeName)
+		break
 	default:
 		panic(err)
 	}
+
+	_ = db.Close()
 
 	return entities.Node{
 		Id: nodeId,
@@ -354,7 +391,7 @@ func GetNodeFromId(id int) (entities.Node, error){
 
 func GetCarTypesForNode(nodeId int) []entities.CarType{
 	db := getDatabaseClient()
-	rows, err := db.Query(`SELECT cnt.car_type_id, ct.name FROM ` + CollectionNodeCarType +` cnt INNER JOIN ` + CollectionCarType + ` ct ON (ct.id = cnt.car_type_id) WHERE cnt.node_id = $1`, nodeId)
+	rows, err := db.Query(`SELECT cnt.car_type_id, ct.name FROM ` + CollectionNodeCarType +` cnt INNER JOIN ` + CollectionCarType + ` ct ON (ct.id = cnt.car_type_id) WHERE cnt.node_id = $1 ORDER BY cnt.car_type_id`, nodeId)
 	if err != nil {
 		// handle this error better than this
 		panic(err)
@@ -366,9 +403,9 @@ func GetCarTypesForNode(nodeId int) []entities.CarType{
 		var typeName string
 		err = rows.Scan(&typeId, &typeName)
 		if err != nil {
+			_ = db.Close()
 			panic(err)
 		}
-		fmt.Println(typeId, typeName)
 		types = append(types, entities.CarType{
 			Name: typeName,
 			Id:   typeId,
@@ -377,8 +414,10 @@ func GetCarTypesForNode(nodeId int) []entities.CarType{
 	// get any error encountered during iteration
 	err = rows.Err()
 	if err != nil {
+		_ = db.Close()
 		panic(err)
 	}
+	_ = db.Close()
 	return types
 }
 
@@ -391,13 +430,15 @@ func GetCarFromId(id int) (entities.Car, error) {
 
 	switch err := row.Scan(&carId, &typeId, &typeName); err {
 		case sql.ErrNoRows:
+			_ = db.Close()
 			return entities.Car{}, errors.New("No car for id " + strconv.Itoa(id))
 		case nil:
-			fmt.Println(carId, typeId, typeName)
+			break
 		default:
 			panic(err)
 	}
 
+	_ = db.Close()
 	return entities.Car{
 		Id: carId,
 		CarType: entities.CarType{
