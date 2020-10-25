@@ -1,6 +1,6 @@
 package entities
 
 type Car struct {
-	Id 			int32			`json:"id"`
+	Id 			int			`json:"id"`
 	CarType 	CarType		`json:"carType"`
 }
