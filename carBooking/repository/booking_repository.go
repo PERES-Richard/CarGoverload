@@ -17,23 +17,15 @@ var CollectionCarType = "car_type"
 var CollectionNodeCarType = "node_car_type"
 var CollectionCar = "car"
 
+var dbHost string
+var dbPort int
+var dbPassword string
+var dbName string
+var dbUser string
+
 var InTest = false
 
 func getDatabaseClient() *sql.DB{
-	dbHost := os.Getenv("DB_HOST")
-	dbPort, _ := strconv.Atoi(os.Getenv("DB_PORT"))
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	dbUser := os.Getenv("DB_USER")
-
-	if InTest{
-		dbHost = "localhost"
-		dbPort = 5432
-		dbPassword = "superpassword"
-		dbUser = "cargoverload"
-		dbName = "cargoverload_test"
-	}
-
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		dbHost, dbPort, dbUser, dbPassword, dbName)
 	db, err := sql.Open("postgres", psqlInfo)
@@ -257,7 +249,20 @@ func populateTables(db *sql.DB){
 }
 
 func InitDatabase(){
+	dbHost = os.Getenv("DB_HOST")
+	dbPort, _ = strconv.Atoi(os.Getenv("DB_PORT"))
+	dbPassword = os.Getenv("DB_PASSWORD")
+	dbName = os.Getenv("DB_NAME")
+	dbUser = os.Getenv("DB_USER")
+
 	if InTest{
+		if dbHost == ""{ //not launched with docker
+			dbHost = "localhost"
+			dbPort = 5432
+			dbPassword = "superpassword"
+			dbUser = "cargoverload"
+			dbName = "cargoverload_test"
+		}
 		initTestDatabase()
 	}
 
