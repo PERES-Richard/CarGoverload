@@ -256,8 +256,8 @@ func InitDatabase(){
 			dbPort = 5432
 			dbPassword = "superpassword"
 			dbUser = "cargoverload"
-			dbName = "cargoverload_test"
 		}
+		dbName = "cargoverload_test"
 		initTestDatabase()
 	}
 
