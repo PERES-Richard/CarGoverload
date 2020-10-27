@@ -84,15 +84,15 @@ func clearDatabase(db *sql.DB){
 
 func createTables(db *sql.DB){
 	_, err := db.Exec(`CREATE TABLE ` + CollectionCarType + ` (
-    							id SERIAL PRIMARY KEY, 
+    							id SERIAL PRIMARY KEY UNIQUE, 
     							name VARCHAR(100)
 						   );`)
 	if err != nil {
 		panic(err)
 	}
 	_, err = db.Exec(`CREATE TABLE ` + CollectionCar + ` (
-    							id SERIAL PRIMARY KEY, 
-    							car_type SERIAL,
+    							id SERIAL PRIMARY KEY UNIQUE, 
+    							car_type integer,
     							FOREIGN KEY(car_type) REFERENCES car_type(id)
 						   );`)
 	if err != nil {
@@ -100,7 +100,7 @@ func createTables(db *sql.DB){
 	}
 
 	_, err = db.Exec(`CREATE TABLE ` + CollectionNode + ` (
-    							id SERIAL PRIMARY KEY, 
+    							id SERIAL PRIMARY KEY UNIQUE, 
     							name VARCHAR(100)
 						   );`)
 	if err != nil {
@@ -108,8 +108,8 @@ func createTables(db *sql.DB){
 	}
 
 	_, err = db.Exec(`CREATE TABLE ` + CollectionNodeCarType +` (
-    							node_id SERIAL, 
-    							car_type_id SERIAL,
+    							node_id integer, 
+    							car_type_id integer,
     							PRIMARY KEY (node_id, car_type_id),
     							FOREIGN KEY (node_id) REFERENCES node(id),
     							FOREIGN KEY (car_type_id) REFERENCES car_type(id)
@@ -119,14 +119,14 @@ func createTables(db *sql.DB){
 	}
 
 	_, err = db.Exec(`CREATE TABLE ` + CollectionBooking + ` (
-    							id SERIAL PRIMARY KEY , 
-    							car_id SERIAL,
+    							id SERIAL PRIMARY KEY UNIQUE, 
+    							car_id integer,
     							supplier VARCHAR(100),
-    							departure SERIAL,
-    							arrival SERIAL,
+    							departure_id integer,
+    							arrival_id integer,
 								time varchar(100),
-    							FOREIGN KEY (departure) REFERENCES node(id),
-    							FOREIGN KEY (arrival) REFERENCES node(id)
+    							FOREIGN KEY (departure_id) REFERENCES node(id),
+    							FOREIGN KEY (arrival_id) REFERENCES node(id)
 						   );`)
 	if err != nil {
 		panic(err)
@@ -238,9 +238,10 @@ func populateTables(db *sql.DB){
 	car2, _ := GetCarFromId(2)
 	nodeNice, _ := GetNodeFromId(1)
 	nodeMarseille, _ := GetNodeFromId(2)
-	nodeDraguignang, _ := GetNodeFromId(3)
+	nodeDraguignan, _ := GetNodeFromId(3)
 	CreateBook(time.Now(), car1, "Picard", nodeNice, nodeMarseille)
-	CreateBook(time.Now(), car2, "Amazoom", nodeDraguignang, nodeMarseille)
+	CreateBook(time.Now(), car2, "Amazoom", nodeDraguignan, nodeMarseille)
+	CreateBook(time.Now(), car2, "Test", nodeDraguignan, nodeMarseille)
 }
 
 func InitDatabase(){
@@ -278,12 +279,79 @@ func CreateBook(date time.Time, car entities.Car , supplier string, nodeDepartur
 		Car: car,
 	}
 
-	_, err := db.Exec(`INSERT INTO ` + CollectionBooking + ` (car_id, supplier, departure, arrival, time) VALUES($1, $2, $3, $4, $5)`, car.Id, supplier, nodeDeparture.Id, nodeArrival.Id, date.Unix())
+	_, err := db.Exec(`INSERT INTO ` + CollectionBooking + ` (car_id, supplier, departure_id, arrival_id, time) VALUES($1, $2, $3, $4, $5)`, car.Id, supplier, nodeDeparture.Id, nodeArrival.Id, date.Unix())
 	if err != nil {
 		panic(err)
 	}
 
 	return booking
+}
+
+func GetAllNodes() []entities.Node{
+	var nodes = []entities.Node{}
+	db := getDatabaseClient()
+
+	var rows *sql.Rows
+	var err error
+	rows, err = db.Query(`SELECT id, name FROM ` + CollectionNode + ` ORDER BY name`)
+	if err != nil {
+		_ = db.Close()
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var nodeId int
+		var nodeName string
+		err = rows.Scan(&nodeId, &nodeName)
+		if err != nil {
+			panic(err)
+		}
+		nodes = append(nodes, entities.Node{
+			Name:              nodeName,
+			Id:                nodeId,
+			AvailableCarTypes: GetCarTypesForNode(nodeId),
+		})
+	}
+	err = rows.Err()
+	if err != nil {
+		_ = db.Close()
+		panic(err)
+	}
+	_ = db.Close()
+	return nodes
+}
+
+func GetAllTypes() []entities.CarType{
+	var nodes = []entities.CarType{}
+	db := getDatabaseClient()
+
+	var rows *sql.Rows
+	var err error
+	rows, err = db.Query(`SELECT id, name FROM ` + CollectionCarType + ` ORDER BY name`)
+	if err != nil {
+		_ = db.Close()
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var carTypeId int
+		var carTypeName string
+		err = rows.Scan(&carTypeId, &carTypeName)
+		if err != nil {
+			panic(err)
+		}
+		nodes = append(nodes, entities.CarType{
+			Name:              carTypeName,
+			Id:                carTypeId,
+		})
+	}
+	err = rows.Err()
+	if err != nil {
+		_ = db.Close()
+		panic(err)
+	}
+	_ = db.Close()
+	return nodes
 }
 
 func FindAllBookings(typeId int) []entities.CarBooking{
@@ -295,18 +363,18 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 	var err error
 
 	if typeId != -1 {
-		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure, cn.name, cb.arrival, cn2.name FROM ` + CollectionBooking +` cb 
+		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure_id, cn.name, cb.arrival_id, cn2.name FROM ` + CollectionBooking +` cb 
 									INNER JOIN ` + CollectionCar + ` cc ON (cc.id = cb.car_id) 
 									INNER JOIN ` + CollectionCarType + ` cct ON (cct.id = cc.car_type)
-									INNER JOIN ` + CollectionNode + ` cn ON (cn.id = cb.departure)
-									INNER JOIN ` + CollectionNode + ` cn2 ON (cn2.id = cb.arrival)
+									INNER JOIN ` + CollectionNode + ` cn ON (cn.id = cb.departure_id)
+									INNER JOIN ` + CollectionNode + ` cn2 ON (cn2.id = cb.arrival_id)
 									WHERE cct.id = $1`, typeId)
 	}else{
-		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure, cn.name, cb.arrival, cn2.name FROM ` + CollectionBooking +` cb 
+		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure_id, cn.name, cb.arrival_id, cn2.name FROM ` + CollectionBooking +` cb 
 									INNER JOIN ` + CollectionCar + ` cc ON (cc.id = cb.car_id) 
 									INNER JOIN ` + CollectionCarType + ` cct ON (cct.id = cc.car_type)
-									INNER JOIN ` + CollectionNode + ` cn ON (cn.id = cb.departure)
-									INNER JOIN ` + CollectionNode + ` cn2 ON (cn2.id = cb.arrival)`)
+									INNER JOIN ` + CollectionNode + ` cn ON (cn.id = cb.departure_id)
+									INNER JOIN ` + CollectionNode + ` cn2 ON (cn2.id = cb.arrival_id)`)
 	}
 
 	if err != nil {

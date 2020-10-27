@@ -1,0 +1,84 @@
+/** COMMON **/
+:root{
+    --element-radius: 20px;
+}
+@font-face {
+    font-family: "Light";
+    src: url(../fonts/Montserrat-ExtraLight.ttf) format('truetype');
+    font-weight : normal;
+    font-style : normal;
+    font-display: swap
+}
+@font-face {
+    font-family: "Trebuchet MS";
+    src: url(../fonts/trebuchet_ms.ttf) format('truetype');
+    font-weight : normal;
+    font-style : normal;
+    font-display: swap
+}
+body{
+    background-color: #ededee;
+    margin : 0;
+    font-family: "Trebuchet MS", serif;
+}
+.page-fill-height{
+    min-height : calc(100vh);
+}
+#middle-form{
+    width: 80%;
+    max-width: 1200px;
+    margin: 20px auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.input-container{
+    margin : 3px 20px;
+}
+#middle-form-submit-container{
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#middle-form-submit{
+    text-align: center;
+    font-size: 18px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 25px;
+    margin: 5px;
+    text-transform: uppercase;
+    border-radius: var(--element-radius);
+    border: 1px solid #e74c3c;
+    transition: 0.2s;
+    background-color: transparent;
+}
+#middle-form-submit:enabled:hover{
+    background-color: #e74c3c;
+    color: white;
+    cursor: pointer;
+}
+#middle-form select {
+    transition: 0.2s;
+    box-sizing: border-box;
+    font-size : 12pt;
+    width : 300px;
+    max-width: 100%;
+    border-radius: var(--element-radius);
+    border : 2px solid rgba(0, 0, 0, 0.3);
+    color : rgba(0, 0, 0, 0.75);
+    background-color: transparent;
+    padding : 8px 15px;
+    margin : 3px 0;
+    resize: vertical;
+    outline:0;
+}
+#middle-form select:enabled:hover{
+    border : 2px solid #e74c3c;
+}
+label{
+    color: rgba(0, 0, 0, 0.75);
+}

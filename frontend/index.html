@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-fill-height">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="#1d4761">
+    <title>CarGoverload</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="<?= $title ?>" />
+    <meta property="og:description" content="CarGoverload - Book your trains" />
+    <meta name="description" content="CarGoverload - Book your train" />
+
+    <link rel="stylesheet" media="all" href="./public/assets/css/style.css" />
+</head>
+<body class="background-main-color page-fill-height">
+    <div id="page" class="page-fill-height">
+        <form id="middle-form" class="background-secondary-color">
+            <div class="input-container">
+                <label for="car-type-select" class="color-grey">Type de wagon</label>
+                <div class="no-margin">
+                    <select class="background-main-color color-grey" title="Type de wagon" name="car-type-select" id="car-type-select">
+                        <option selected disabled value="0">Aucun type sélectionné</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <label for="node-departure-select" class="color-grey">Noeud de départ</label>
+                <div class="no-margin">
+                    <select class="background-main-color color-grey" title="Noeud de départ" disabled name="node-departure-select" id="node-departure-select">
+                        <option value="0">Aucun noeud de départ sélectionné</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-container">
+                <label for="node-arrival-select" class="color-grey">Noeud de d'arrivée</label>
+                <div class="no-margin">
+                    <select class="background-main-color color-grey" title="Noeud d'arrivée" disabled name="node-arrival-select" id="node-arrival-select">
+                        <option value="0">Aucun noeud de d'arrivée sélectionné</option>
+                    </select>
+                </div>
+            </div>
+            <div id="middle-form-submit-container">
+                <input type="submit" disabled value="Rechercher des wagons" id="middle-form-submit" />
+            </div>
+        </form>
+    </div>
+    <script type="text/javascript" src="./public/assets/js/index.js"></script>
+</body>
+</html>
