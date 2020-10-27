@@ -1,4 +1,4 @@
-#Current flag : Week 42 - GREEN
+#Current flag : Week 44 - GREEN
 
 # Week 40 : GREEN
 
@@ -55,3 +55,24 @@ Le risque principal provient de la technologie choisie qui est nouvelle pour nou
 ## Les blocages et risques
 
 Pas de problème prévisible pour le moment
+
+
+# Week 44: GREEN
+
+## Ce que l'on a fait
+
+- Intégration de tous les composants OK
+- Persistance de nos réservations OK
+- Changement de MongoDB à PostgreSQL
+- Configuration de la CI OK
+ 
+## Ce que l'on a prévu
+
+- Persistance des offres
+- Mise en place de la CLI/Front
+- Amélioration de la logique de la recherche et de la disponibilité
+- Verification que le scenario pour la démo est entièrement réalisable et valide, et rajout de logique métier si besoin est.
+
+## Les blocages et risques
+
+Léger contretemps au niveau de la CLI (qui avait été prévue initialement pour la semaine 42), mais qui ne devrait pas trop impacter le reste du développement.
