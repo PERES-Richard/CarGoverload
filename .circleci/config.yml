@@ -1,0 +1,101 @@
+# Golang CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-go/ for more details
+version: 2.1
+jobs:
+  car-availability-build:
+    docker:
+      - image: circleci/golang:1.15
+    parameters:
+      folder:
+        type: string
+        default: '.'
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go build"
+          command: |
+            cd << parameters.folder >>
+            go build
+
+  car-availability-tests:
+    docker:
+      - image: circleci/golang:1.15
+    parameters:
+      folder:
+        type: string
+        default: '.'
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go test"
+          command: |
+            cd << parameters.folder >>
+            go test
+
+
+
+
+  car-booking-build:
+    docker:
+      - image: circleci/golang:1.15
+    parameters:
+      folder:
+        type: string
+        default: '.'
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go build"
+          command: |
+            cd << parameters.folder >>
+            go build
+
+  car-booking-tests:
+    docker:
+      - image: circleci/golang:1.15
+        environment:
+          DB_HOST: localhost
+          DB_USER: cargoverload
+          DB_PORT: 5432
+          DB_NAME: cargoverload
+          DB_PASSWORD: superpassword
+      - image: circleci/postgres:9.6-alpine
+        environment:
+          POSTGRES_PASSWORD: superpassword
+          POSTGRES_USER: cargoverload
+          POSTGRES_DB: cargoverload
+    parameters:
+      folder:
+        type: string
+        default: '.'
+    working_directory: /go/src/github.com/{{ORG_NAME}}/{{REPO_NAME}}
+    steps:
+      - checkout
+      - run:
+          name: "Go test"
+          command: |
+            cd << parameters.folder >>
+            go test
+
+
+
+
+workflows:
+  version : 2
+  car-availability-tests:
+    jobs:
+      - car-availability-build:
+          folder: './carAvailability'
+      - car-availability-tests:
+          folder: './carAvailability'
+  car-booking-tests:
+    jobs:
+      - car-booking-build:
+          folder: './carBooking'
+      - car-booking-tests:
+          folder: './carBooking/tests'
+

@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -26,7 +27,25 @@ type SearchParams struct {
 func findBookedCars(bookingService *services.BookingService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		jsonError := json.NewEncoder(w).Encode(bookingService.FindAllBookings())
+		jsonError := json.NewEncoder(w).Encode(bookingService.FindAllBookings(-1))
+		if jsonError != nil {
+			e := JSONError{Message: "Internal Server Error"}
+			w.WriteHeader(http.StatusInternalServerError)
+			err2 := json.NewEncoder(w).Encode(e)
+			log.Panic(jsonError, err2)
+		}
+	})
+
+}
+
+func findBookedCarsWithType(bookingService *services.BookingService)  http.Handler{
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		vars := mux.Vars(r)
+		id, _ := strconv.Atoi(vars["typeId"])
+
+		jsonError := json.NewEncoder(w).Encode(bookingService.FindAllBookings(id))
 		if jsonError != nil {
 			e := JSONError{Message: "Internal Server Error"}
 			w.WriteHeader(http.StatusInternalServerError)
@@ -82,20 +101,23 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 			return
 		}
 
-		//TODO check if car is not already used
-		bookingService.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival)
-		w.WriteHeader(http.StatusCreated)
-		_, err = io.WriteString(w, "Ok it's booked")
-		if err != nil {
-			log.Fatal(err)
-		}}	)
-
+		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival))
+		if jsonError != nil {
+			e := JSONError{Message: "Internal Server Error"}
+			w.WriteHeader(http.StatusInternalServerError)
+			err2 := json.NewEncoder(w).Encode(e)
+			log.Panic(jsonError, err2)
+		}
+	})
 }
 
 
 func MakeBookingHandlers(r *mux.Router, bookingService *services.BookingService) {
 	r.Handle("/car-booking/findAll", findBookedCars(bookingService),
 	).Methods("GET", "OPTIONS").Name("findAllBookings")
+
+	r.Handle("/car-booking/findAll/type/{typeId}", findBookedCarsWithType(bookingService),
+	).Methods("GET", "OPTIONS").Name("findAllBookingsForType")
 
 	r.Handle("/car-booking/book", bookCar(bookingService),
 	).Methods("POST", "OPTIONS").Name("bookCar")
