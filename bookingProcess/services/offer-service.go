@@ -91,9 +91,8 @@ func (s *OfferService) postJson(url string, body io.Reader,  target interface{})
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
-	log.Println(buf.String())
 
-	return json.NewDecoder(r.Body).Decode(target)
+	return json.Unmarshal([]byte(buf.String()), target)
 }
 
 func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time) ([]entities.Offer, error) {
@@ -161,7 +160,14 @@ func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interf
 		NodeArrivalId int `json:"arrivalId"`
 	}
 
-	var results string
+	var results struct {
+		Supplier 		string		`json:"supplier"`
+		Date  			time.Time		`json:"date"`
+		Id 				int			`json:"id"`
+		Arrival 		entities.Node		`json:"arrivalNode"`
+		Departure 		entities.Node		`json:"departureNode"`
+		Car 			entities.Car			`json:"car"`
+	}
 
 	//Todo do real ID for car
 	var body = SearchParams{Date:Ofr.BookDate.Format(time.RFC3339),CarId:1, Supplier:supplierName, NodeArrivalId:Ofr.Arrival.Id, NodeDepartureId:Ofr.Departure.Id}
@@ -170,6 +176,8 @@ func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interf
 	bodyByte, _ := json.Marshal(body)
 	err := s.postJson("http://"+s.CAR_BOOKING_HOST+":"+s.CAR_BOOKING_PORT+"/car-booking/book", bytes.NewReader(bodyByte), &results)
 	log.Println(results)
-	log.Fatalln(err)
+	if err != nil {
+		return err
+	}
 	return results
 }
