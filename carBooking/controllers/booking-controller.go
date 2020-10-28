@@ -26,6 +26,7 @@ type SearchParams struct {
 
 func findBookedCars(bookingService *services.BookingService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		w.Header().Set("Content-Type", "application/json")
 		jsonError := json.NewEncoder(w).Encode(bookingService.FindAllBookings(-1))
 		if jsonError != nil {
@@ -40,6 +41,7 @@ func findBookedCars(bookingService *services.BookingService)  http.Handler{
 
 func findBookedCarsWithType(bookingService *services.BookingService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		w.Header().Set("Content-Type", "application/json")
 
 		vars := mux.Vars(r)
@@ -58,6 +60,7 @@ func findBookedCarsWithType(bookingService *services.BookingService)  http.Handl
 
 func bookCar(bookingService *services.BookingService)  http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
 		var sp SearchParams
 		_ = json.NewDecoder(r.Body).Decode(&sp)
 
@@ -111,8 +114,41 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 	})
 }
 
+func getAllNodes(bookingService *services.BookingService)  http.Handler{
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		w.Header().Set("Content-Type", "application/json")
+		jsonError := json.NewEncoder(w).Encode(bookingService.GetAllNodes())
+		if jsonError != nil {
+			e := JSONError{Message: "Internal Server Error"}
+			w.WriteHeader(http.StatusInternalServerError)
+			err2 := json.NewEncoder(w).Encode(e)
+			log.Panic(jsonError, err2)
+		}
+	})
+}
+
+func getAllCarTypes(bookingService *services.BookingService)  http.Handler{
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		enableCors(&w)
+		w.Header().Set("Content-Type", "application/json")
+		jsonError := json.NewEncoder(w).Encode(bookingService.GetAllTypes())
+		if jsonError != nil {
+			e := JSONError{Message: "Internal Server Error"}
+			w.WriteHeader(http.StatusInternalServerError)
+			err2 := json.NewEncoder(w).Encode(e)
+			log.Panic(jsonError, err2)
+		}
+	})
+}
 
 func MakeBookingHandlers(r *mux.Router, bookingService *services.BookingService) {
+	r.Handle("/car-booking/getAllNodes", getAllNodes(bookingService),
+	).Methods("GET", "OPTIONS").Name("getAllNodes")
+
+	r.Handle("/car-booking/getAllCarTypes", getAllCarTypes(bookingService),
+	).Methods("GET", "OPTIONS").Name("getAllCarTypes")
+
 	r.Handle("/car-booking/findAll", findBookedCars(bookingService),
 	).Methods("GET", "OPTIONS").Name("findAllBookings")
 
@@ -121,6 +157,8 @@ func MakeBookingHandlers(r *mux.Router, bookingService *services.BookingService)
 
 	r.Handle("/car-booking/book", bookCar(bookingService),
 	).Methods("POST", "OPTIONS").Name("bookCar")
+}
 
-
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }

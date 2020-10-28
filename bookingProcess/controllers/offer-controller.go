@@ -13,6 +13,7 @@ import (
 func listOffers(offerService *services.OfferService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Error reading offers"
+		enableCors(&w)
 
 		vars := mux.Vars(r)
 		tmp, _ := strconv.Atoi(vars["id"])
@@ -28,6 +29,7 @@ func listOffers(offerService *services.OfferService)  http.Handler{
 func findOffer(offerService *services.OfferService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Error finding offer"
+		enableCors(&w)
 		var input struct {
 			SupplierName    string `json:"supplierName"`
 			CarType   string `json:"carType"`
@@ -56,6 +58,7 @@ func findOffer(offerService *services.OfferService)  http.Handler{
 func payOffer(offerService *services.OfferService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		errorMessage := "Payment error"
+		enableCors(&w)
 		vars := mux.Vars(r)
 		tmp, _ := strconv.Atoi(vars["id"])
 		payment, offer, supplier :=offerService.PayOffer(tmp)
@@ -83,4 +86,8 @@ func MakeOfferHandlers(r *mux.Router, offerService *services.OfferService) {
 	r.Handle("/booking-process/offers/{id}/payment", payOffer(offerService),
 	).Methods("POST", "OPTIONS").Name("payOffer")
 
+}
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
