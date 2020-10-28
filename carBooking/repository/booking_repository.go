@@ -241,7 +241,7 @@ func populateTables(db *sql.DB){
 	nodeDraguignan, _ := GetNodeFromId(3)
 	CreateBook(time.Now(), car1, "Picard", nodeNice, nodeMarseille)
 	CreateBook(time.Now(), car2, "Amazoom", nodeDraguignan, nodeMarseille)
-	CreateBook(time.Now(), car2, "Test", nodeDraguignan, nodeMarseille)
+	//CreateBook(time.Now(), car2, "Test", nodeDraguignan, nodeMarseille)
 }
 
 func InitDatabase(){
