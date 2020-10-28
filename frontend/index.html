@@ -34,17 +34,35 @@
             </div>
 
             <div class="input-container">
-                <label for="node-arrival-select" class="color-grey">Noeud de d'arrivée</label>
+                <label for="node-arrival-select" class="color-grey">Noeud d'arrivée</label>
                 <div class="no-margin">
                     <select class="background-main-color color-grey" title="Noeud d'arrivée" disabled name="node-arrival-select" id="node-arrival-select">
                         <option value="0">Aucun noeud de d'arrivée sélectionné</option>
                     </select>
                 </div>
             </div>
+
+            <div class="input-container">
+                <label for="date-departure" class="color-grey">Date et heure de départ</label>
+                <div class="no-margin">
+                    <input type="datetime-local"  name="date-departure" id="date-departure">
+                </div>
+            </div>
+
+            <div class="input-container">
+                <label for="supplier" class="color-grey">Fournisseur</label>
+                <div class="no-margin">
+                    <input type="text" name="supplier" placeholder="Nom de l'entreprise" id="supplier">
+                </div>
+            </div>
+
             <div id="middle-form-submit-container">
                 <input type="submit" disabled value="Rechercher des wagons" id="middle-form-submit" />
             </div>
         </form>
+        <div id="loading-big-container">
+
+        </div>
     </div>
     <script type="text/javascript" src="./public/assets/js/index.js"></script>
 </body>
