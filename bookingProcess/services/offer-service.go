@@ -95,10 +95,11 @@ func (s *OfferService) postJson(url string, body io.Reader,  target interface{})
 	return json.Unmarshal([]byte(buf.String()), target)
 }
 
-func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time) ([]entities.Offer, error) {
+func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time, departureNodeId string, arrivalNodeId string) ([]entities.Offer, error) {
 
 	var results []entities.Car
-	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339), &results)
+	log.Println("Requeting sur carSearching")
+	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339)+"&departureNodeId="+departureNodeId+"&arrivalNodeId="+arrivalNodeId, &results)
 	log.Println(results)
 
 	var offers []entities.Offer
