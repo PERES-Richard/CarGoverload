@@ -326,7 +326,7 @@ function book(offer, view){
     let bookOffer = new XMLHttpRequest();
     bookOffer.open('POST', 'http://localhost/booking-process/offers/payment', true);
     bookOffer.addEventListener('readystatechange', function() {
-        if(this.readyState === 4 && this.status === 200) {
+        if(this.readyState === 4 && this.status === 201) {
             removeLoader();
             let response = JSON.parse(this.responseText);
             view.remove();
