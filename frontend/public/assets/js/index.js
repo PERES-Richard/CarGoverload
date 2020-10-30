@@ -161,7 +161,6 @@ function loadCarTypes(){
     document.getElementById("middle-form").addEventListener("submit", handleFormSubmit);
     loadNodes();
     loadCarTypes();
-    launchSearch();
 })()
 
 function handleFormSubmit(e){
@@ -208,181 +207,136 @@ function removeLoader(){
 function launchSearch(){
     mainContainer.innerHTML = "";
     addLoader();
-    // let loadIdMember = new XMLHttpRequest();
-    // loadIdMember.open('POST', 'http://localhost/booking-process/offers', true);
-    // loadIdMember.addEventListener('readystatechange', function() {
-    //     if(this.readyState === 4 && this.status === 200) {
-    //         removeLoader();
-    //         let response = JSON.parse(this.responseText);
-    //         console.log(response)
-    //         displayOffers([
-    //            new Offer({
-    //                id: "g15ad65fed5",
-    //                price: "5",
-    //                date: new Date().toISOString(),
-    //                car: {
-    //                    id: 1,
-    //                    carType: {
-    //                        name: "Liquid",
-    //                        id: 2
-    //                    }
-    //                },
-    //                departure: {
-    //                    name: "Nice",
-    //                    id: 1
-    //                },
-    //                arrival: {
-    //                    name: "Marseille",
-    //                    id: 2
-    //                }
-    //            })
-    //         ]);
-    //     }
-    // });
-    // loadIdMember.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    // loadIdMember.send('departureNodeId=' + nodeDepartureIdSelected +
-    //     "&arrivalNodeId=" + nodeArrivalIdSelected +
-    //     "&dateTimeDeparture=" + new Date(dateTimeDeparture).toISOString() +
-    //     "&supplier=" + supplierInput.value +
-    //     "&carTypeId=" + carTypeIdSelected);
-    setTimeout(function(){
-        displayOffers([
-            new Offer({
-                id: "g15ad65fed5",
-                price: "5.0",
-                date: new Date().toISOString(),
-                car: {
-                    id: 1,
-                    carType: {
-                        name: "Liquid",
-                        id: 2
-                    }
-                },
-                departureNode: {
-                    name: "Nice",
-                    id: 1
-                },
-                arrivalNode: {
-                    name: "Marseille",
-                    id: 2
-                }
-            })
-        ]);
-    }, 50);
+    let fetchOffers = new XMLHttpRequest();
+    fetchOffers.open('POST', 'http://localhost/booking-process/offers', true);
+    fetchOffers.addEventListener('readystatechange', function() {
+        if(this.readyState === 4 && this.status === 201) {
+            removeLoader();
+            let response = JSON.parse(this.responseText);
+            removeLoader();
+            response.forEach(function(offer){
+                displayOffer(new Offer(offer))
+            });
+        }
+    });
+    fetchOffers.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    fetchOffers.send(JSON.stringify({
+
+    }));
+    // setTimeout(function(){
+    //     displayOffers([
+    //         new Offer({
+    //             id: "g15ad65fed5",
+    //             price: "5.0",
+    //             date: new Date().toISOString(),
+    //             car: {
+    //                 id: 1,
+    //                 carType: {
+    //                     name: "Liquid",
+    //                     id: 2
+    //                 }
+    //             },
+    //             departureNode: {
+    //                 name: "Nice",
+    //                 id: 1
+    //             },
+    //             arrivalNode: {
+    //                 name: "Marseille",
+    //                 id: 2
+    //             }
+    //         })
+    //     ]);
+    // }, 50);
 }
 
-function displayOffers(offers){
-    removeLoader();
-    offers.forEach(function(offer){
-        console.log(offer)
-        let container = document.createElement("div");
-        container.classList.add("offer");
-        container.title = "Réserver";
-        let information = document.createElement("div");
-        information.classList.add("offer-information");
-        information.classList.add("offer-container");
+function displayOffer(offer){
+    console.log(offer)
+    let container = document.createElement("div");
+    container.classList.add("offer");
+    container.title = "Réserver";
+    let information = document.createElement("div");
+    information.classList.add("offer-information");
+    information.classList.add("offer-container");
 
-        let nodes = document.createElement("div");
-        nodes.classList.add("offer-nodes-container");
+    let nodes = document.createElement("div");
+    nodes.classList.add("offer-nodes-container");
 
-        let node = document.createElement("div");
-        node.classList.add("offer-node");
-        node.appendChild(document.createTextNode(offer.departure.name));
-        nodes.appendChild(node);
+    let node = document.createElement("div");
+    node.classList.add("offer-node");
+    node.appendChild(document.createTextNode(offer.departure.name));
+    nodes.appendChild(node);
 
-        node = document.createElement("div");
-        node.classList.add("offer-node");
-        node.appendChild(document.createTextNode(offer.arrival.name));
-        nodes.appendChild(node);
+    node = document.createElement("div");
+    node.classList.add("offer-node");
+    node.appendChild(document.createTextNode(offer.arrival.name));
+    nodes.appendChild(node);
 
-        let dateContainer = document.createElement("div");
-        dateContainer.classList.add("offer-date");
-        dateContainer.appendChild(document.createTextNode(offer.date.toDateString()));
-        nodes.appendChild(dateContainer);
+    let dateContainer = document.createElement("div");
+    dateContainer.classList.add("offer-date");
+    dateContainer.appendChild(document.createTextNode(offer.date.toDateString()));
+    nodes.appendChild(dateContainer);
 
-        information.appendChild(nodes);
+    information.appendChild(nodes);
 
-        let carContainer = document.createElement("div");
-        carContainer.classList.add("offer-car");
+    let carContainer = document.createElement("div");
+    carContainer.classList.add("offer-car");
 
-        let carIcon = document.createElement("i");
-        carIcon.classList.add("offer-car-icon");
-        carIcon.classList.add("fas");
-        carIcon.classList.add("fa-train");
-        carContainer.appendChild(carIcon);
+    let carIcon = document.createElement("i");
+    carIcon.classList.add("offer-car-icon");
+    carIcon.classList.add("fas");
+    carIcon.classList.add("fa-train");
+    carContainer.appendChild(carIcon);
 
-        let carInfoContainer = document.createElement("div");
-        carInfoContainer.classList.add("offer-car-information")
+    let carInfoContainer = document.createElement("div");
+    carInfoContainer.classList.add("offer-car-information")
 
-        let carText = document.createElement("div");
-        carText.appendChild(document.createTextNode("Wagon n°" + offer.car.id))
-        carInfoContainer.appendChild(carText);
+    let carText = document.createElement("div");
+    carText.appendChild(document.createTextNode("Wagon n°" + offer.car.id))
+    carInfoContainer.appendChild(carText);
 
-        let carType = document.createElement("div");
-        carType.appendChild(document.createTextNode(offer.car.carType.name))
-        carInfoContainer.appendChild(carType);
+    let carType = document.createElement("div");
+    carType.appendChild(document.createTextNode(offer.car.carType.name))
+    carInfoContainer.appendChild(carType);
 
-        carContainer.appendChild(carInfoContainer)
-        information.appendChild(carContainer)
+    carContainer.appendChild(carInfoContainer)
+    information.appendChild(carContainer)
 
 
 
-        container.appendChild(information);
-        let price = document.createElement("div");
-        price.classList.add("offer-price");
-        price.classList.add("offer-container");
-        price.appendChild(document.createTextNode(offer.price + "€"));
-        container.appendChild(price);
+    container.appendChild(information);
+    let price = document.createElement("div");
+    price.classList.add("offer-price");
+    price.classList.add("offer-container");
+    price.appendChild(document.createTextNode(offer.price + "€"));
+    container.appendChild(price);
 
-        container.addEventListener("click", function(){
-           const res = confirm("Procéder à la réservation et au paiement ?")
-            if(res){
-                book(offer, container);
-            }else{
+    container.addEventListener("click", function(){
+       const res = confirm("Procéder à la réservation et au paiement ?")
+        if(res){
+            book(offer, container);
+        }else{
 
-            }
-        });
-
-        mainContainer.appendChild(container);
+        }
     });
+
+    mainContainer.appendChild(container);
 }
 
 function book(offer, view){
-    // let bookOffer = new XMLHttpRequest();
-    // bookOffer.open('POST', 'http://localhost/booking-process/offers', true);
-    // bookOffer.addEventListener('readystatechange', function() {
-    //     if(this.readyState === 4 && this.status === 200) {
-    //         removeLoader();
-    //         let response = JSON.parse(this.responseText);
-    //         console.log(response)
-    //         displayOffers([
-    //            new Offer({
-    //                id: "g15ad65fed5",
-    //                price: "5",
-    //                date: new Date().toISOString(),
-    //                car: {
-    //                    id: 1,
-    //                    carType: {
-    //                        name: "Liquid",
-    //                        id: 2
-    //                    }
-    //                },
-    //                departure: {
-    //                    name: "Nice",
-    //                    id: 1
-    //                },
-    //                arrival: {
-    //                    name: "Marseille",
-    //                    id: 2
-    //                }
-    //            })
-    //         ]);
-    //     }
-    // });
-    // bookOffer.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    // bookOffer.send('offerId=' + nodeDepartureIdSelected +
-    //     "&arrivalNodeId=" + nodeArrivalIdSelected +
-    //     "&dateTimeDeparture=" + new Date(dateTimeDeparture).toISOString() +
-    //     "&supplier=" + supplierInput.value +
-    //     "&carTypeId=" + carTypeIdSelected);
+    let bookOffer = new XMLHttpRequest();
+    bookOffer.open('POST', 'http://localhost/booking-process/offers/payment', true);
+    bookOffer.addEventListener('readystatechange', function() {
+        if(this.readyState === 4 && this.status === 200) {
+            removeLoader();
+            let response = JSON.parse(this.responseText);
+            view.remove();
+        }
+    });
+    bookOffer.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    bookOffer.send(JSON.stringify(
+        {
+            offerId: offer.id,
+            supplier: supplierInput.value
+        }
+    ));
 }
