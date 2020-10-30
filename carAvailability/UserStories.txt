@@ -1,0 +1,24 @@
+Story: Get non available cars
+In order to process a search request
+As a carAvailabilty service
+I want to get all booked cars and return them
+
+Scenario 1: using car type and date
+Given a list of bookings from carBooking service
+When I send a GET request to the service with the date and car type I need
+Then I should get the list of all cars already booked matching my parameters
+
+Scenario 2: using only car type
+Given a list of bookings from carBooking service
+When I send a GET request to the service with the car type only
+Then I should get the list of all cars with the same type already booked TODO from / to ?
+
+Scenario 3: using only date
+Given a list of bookings from carBooking service
+When I send a GET request to the service with the date only
+Then I should get the list of all cars already booked at this day
+
+Scenario 4: using no params
+Given a list of bookings from carBooking service
+When I send a GET request to the service without params
+Then I should get TODO an error or [ ] ?
