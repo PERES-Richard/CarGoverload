@@ -28,7 +28,7 @@ services:
     container_name: car-availability
     environment:
       - PORT=80
-      - CARBOOKING_GETBOOKING_URL=/car-booking/findAll
+      - CARBOOKING_GETBOOKING_URL=/car-booking/findAll/type/
       - CAR_BOOKING_PORT=80
       - CAR_BOOKING_HOST=car-booking
     depends_on:
