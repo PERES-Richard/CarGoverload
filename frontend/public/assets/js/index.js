@@ -196,7 +196,7 @@ function launchSearch(){
     loadIdMember.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     loadIdMember.send('departureNodeId=' + nodeDepartureIdSelected +
         "&arrivalNodeId=" + nodeArrivalIdSelected +
-        "&dateTimeDeparture=" + dateTimeDeparture +
+        "&dateTimeDeparture=" + new Date(dateTimeDeparture).toISOString() +
         "&supplier=" + supplierInput.value +
         "&carTypeId=" + carTypeIdSelected);
 }
