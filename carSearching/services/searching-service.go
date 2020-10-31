@@ -13,6 +13,9 @@ import (
 type SearchingService struct {
 	CAR_AVAILABILITY_PORT string
 	CAR_AVAILABILITY_HOST string
+
+	CAR_TRACKING_PORT string
+	CAR_TRACKING_HOST string
 }
 
 // Instantiate new service
@@ -27,9 +30,22 @@ func NewService() *SearchingService {
 		carAvHost = "localhost"
 		// OR raise error
 	}
+
+	var carTrPort string;
+	if carTrPort = os.Getenv("CAR_TRACKING_PORT"); carTrPort == "" {
+		carTrPort = "3004"
+		// OR raise error
+	}
+	var carTrHost string;
+	if carTrHost = os.Getenv("CAR_TRACKING_HOST"); carTrHost == "" {
+		carTrHost = "localhost"
+		// OR raise error
+	}
 	return &SearchingService{
 		CAR_AVAILABILITY_PORT: carAvPort,
 		CAR_AVAILABILITY_HOST: carAvHost,
+		CAR_TRACKING_PORT: carTrPort,
+		CAR_TRACKING_HOST: carTrHost,
 	}
 }
 
@@ -46,7 +62,7 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 }
 
 // Main search algorithm
-func (s *SearchingService) Search(carType string, date string) []entities.Car{
+func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Car{
 	bookedCars, err := s.getBookedCars(carType, date)
 	log.Println("Booked cars: ",bookedCars,"Err: ",err)
 	if err != nil {
@@ -54,11 +70,14 @@ func (s *SearchingService) Search(carType string, date string) []entities.Car{
 	}
 
 	// carTracking service mocking
-	res := []entities.Car{entities.Car{Id: 1, CarType: entities.CarType{Name:"Liquid", Id:1}}, entities.Car{Id: 3, CarType: entities.CarType{Name:"Solid", Id:2}}}
-	log.Println("Available cars, ",res)
+	trackedCars, err := s.getTrackedCars(carType, departureNodeId)
+	log.Println("Tracked cars: ", trackedCars,"Err: ",err)
+	if err != nil {
+		return []entities.Car{}
+	}
 
 	// Remove booked cars from result
-	for _, car := range res {
+	for _, car := range trackedCars {
 		booked := false
 		for _, bookedCar := range bookedCars {
 			if bookedCar.Id == car.Id {
@@ -66,16 +85,25 @@ func (s *SearchingService) Search(carType string, date string) []entities.Car{
 			}
 		}
 		if booked {
-			res, _ = removeCar(res, car)
+			trackedCars, _ = removeCar(trackedCars, car)
 		}
 	}
-	return res
+	return trackedCars
 }
 
 // Get booked cars from carAvailability
-func (s *SearchingService) getBookedCars(carType string, date string) ([]entities.Car, error) {
+func (s *SearchingService) getBookedCars(carType string, date time.Time) ([]entities.Car, error) {
+	res := make([]entities.Car, 0)
+	query := "http://" + s.CAR_AVAILABILITY_HOST + ":" + s.CAR_AVAILABILITY_PORT + "/car-availability/getNonAvailableCars?carType=" + carType + "&date=" + date.Format(time.RFC3339)
+	err := s.sendRequest(query, &res)
+	log.Println(query + " ", res)
+	return res, err
+}
+
+// Get booked cars from carAvailability
+func (s *SearchingService) getTrackedCars(carType string, nodeId string) ([]entities.Car, error) {
 	var res []entities.Car
-	err := s.sendRequest("http://" + s.CAR_AVAILABILITY_HOST + ":" + s.CAR_AVAILABILITY_PORT + "/car-availability/getNonAvailableCars?carType=" + carType + "&date=" + date, &res)
+	err := s.sendRequest("http://" + s.CAR_TRACKING_HOST + ":" + s.CAR_TRACKING_PORT + "/car-tracking/get-cars?nodeId=" + nodeId + "&type=" + carType, &res)
 	log.Println(res)
 	return res, err
 }

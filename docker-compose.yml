@@ -66,12 +66,26 @@ services:
       - PORT=80
       - CAR_AVAILABILITY_HOST=car-availability
       - CAR_AVAILABILITY_PORT=80
+      - CAR_TRACKING_HOST=car-tracking
+      - CAR_TRACKING_PORT=80
     depends_on:
       - car-availability
     expose:
       - 80
     labels:
       - "traefik.http.routers.car-searching.rule=PathPrefix(`/car-searching`)"
+
+  car-tracking:
+    build: ./carTracking
+    image: cargoverload/car-tracking
+    restart: unless-stopped
+    container_name: car-tracking
+    environment:
+      - PORT=80
+    expose:
+      - 80
+    labels:
+      - "traefik.http.routers.car-tracking.rule=PathPrefix(`/car-tracking`)"
 
 
   postgres:
