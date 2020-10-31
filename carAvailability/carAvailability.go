@@ -21,8 +21,8 @@ type JSONError struct {
 // A Car representation for this svc
 type Car struct {
 	Id      int     `json:"id"`
-	CarType CarType `json:"carType"` // TODO replace with enum ?
-	//Date    time.Time `json:"date"`
+	CarType CarType `json:"carType"`
+	Date    time.Time
 }
 
 // A Booking representation for this svc from carBooking
@@ -40,7 +40,7 @@ type CarType struct {
 }
 
 var carBookingURL string
-var getBookingRoute string
+var GetBookingRoute string
 
 // Basic OK route for healthcheck
 func ok(w http.ResponseWriter, req *http.Request) {
@@ -62,10 +62,10 @@ func getJson(url string, target interface{}) error {
 	return json.NewDecoder(r.Body).Decode(target)
 }
 
-// TODO Should return the list of car booked from DB and/or CarBooking service
-func carsBookedList() []Car {
+// Return the list of car booked from CarBooking service
+func carsBookedListByType(carType string) []Car {
 	bookings := make([]Booking, 0)
-	err := getJson("http://"+carBookingURL+getBookingRoute, &bookings)
+	err := getJson("http://"+carBookingURL+GetBookingRoute+carType, &bookings)
 	if err != nil {
 		log.Println(err)
 	}
@@ -81,7 +81,7 @@ func bookingsToCars(bookings []Booking) []Car {
 		cars = append(cars, Car{
 			Id:      book.Car.Id,
 			CarType: book.Car.CarType,
-			//Date:    book.Date,
+			Date:    book.Date,
 		})
 	}
 
@@ -91,11 +91,10 @@ func bookingsToCars(bookings []Booking) []Car {
 // Filters & returns the list of all booked cars by filters
 func getNonAvailableCars(date time.Time, carType string) []Car {
 	var carsBookedFiltered []Car
-	carsBooked := carsBookedList()
+	carsBooked := carsBookedListByType(carType)
 
-	// TODO logic
 	var i interface{} = filter.Choose(carsBooked, func(car Car) bool {
-		return car.CarType.Name == carType /*&& car.Date.YearDay() == date.YearDay()*/
+		return car.Date.YearDay() == date.YearDay() /*&& car.CarType.Name == carType*/
 	})
 	carsBookedFiltered, ok := i.([]Car)
 
@@ -107,20 +106,20 @@ func getNonAvailableCars(date time.Time, carType string) []Car {
 }
 
 // Return the list of all car unavailable with given filters
-func getNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
+func GetNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := req.URL.Query()
 
 	// Get the date from parameter
 	dateParam, ok := params["date"]
 	if !ok {
-		log.Println("Error 1 getNonAvailableCarsRoute : Date parameter not provided")
+		log.Println("Error 1 GetNonAvailableCarsRoute : Date parameter not provided")
 		return
 	}
 	// Convert DateParam into date
 	date, err := time.Parse(time.RFC3339, dateParam[0])
 	if err != nil {
-		log.Println("Error 2 getNonAvailableCarsRoute : Date parameter incorrect")
+		log.Println("Error 2 GetNonAvailableCarsRoute : Date parameter incorrect")
 		log.Panic(err)
 		return
 	}
@@ -128,7 +127,7 @@ func getNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 	// Get the carType from parameter
 	carTypeParam, ok := params["carType"]
 	if !ok {
-		log.Fatalln("Error 3 getNonAvailableCarsRoute : CarType parameter not provided")
+		log.Fatalln("Error 3 GetNonAvailableCarsRoute : CarType parameter not provided")
 		return
 	}
 	carType := carTypeParam[0]
@@ -165,8 +164,8 @@ func main() {
 
 	carBookingURL = carBookingHost + ":" + carBookingPort
 
-	if getBookingRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); getBookingRoute == "" {
-		getBookingRoute = "/car-booking/findAll"
+	if GetBookingRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); GetBookingRoute == "" {
+		GetBookingRoute = "/car-booking/findAll/type/"
 	}
 
 	// Create a new router to serve routes
@@ -174,7 +173,7 @@ func main() {
 
 	// All the routes of the app
 	router.HandleFunc("/car-availability/ok", ok).Methods("GET")
-	router.HandleFunc("/car-availability/getNonAvailableCars", getNonAvailableCarsRoute).Methods("GET")
+	router.HandleFunc("/car-availability/getNonAvailableCars", GetNonAvailableCarsRoute).Methods("GET")
 
 	fmt.Println("Server is running on port " + port)
 
