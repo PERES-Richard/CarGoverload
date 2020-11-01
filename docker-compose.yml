@@ -45,6 +45,8 @@ services:
     container_name: car-booking
     environment:
       - PORT=80
+      - PGHOST=postgres
+      - PGPORT=5432
       - DB_HOST=postgres
       - DB_USER=cargoverload
       - DB_PORT=5432

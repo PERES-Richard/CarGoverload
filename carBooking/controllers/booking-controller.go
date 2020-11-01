@@ -45,7 +45,7 @@ func findBookedCarsWithType(bookingService *services.BookingService)  http.Handl
 		w.Header().Set("Content-Type", "application/json")
 
 		vars := mux.Vars(r)
-		id, _ := strconv.Atoi(vars["typeId"])
+		id, _ := strconv.ParseInt(vars["typeId"], 10, 64)
 
 		jsonError := json.NewEncoder(w).Encode(bookingService.FindAllBookings(id))
 		if jsonError != nil {
@@ -104,7 +104,7 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 			return
 		}
 
-		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, car, sp.Supplier, nodeDeparture, nodeArrival))
+		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, &car, sp.Supplier, &nodeDeparture, &nodeArrival))
 		if jsonError != nil {
 			e := JSONError{Message: "Internal Server Error"}
 			w.WriteHeader(http.StatusInternalServerError)

@@ -17,11 +17,11 @@ func NewService() *BookingService {
 	}
 }
 
-func (b *BookingService) CreateBook(Date time.Time, Car entities.Car , Supplier string, NodeDeparture entities.Node, NodeArrival entities.Node) entities.CarBooking {
+func (b *BookingService) CreateBook(Date time.Time, Car *entities.Car , Supplier string, NodeDeparture *entities.Node, NodeArrival *entities.Node) entities.CarBooking {
 	return repository.CreateBook(Date, Car, Supplier, NodeDeparture, NodeArrival)
 }
 
-func (b *BookingService) FindAllBookings(typeId int) []entities.CarBooking{
+func (b *BookingService) FindAllBookings(typeId int64) []entities.CarBooking{
 	return repository.FindAllBookings(typeId)
 }
 
