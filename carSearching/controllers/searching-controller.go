@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"time"
 )
 
 // Custom error to return in case of a JSON parsing error
@@ -27,7 +28,27 @@ func search(searchingService *services.SearchingService)  http.Handler{
 		if !ok {
 			log.Println("Error search : Date parameter not provided")
 		}
-		res := searchingService.Search(typeParams[0], dateParams[0])
+		date, err := time.Parse(time.RFC3339, dateParams[0])
+		if err != nil {
+			log.Println("Date parameter incorrect")
+			log.Panic(err)
+			return
+		}
+
+		// Get the date from parameter
+		arrivalNodeId, ok := params["arrivalNodeId"]
+		if !ok {
+			log.Println("arrivalNodeId parameter not provided")
+			return
+		}
+		// Get the date from parameter
+		departureNodeId, ok := params["departureNodeId"]
+		if !ok {
+			log.Println("departureNodeId parameter not provided")
+			return
+		}
+
+		res := searchingService.Search(typeParams[0], date, departureNodeId[0], arrivalNodeId[0])
 
 		// Return search results as JSON Object
 		jsonError := json.NewEncoder(w).Encode(res)
@@ -41,5 +62,5 @@ func search(searchingService *services.SearchingService)  http.Handler{
 }
 
 func MakeSearchingHandlers(r *mux.Router, searchingService *services.SearchingService) {
-	r.Handle("/car-searching/search", search(searchingService),).Methods("GET", "OPTIONS").Name("search")
+	r.Handle("/car-searching/search", search(searchingService)).Methods("GET", "OPTIONS").Name("search")
 }
