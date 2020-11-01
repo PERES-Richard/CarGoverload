@@ -53,7 +53,6 @@ var _ = Describe("Get non available cars", func() {
 	})
 
 	Describe("using car type and date", func() {
-
 		When("I send a GET request to the service with the date and car type I need", func() {
 
 			params := url.Values{}
@@ -92,7 +91,9 @@ var _ = Describe("Get non available cars", func() {
 				//Expect(carListReturned[0].Id).To(Equal(expectedCarID))
 			})
 		})
+	})
 
+	Describe("using car type only", func() {
 		When("I send a GET request to the service with only the car type I need", func() {
 
 			// params := url.Values{}
@@ -131,7 +132,9 @@ var _ = Describe("Get non available cars", func() {
 				//Expect(carListReturned[0].Id).To(Equal(expectedCarID))
 			})
 		})
+	})
 
+	Describe("using date only", func() {
 		When("I send a GET request to the service with only the date I need", func() {
 
 			// params := url.Values{}
@@ -170,7 +173,9 @@ var _ = Describe("Get non available cars", func() {
 				//Expect(carListReturned[0].Id).To(Equal(expectedCarID))
 			})
 		})
+	})
 
+	Describe("using no params", func() {
 		When("I send a GET request to the service without any params", func() {
 
 			BeforeEach(func() {

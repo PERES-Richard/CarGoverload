@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"os"
 	"time"
-
-	"robpike.io/filter"
 )
 
 // Custom error to return in case of a JSON parsing error
@@ -39,8 +37,12 @@ type CarType struct {
 	Id   int    `json:"id"`
 }
 
+// URL of the service
 var carBookingURL string
-var GetBookingRoute string
+// URL to get all bookings
+var GetBookingsRoute string
+// URL to get bookings by type
+var GetBookingsByTypeRoute string
 
 // Basic OK route for healthcheck
 func ok(w http.ResponseWriter, req *http.Request) {
@@ -63,26 +65,42 @@ func getJson(url string, target interface{}) error {
 }
 
 // Return the list of car booked from CarBooking service
-func carsBookedListByType(carType string) []Car {
+func bookingsByType(carType string) []Booking {
 	bookings := make([]Booking, 0)
-	err := getJson("http://"+carBookingURL+GetBookingRoute+carType, &bookings)
+
+	getBookingsURL := "http://" + carBookingURL
+
+	// If there is no car type
+	if carType == "" {
+		getBookingsURL += GetBookingsRoute
+	} else {
+		getBookingsURL += GetBookingsByTypeRoute+carType
+
+	}
+
+	// TODO should share the same BD with carBooking service
+	err := getJson(getBookingsURL, &bookings)
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println(bookings)
-	return bookingsToCars(bookings)
+	//log.Println(bookings)
+	return bookings
 }
 
-// Refactor Bookings list to Cars list
-func bookingsToCars(bookings []Booking) []Car {
+// Filter bookings with filter func & refactor Bookings list to Cars list
+func filterBookingsByFilter(bookings []Booking, filter func(car Car) bool) []Car {
 	cars := make([]Car, 0)
 
 	for _, book := range bookings {
-		cars = append(cars, Car{
+		car := Car{
 			Id:      book.Car.Id,
 			CarType: book.Car.CarType,
 			Date:    book.Date,
-		})
+		}
+
+		if filter(car) {
+			cars = append(cars, car)
+		}
 	}
 
 	return cars
@@ -91,10 +109,20 @@ func bookingsToCars(bookings []Booking) []Car {
 // Filters & returns the list of all booked cars by filters
 func getNonAvailableCars(date time.Time, carType string) []Car {
 	var carsBookedFiltered []Car
-	carsBooked := carsBookedListByType(carType)
+	bookings := bookingsByType(carType)
 
-	var i interface{} = filter.Choose(carsBooked, func(car Car) bool {
-		return car.Date.YearDay() == date.YearDay() /*&& car.CarType.Name == carType*/
+	var i interface{} = filterBookingsByFilter(bookings, func(car Car) bool {
+		// If there is a date & the car is booked
+		if !date.IsZero() && car.Date.YearDay() != date.YearDay() {
+			return false
+		}
+
+		// If there is a carType & the carType is different
+		if carType != "" && car.CarType.Name != carType {
+			return false
+		}
+
+		return true
 	})
 	carsBookedFiltered, ok := i.([]Car)
 
@@ -112,24 +140,21 @@ func GetNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 
 	// Get the date from parameter
 	dateParam, ok := params["date"]
-	if !ok {
-		log.Println("Error 1 GetNonAvailableCarsRoute : Date parameter not provided")
-		return
-	}
-	// Convert DateParam into date
-	date, err := time.Parse(time.RFC3339, dateParam[0])
-	if err != nil {
-		log.Println("Error 2 GetNonAvailableCarsRoute : Date parameter incorrect")
-		log.Panic(err)
-		return
+	var date time.Time
+	if ok {
+		// Convert DateParam into date
+		var err error
+		date, err = time.Parse(time.RFC3339, dateParam[0])
+		if err != nil {
+			log.Println("Error 2 GetNonAvailableCarsRoute : Date parameter incorrect")
+			log.Panic(err)
+			return
+		}
 	}
 
+
 	// Get the carType from parameter
-	carTypeParam, ok := params["carType"]
-	if !ok {
-		log.Fatalln("Error 3 GetNonAvailableCarsRoute : CarType parameter not provided")
-		return
-	}
+	carTypeParam, _ := params["carType"]
 	carType := carTypeParam[0]
 
 	cars := getNonAvailableCars(date, carType)
@@ -164,8 +189,12 @@ func main() {
 
 	carBookingURL = carBookingHost + ":" + carBookingPort
 
-	if GetBookingRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); GetBookingRoute == "" {
-		GetBookingRoute = "/car-booking/findAll/type/"
+	if GetBookingsByTypeRoute = os.Getenv("CARBOOKING_GETBOOKING_BY_TYPE_URL"); GetBookingsRoute == "" {
+		GetBookingsByTypeRoute = "/car-booking/findAll/type"
+	}
+
+	if GetBookingsRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); GetBookingsRoute == "" {
+		GetBookingsRoute = "/car-booking/findAll/"
 	}
 
 	// Create a new router to serve routes
