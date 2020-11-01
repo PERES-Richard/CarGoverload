@@ -11,3 +11,9 @@ echo Test car booking service..
 
 echo Test car searching service..
 ./healthcheck_service.sh http://localhost/car-searching/ok
+
+echo Test car tracking service..
+./healthcheck_service.sh http://localhost/car-tracking/ok
+
+echo Test car location service..
+./healthcheck_service.sh http://localhost/car-location/ok
