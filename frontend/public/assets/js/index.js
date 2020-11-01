@@ -5,14 +5,23 @@ class CarType{
     }
 }
 
+class Car{
+    constructor(databaseEntry) {
+        this.id = parseInt(databaseEntry.id);
+        this.carType = new CarType(databaseEntry.carType);
+    }
+}
+
 class Node{
     constructor(databaseEntry) {
         this.id = parseInt(databaseEntry.id);
         this.name = databaseEntry.name;
         let carTypes = []
-        databaseEntry.availableCarTypes.forEach(function(carType){
-            carTypes.push(new CarType(carType));
-        })
+        if (databaseEntry.availableCarTypes !== undefined){
+            databaseEntry.availableCarTypes.forEach(function(carType){
+                carTypes.push(new CarType(carType));
+            });
+        }
         this.carTypes = carTypes;
     }
     hasCarType(id){
@@ -22,6 +31,17 @@ class Node{
             }
         }
         return false;
+    }
+}
+
+class Offer{
+    constructor(databaseEntry) {
+        this.id = databaseEntry.id;
+        this.price = databaseEntry.price;
+        this.date = new Date(databaseEntry.date);
+        this.departure = new Node(databaseEntry.departureNode);
+        this.arrival = new Node(databaseEntry.arrivalNode);
+        this.car = new Car(databaseEntry.car);
     }
 }
 
@@ -36,6 +56,7 @@ let nodeArrivalSelect = null;
 let nodeDepartureSelect = null;
 let dateTimeDeparture = null;
 let loadingBigContainer = null;
+let mainContainer = null;
 
 function addNodesToSelect(select, firstInit = false){
     select.innerHTML = "";
@@ -114,6 +135,7 @@ function loadCarTypes(){
     nodeArrivalSelect = document.getElementById("node-arrival-select");
     carTypeIdSelect = document.getElementById("car-type-select");
     supplierInput = document.getElementById("supplier");
+    mainContainer = document.getElementById("main-container");
 
     let buttonSubmit = document.getElementById("middle-form-submit");
 
@@ -183,20 +205,138 @@ function removeLoader(){
 }
 
 function launchSearch(){
+    mainContainer.innerHTML = "";
     addLoader();
-    let loadIdMember = new XMLHttpRequest();
-    loadIdMember.open('POST', 'http://localhost/booking-process/offers', true);
-    loadIdMember.addEventListener('readystatechange', function() {
-        if(this.readyState === 4 && this.status === 200) {
+    let fetchOffers = new XMLHttpRequest();
+    fetchOffers.open('POST', 'http://localhost/booking-process/offers', true);
+    fetchOffers.addEventListener('readystatechange', function() {
+        if(this.readyState === 4 && this.status === 201) {
             removeLoader();
             let response = JSON.parse(this.responseText);
-            console.log(response)
+            removeLoader();
+            response.forEach(function(offer){
+                displayOffer(new Offer(offer))
+            });
         }
     });
-    loadIdMember.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    loadIdMember.send('departureNodeId=' + nodeDepartureIdSelected +
-        "&arrivalNodeId=" + nodeArrivalIdSelected +
-        "&dateTimeDeparture=" + new Date(dateTimeDeparture).toISOString() +
-        "&supplier=" + supplierInput.value +
-        "&carTypeId=" + carTypeIdSelected);
+    fetchOffers.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    fetchOffers.send(JSON.stringify({
+
+    }));
+    // setTimeout(function(){
+    //     displayOffers([
+    //         new Offer({
+    //             id: "g15ad65fed5",
+    //             price: "5.0",
+    //             date: new Date().toISOString(),
+    //             car: {
+    //                 id: 1,
+    //                 carType: {
+    //                     name: "Liquid",
+    //                     id: 2
+    //                 }
+    //             },
+    //             departureNode: {
+    //                 name: "Nice",
+    //                 id: 1
+    //             },
+    //             arrivalNode: {
+    //                 name: "Marseille",
+    //                 id: 2
+    //             }
+    //         })
+    //     ]);
+    // }, 50);
+}
+
+function displayOffer(offer){
+    console.log(offer)
+    let container = document.createElement("div");
+    container.classList.add("offer");
+    container.title = "Réserver";
+    let information = document.createElement("div");
+    information.classList.add("offer-information");
+    information.classList.add("offer-container");
+
+    let nodes = document.createElement("div");
+    nodes.classList.add("offer-nodes-container");
+
+    let node = document.createElement("div");
+    node.classList.add("offer-node");
+    node.appendChild(document.createTextNode(offer.departure.name));
+    nodes.appendChild(node);
+
+    node = document.createElement("div");
+    node.classList.add("offer-node");
+    node.appendChild(document.createTextNode(offer.arrival.name));
+    nodes.appendChild(node);
+
+    let dateContainer = document.createElement("div");
+    dateContainer.classList.add("offer-date");
+    dateContainer.appendChild(document.createTextNode(offer.date.toDateString()));
+    nodes.appendChild(dateContainer);
+
+    information.appendChild(nodes);
+
+    let carContainer = document.createElement("div");
+    carContainer.classList.add("offer-car");
+
+    let carIcon = document.createElement("i");
+    carIcon.classList.add("offer-car-icon");
+    carIcon.classList.add("fas");
+    carIcon.classList.add("fa-train");
+    carContainer.appendChild(carIcon);
+
+    let carInfoContainer = document.createElement("div");
+    carInfoContainer.classList.add("offer-car-information")
+
+    let carText = document.createElement("div");
+    carText.appendChild(document.createTextNode("Wagon n°" + offer.car.id))
+    carInfoContainer.appendChild(carText);
+
+    let carType = document.createElement("div");
+    carType.appendChild(document.createTextNode(offer.car.carType.name))
+    carInfoContainer.appendChild(carType);
+
+    carContainer.appendChild(carInfoContainer)
+    information.appendChild(carContainer)
+
+
+
+    container.appendChild(information);
+    let price = document.createElement("div");
+    price.classList.add("offer-price");
+    price.classList.add("offer-container");
+    price.appendChild(document.createTextNode(offer.price + "€"));
+    container.appendChild(price);
+
+    container.addEventListener("click", function(){
+       const res = confirm("Procéder à la réservation et au paiement ?")
+        if(res){
+            book(offer, container);
+        }else{
+
+        }
+    });
+
+    mainContainer.appendChild(container);
+}
+
+function book(offer, view){
+    let bookOffer = new XMLHttpRequest();
+    bookOffer.open('POST', 'http://localhost/booking-process/offers/payment', true);
+    bookOffer.addEventListener('readystatechange', function() {
+        if(this.readyState === 4 && this.status === 201) {
+            removeLoader();
+            let response = JSON.parse(this.responseText);
+            view.remove();
+        }
+    });
+    bookOffer.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    bookOffer.send(JSON.stringify(
+        {
+            offerId: offer.id,
+            supplier: supplierInput.value
+        }
+    ));
 }

@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -16,9 +15,16 @@ func listOffers(offerService *services.OfferService)  http.Handler{
 		enableCors(&w)
 
 		vars := mux.Vars(r)
-		tmp, _ := strconv.Atoi(vars["id"])
+		tmp, _ := vars["name"]
 
-		if err := json.NewEncoder(w).Encode(offerService.ListOffersOf(tmp)); err != nil {
+		error, offers := offerService.ListOffersOf(tmp)
+
+		if error != nil {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Not found"))
+		}
+
+		if err := json.NewEncoder(w).Encode(offers); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(errorMessage))
 		}
@@ -84,33 +90,35 @@ func findOffer(offerService *services.OfferService)  http.Handler{
 
 func payOffer(offerService *services.OfferService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		errorMessage := "Payment error"
 		enableCors(&w)
-		vars := mux.Vars(r)
-		tmp, _ := strconv.Atoi(vars["id"])
-		payment, offer, supplier :=offerService.PayOffer(tmp)
+		var payParams struct{
+			OfferId int `json:"offerId"`
+			Supplier string `json:"supplier"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&payParams)
+		payment, offer :=offerService.PayOffer(payParams.OfferId, payParams.Supplier)
 		if !payment {
 			log.Println(payment)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(errorMessage))
+			w.Write([]byte("Payment error"))
 			return
 		}
-		if err := json.NewEncoder(w).Encode(offerService.BookOffer(offer, supplier)); err != nil {
+		if err := json.NewEncoder(w).Encode(offerService.BookOffer(offer, payParams.Supplier)); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(errorMessage))
+			w.Write([]byte("Booking error"))
 		}
 	})
 
 }
 
 func MakeOfferHandlers(r *mux.Router, offerService *services.OfferService) {
-	r.Handle("/booking-process/suppliers/{id}/offers", listOffers(offerService),
+	r.Handle("/booking-process/suppliers/{name}/offers", listOffers(offerService),
 	).Methods("GET", "OPTIONS").Name("listOffers")
 
 	r.Handle("/booking-process/offers", findOffer(offerService),
 	).Methods("GET", "OPTIONS").Name("findOffer")
 
-	r.Handle("/booking-process/offers/{id}/payment", payOffer(offerService),
+	r.Handle("/booking-process/offers/payment", payOffer(offerService),
 	).Methods("POST", "OPTIONS").Name("payOffer")
 
 }
