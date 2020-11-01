@@ -9,33 +9,9 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	. "carAvailability/entities"
 )
-
-// Custom error to return in case of a JSON parsing error
-type JSONError struct {
-	Message string `json:"Message"`
-}
-
-// A Car representation for this svc
-type Car struct {
-	Id      int     `json:"id"`
-	CarType CarType `json:"carType"`
-	Date    time.Time
-}
-
-// A Booking representation for this svc from carBooking
-type Booking struct {
-	Supplier string    `json:"supplier"`
-	Date     time.Time `json:"date"`
-	Id       int       `json:"id"`
-	Car      Car       `json:"car"`
-}
-
-// A CarType representation for this svc from carBooking
-type CarType struct {
-	Name string `json:"name"`
-	Id   int    `json:"id"`
-}
 
 // URL of the service
 var carBookingURL string
@@ -43,14 +19,6 @@ var carBookingURL string
 var GetBookingsRoute string
 // URL to get bookings by type
 var GetBookingsByTypeRoute string
-
-// Basic OK route for healthcheck
-func ok(w http.ResponseWriter, req *http.Request) {
-	_, err := io.WriteString(w, "ok")
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 // Return the JSON data from the given URL
 func getJson(url string, target interface{}) error {
@@ -201,7 +169,10 @@ func main() {
 	router := mux.NewRouter()
 
 	// All the routes of the app
-	router.HandleFunc("/car-availability/ok", ok).Methods("GET")
+	// Basic OK route for healthcheck
+	router.HandleFunc("/car-availability/ok", func(w http.ResponseWriter, req *http.Request) {io.WriteString(w, "ok")}).Methods("GET")
+
+	// Main handler
 	router.HandleFunc("/car-availability/getNonAvailableCars", GetNonAvailableCarsRoute).Methods("GET")
 
 	fmt.Println("Server is running on port " + port)
