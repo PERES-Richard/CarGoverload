@@ -52,30 +52,23 @@ let dateTimeDeparture = null;
 let loadingBigContainer = null;
 let mainContainer = null;
 
-function addNodesToSelect(select, firstInit = false){
+function addNodesToSelect(select){
     select.innerHTML = "";
     if(select === nodeArrivalSelect){
-        addOptionToSelect(select, "Aucun noeud d'arrivée sélectionné", 0, true, null)
+        addOptionToSelect(select, "Aucun noeud d'arrivée sélectionné", 0, false, null)
     }else{
-        addOptionToSelect(select, "Aucun noeud de départ sélectionné", 0, true, null)
+        addOptionToSelect(select, "Aucun noeud de départ sélectionné", 0, false, null)
     }
     select.disabled = false;
 
     for (let i = 0; i < listNodes.length; i++){
         const node = listNodes[i];
         if(node.hasCarType(carTypeIdSelected)){
-            if(i === 0 && firstInit){
-                if(select === nodeArrivalSelect){
-                    nodeArrivalIdSelected = node.id;
-                }else{
-                    nodeDepartureIdSelected = node.id;
-                }
-            }
-            if(select === nodeDepartureSelect && node.id !== nodeArrivalIdSelected){
+            if(select === nodeDepartureSelect){
                 addOptionToSelect(select, node.name, node.id, false, nodeDepartureIdSelected);
             }
 
-            if(select === nodeArrivalSelect && node.id !== nodeDepartureIdSelected) {
+            if(select === nodeArrivalSelect) {
                 addOptionToSelect(select, node.name, node.id, false, nodeArrivalIdSelected);
             }
         }
@@ -100,7 +93,7 @@ function loadNodes(){
             let response = JSON.parse(this.responseText);
             response.forEach(function(node){
                 let jsonObject = node._fields[0].properties;
-                listNodes.push(new Node(jsonObject.id, jsonObject.name, jsonObject.types));
+                listNodes.push(new Node(jsonObject.id.low, jsonObject.name, jsonObject.types));
                 addOptionToSelect(nodeDepartureSelect, node.name, node.id, false, null);
                 addOptionToSelect(nodeArrivalSelect, node.name, node.id, false, null);
             });
@@ -137,19 +130,19 @@ function loadCarTypes(){
 
     carTypeIdSelect.addEventListener("change", function(e){ // when selecting an other value
         carTypeIdSelected = parseInt(e.target.value);
+        nodeArrivalIdSelected = -1
+        nodeDepartureIdSelected = -1;
         buttonSubmit.disabled = false;
-        addNodesToSelect(nodeDepartureSelect, true)
-        addNodesToSelect(nodeArrivalSelect, true)
+        addNodesToSelect(nodeDepartureSelect)
+        addNodesToSelect(nodeArrivalSelect)
     });
     nodeDepartureSelect.addEventListener("change", function(e){
         nodeDepartureIdSelected = parseInt(e.target.value);
         addNodesToSelect(nodeArrivalSelect);
-        addNodesToSelect(nodeDepartureSelect);
     });
     nodeArrivalSelect.addEventListener("change", function(e){
         nodeArrivalIdSelected = parseInt(e.target.value);
         addNodesToSelect(nodeDepartureSelect);
-        addNodesToSelect(nodeArrivalSelect);
     });
     document.getElementById("date-departure").addEventListener("input", function(e){
         dateTimeDeparture = e.target.value;
@@ -160,6 +153,7 @@ function loadCarTypes(){
 })()
 
 function handleFormSubmit(e){
+    removeLoader()
     e.preventDefault();
     if (carTypeIdSelected === -1){
         alert("Vous devez choisir un type de wagon");
@@ -171,6 +165,10 @@ function handleFormSubmit(e){
     }
     if (nodeArrivalIdSelected === -1){
         alert("Vous devez choisir un noeud d'arrivé");
+        return;
+    }
+    if (nodeArrivalIdSelected === nodeDepartureIdSelected){
+        alert("Vous devez choisir des nodes de départ et d'arrivée différents !");
         return;
     }
     if (dateTimeDeparture === null){
