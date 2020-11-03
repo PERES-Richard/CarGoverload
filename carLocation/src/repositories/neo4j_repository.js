@@ -1,5 +1,5 @@
-var neo4j = require('neo4j-driver')
-var driver
+const neo4j = require('neo4j-driver')
+let driver
 
 function initNeo4jSession() {
    const HOST = process.env.NEO4J_HOST ? process.env.NEO4J_HOST : "localhost";
@@ -10,7 +10,7 @@ function initNeo4jSession() {
 }
 
 async function addNode(id, name, types, lat, lgt) {
-    var session = driver.session()
+    const session = driver.session()
     await session.run('CREATE (a:Node {id: $id, name: $name, types: $types, latitude: $lat, longitude: $lgt}) RETURN a', {
         name: name,
         id: neo4j.int(id),
@@ -29,7 +29,7 @@ async function addNode(id, name, types, lat, lgt) {
 }
 
 async function addDistance(idNode1, idNode2, value) {
-    var session = driver.session()
+    const session = driver.session()
     await session.run('MATCH (a: Node), (b: Node) WHERE a.id = $idNode1 AND b.id = $idNode2 CREATE (a)-[d: Distance {value: $value}]->(b) RETURN a, b, d', {
         idNode1: neo4j.int(idNode1),
         idNode2: neo4j.int(idNode2),
@@ -45,10 +45,33 @@ async function addDistance(idNode1, idNode2, value) {
     })
 }
 
+async function getAllNodes(res) {
+    const session = driver.session();
+    const nodes = [];
+    await session.run('MATCH (a: Node) RETURN a', {}).subscribe({
+        onNext: record => {
+            console.log('Fetched node: ' + JSON.stringify(record))
+            nodes.push(record);
+        },
+
+        onCompleted: () => {
+            res.send(JSON.stringify(nodes));
+            session.close() // returns a Promise
+        },
+    })
+}
+
 async function deleteAllNodes() {
-    var session = driver.session()
-    await session.run('MATCH p=()-[r:Distance]->() DELETE p', {})
-    await session.close()
+    const session = driver.session()
+    await session.run('MATCH p=()-[r:Distance]->() DELETE p', {}).subscribe({
+        onNext: () => {
+            console.log('Deleted all nodes')
+        },
+
+        onCompleted: () => {
+            session.close() // returns a Promise
+        },
+    })
 }
 
 async function populateDatabase() {
@@ -68,5 +91,6 @@ async function populateDatabase() {
 
 module.exports =  {
     initNeo4jSession,
-    populateDatabase
+    populateDatabase,
+    getAllNodes
 }

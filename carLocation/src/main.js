@@ -1,5 +1,5 @@
-var repo = require('./repositories/neo4j_repository')
-var ctrl = require('./controllers/carLocation.controller')
+const repo = require('./repositories/neo4j_repository')
+const ctrl = require('./controllers/carLocation.controller');
 
 function main() {
     repo.initNeo4jSession()
