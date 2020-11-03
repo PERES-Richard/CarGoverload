@@ -1,4 +1,4 @@
-#Current flag : Week 44 - GREEN
+# Current flag : Week 45- YELLOW
 
 # Week 40 : GREEN
 
@@ -76,3 +76,21 @@ Pas de problème prévisible pour le moment
 ## Les blocages et risques
 
 Léger contretemps au niveau de la CLI (qui avait été prévue initialement pour la semaine 42), mais qui ne devrait pas trop impacter le reste du développement.
+
+# Week 45: YELLOW
+
+## Ce que l'on a fait
+
+- Mise en place de la CLI/Front
+- Amélioration de la logique de la recherche et de la disponibilité
+- Mise en place d'un autre service entre le composant interne carSearching et le service externe de tracking pour déterminer les wagons en fonction d'un noeud désiré
+- Verification que le scenario pour la démo est entièrement réalisable et valide, et rajout de logique métier si besoin est.
+
+ 
+## Ce que l'on a prévu
+
+- Verification que le scenario pour la démo est entièrement réalisable et valide, et rajout de logique métier si besoin est. (Jusqu'à la demo)
+
+## Les blocages et risques
+
+Modification d'une partie de l'architecture lié au carSearching réalisé juste avant la démonstration
