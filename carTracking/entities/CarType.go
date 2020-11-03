@@ -2,5 +2,5 @@ package entities
 
 type CarType struct {
 	Name 	string		`json:"name"`
-	Id 		int			`json:"id" pg:",pk"`
+	Id 		int			`json:"id"`
 }

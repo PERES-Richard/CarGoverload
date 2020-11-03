@@ -3,19 +3,15 @@ package repository
 import (
 	"carBooking/entities"
 	"database/sql"
-	"errors"
 	"fmt"
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 	_ "github.com/lib/pq"
+	"log"
 	"os"
 	"strconv"
 	"time"
 )
-
-var CollectionNode = "node"
-var CollectionBooking = "booking"
-var CollectionCarType = "car_type"
-var CollectionNodeCarType = "node_car_type"
-var CollectionCar = "car"
 
 var dbHost string
 var dbPort int
@@ -25,21 +21,14 @@ var dbUser string
 
 var InTest = false
 
-func getDatabaseClient() *sql.DB{
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		dbHost, dbPort, dbUser, dbPassword, dbName)
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
-		panic(err)
-	}
-	//DO not forget defer db.Close()
+var db *pg.DB
 
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-
-	return db
+func initDatabaseClient(){
+	db = pg.Connect(&pg.Options{
+		User: dbUser,
+		Password: dbPassword,
+		Database: dbName,
+	})
 }
 
 func initTestDatabase(){
@@ -47,200 +36,180 @@ func initTestDatabase(){
 		dbHost, dbPort, dbUser, dbPassword)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	_, err = db.Exec("DROP DATABASE IF EXISTS " + dbName)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	_, err = db.Exec("CREATE DATABASE " + dbName)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
-func clearDatabase(db *sql.DB){
-	_, err := db.Exec("DROP TABLE IF EXISTS " + CollectionBooking)
-	if err != nil {
-		panic(err)
+func clearDatabase(){
+	//var CollectionNode = "node"
+	//var CollectionBooking = "booking"
+	//var CollectionCarType = "car_type"
+	//var CollectionNodeCarType = "node_car_type"
+	//var CollectionCar = "car"
+	//
+	//_, err := db.Exec("DROP TABLE IF EXISTS " + CollectionBooking)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionNodeCarType)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionNode)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionCar)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionCarType)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+}
+
+func createTables(){
+	models := []interface{}{
+		(*entities.CarType)(nil),
+		(*entities.Car)(nil),
+		(*entities.Node)(nil),
+		(*entities.CarBooking)(nil),
 	}
-	_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionNodeCarType)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionNode)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionCar)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionCarType)
-	if err != nil {
-		panic(err)
+	for _, model := range models {
+		err := db.Model(model).CreateTable(&orm.CreateTableOptions{
+			Temp: true,
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
-func createTables(db *sql.DB){
-	_, err := db.Exec(`CREATE TABLE ` + CollectionCarType + ` (
-    							id SERIAL PRIMARY KEY, 
-    							name VARCHAR(100)
-						   );`)
-	if err != nil {
-		panic(err)
+func populateTables(){
+	// MOCKING CarType
+	carTypeSolid := &entities.CarType{
+		Name:   "Solid",
 	}
-	_, err = db.Exec(`CREATE TABLE ` + CollectionCar + ` (
-    							id SERIAL PRIMARY KEY, 
-    							car_type SERIAL,
-    							FOREIGN KEY(car_type) REFERENCES car_type(id)
-						   );`)
+	_, err := db.Model(carTypeSolid).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	_, err = db.Exec(`CREATE TABLE ` + CollectionNode + ` (
-    							id SERIAL PRIMARY KEY, 
-    							name VARCHAR(100)
-						   );`)
-	if err != nil {
-		panic(err)
+	carTypeLiquid := &entities.CarType{
+		Name:   "Liquid",
 	}
-
-	_, err = db.Exec(`CREATE TABLE ` + CollectionNodeCarType +` (
-    							node_id SERIAL, 
-    							car_type_id SERIAL,
-    							PRIMARY KEY (node_id, car_type_id),
-    							FOREIGN KEY (node_id) REFERENCES node(id),
-    							FOREIGN KEY (car_type_id) REFERENCES car_type(id)
-						   );`)
+	_, err = db.Model(carTypeLiquid).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	_, err = db.Exec(`CREATE TABLE ` + CollectionBooking + ` (
-    							id SERIAL PRIMARY KEY , 
-    							car_id SERIAL,
-    							supplier VARCHAR(100),
-    							departure SERIAL,
-    							arrival SERIAL,
-								time varchar(100),
-    							FOREIGN KEY (departure) REFERENCES node(id),
-    							FOREIGN KEY (arrival) REFERENCES node(id)
-						   );`)
-	if err != nil {
-		panic(err)
+	// MOCKING Car
+	car1 := &entities.Car{
+		CarTypeId: carTypeLiquid.Id,
 	}
-}
-
-func populateTables(db *sql.DB){
-	_, err := db.Exec(`INSERT INTO ` + CollectionCarType + ` (name) VALUES($1)`, "Solid")
+	_, err = db.Model(car1).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionCarType + ` (name) VALUES($1)`, "Liquid")
-	if err != nil {
-		panic(err)
+	car2 := &entities.Car{
+		CarTypeId: carTypeSolid.Id,
 	}
-
-	_, err = db.Exec(`INSERT INTO ` + CollectionCar + ` (car_type) VALUES($1)`, 2)
+	_, err = db.Model(car2).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionCar + ` (car_type) VALUES($1)`, 1)
-	if err != nil {
-		panic(err)
+	car3 := &entities.Car{
+		CarTypeId: carTypeSolid.Id,
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionCar + ` (car_type) VALUES($1)`, 1)
+	_, err = db.Model(car3).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionCar + ` (car_type) VALUES($1)`, 1)
-	if err != nil {
-		panic(err)
+	car4 := &entities.Car{
+		CarTypeId: carTypeSolid.Id,
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionCar + ` (car_type) VALUES($1)`, 2)
+	_, err = db.Model(car4).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Nice")
-	if err != nil {
-		panic(err)
+	car5 := &entities.Car{
+		CarTypeId: carTypeLiquid.Id,
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Marseille")
+	_, err = db.Model(car5).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Draguignan")
-	if err != nil {
-		panic(err)
+	// MOCKING node
+	nodeNice := &entities.Node{
+		Name: "Nice",
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Toulon")
+	_, err = db.Model(nodeNice).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Lyon")
-	if err != nil {
-		panic(err)
+	nodeMarseille := &entities.Node{
+		Name: "Marseille",
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Avignon")
+	_, err = db.Model(nodeMarseille).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNode + ` (name) VALUES($1)`, "Paris")
+	nodeDraguignan := &entities.Node{
+		Name: "Draguignan",
+	}
+	_, err = db.Model(nodeDraguignan).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+	}
+	nodeToulon := &entities.Node{
+		Name: "Toulon",
+	}
+	_, err = db.Model(nodeToulon).Insert()
+	if err != nil {
+		log.Fatal(err)
+	}
+	nodeLyon := &entities.Node{
+		Name: "Lyon",
+	}
+	_, err = db.Model(nodeLyon).Insert()
+	if err != nil {
+		log.Fatal(err)
+	}
+	nodeAvignon := &entities.Node{
+		Name: "Avignon",
+	}
+	_, err = db.Model(nodeAvignon).Insert()
+	if err != nil {
+		log.Fatal(err)
+	}
+	nodeParis := &entities.Node{
+		Name: "Paris",
+	}
+	_, err = db.Model(nodeParis).Insert()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 1, 2)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 2, 1)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 2, 2)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 3, 1)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 3, 2)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 4, 1)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 5, 1)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 6, 2)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 7, 1)
-	if err != nil {
-		panic(err)
-	}
-	_, err = db.Exec(`INSERT INTO ` + CollectionNodeCarType + ` (node_id, car_type_id) VALUES($1, $2)`, 7, 2)
-	if err != nil {
-		panic(err)
-	}
-
-	car1, _ := GetCarFromId(1)
-	car2, _ := GetCarFromId(2)
-	nodeNice, _ := GetNodeFromId(1)
-	nodeMarseille, _ := GetNodeFromId(2)
-	nodeDraguignang, _ := GetNodeFromId(3)
-	CreateBook(time.Now(), car1, "Picard", nodeNice, nodeMarseille)
-	CreateBook(time.Now(), car2, "Amazoom", nodeDraguignang, nodeMarseille)
+	carX1, _ := GetCarFromId(1)
+	carX2, _ := GetCarFromId(2)
+	carX3, _ := GetCarFromId(3)
+	nodeNiceX, _ := GetNodeFromId(1)
+	nodeMarseilleX, _ := GetNodeFromId(2)
+	nodeDraguignanX, _ := GetNodeFromId(3)
+	nodeToulonX, _ := GetNodeFromId(4)
+	nodeLyonX, _ := GetNodeFromId(5)
+	CreateBook(time.Now(), &carX1, "Picard", &nodeNiceX, &nodeMarseilleX)
+	CreateBook(time.Now().Add(5000), &carX2, "Amazoom", &nodeDraguignanX, &nodeMarseilleX)
+	CreateBook(time.Now().Add(50000), &carX2, "Microsoft", &nodeToulonX, &nodeNiceX)
+	CreateBook(time.Now().Add(50000), &carX3, "Fnac", &nodeMarseilleX, &nodeNiceX)
+	CreateBook(time.Now().Add(100000), &carX3, "Darty", &nodeLyonX, &nodeToulonX)
 }
 
 func InitDatabase(){
@@ -261,189 +230,93 @@ func InitDatabase(){
 		initTestDatabase()
 	}
 
-	db := getDatabaseClient()
-	clearDatabase(db)
-	createTables(db)
-	populateTables(db)
+	initDatabaseClient()
+	clearDatabase()
+	createTables()
+	populateTables()
 }
 
-func CreateBook(date time.Time, car entities.Car , supplier string, nodeDeparture entities.Node, nodeArrival entities.Node) entities.CarBooking{
-	db := getDatabaseClient()
-
-	var booking = entities.CarBooking{
+func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDeparture *entities.Node, nodeArrival *entities.Node) entities.CarBooking{
+	var booking = &entities.CarBooking{
 		Date: date,
 		Supplier: supplier,
+		DepartureId: nodeDeparture.Id,
 		Departure: nodeDeparture,
+		ArrivalId: nodeArrival.Id,
 		Arrival: nodeArrival,
+		CarId: car.Id,
 		Car: car,
 	}
 
-	_, err := db.Exec(`INSERT INTO ` + CollectionBooking + ` (car_id, supplier, departure, arrival, time) VALUES($1, $2, $3, $4, $5)`, car.Id, supplier, nodeDeparture.Id, nodeArrival.Id, date.Unix())
+	_, err := db.Model(booking).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
+	return *booking
+}
 
-	return booking
+func GetAllTypes() []entities.CarType{
+	var carTypes = []entities.CarType{}
+	err := db.Model(&carTypes).Select()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return carTypes
 }
 
 func FindAllBookings(typeId int) []entities.CarBooking{
-	var bookings = []entities.CarBooking{}
-
-	db := getDatabaseClient()
-
-	var rows *sql.Rows
-	var err error
-
-	if typeId != -1 {
-		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure, cn.name, cb.arrival, cn2.name FROM ` + CollectionBooking +` cb 
-									INNER JOIN ` + CollectionCar + ` cc ON (cc.id = cb.car_id) 
-									INNER JOIN ` + CollectionCarType + ` cct ON (cct.id = cc.car_type)
-									INNER JOIN ` + CollectionNode + ` cn ON (cn.id = cb.departure)
-									INNER JOIN ` + CollectionNode + ` cn2 ON (cn2.id = cb.arrival)
-									WHERE cct.id = $1`, typeId)
-	}else{
-		rows, err = db.Query(`SELECT cb.id, cb.car_id, cct.id, cct.name, cb.supplier, cb.time, cb.departure, cn.name, cb.arrival, cn2.name FROM ` + CollectionBooking +` cb 
-									INNER JOIN ` + CollectionCar + ` cc ON (cc.id = cb.car_id) 
-									INNER JOIN ` + CollectionCarType + ` cct ON (cct.id = cc.car_type)
-									INNER JOIN ` + CollectionNode + ` cn ON (cn.id = cb.departure)
-									INNER JOIN ` + CollectionNode + ` cn2 ON (cn2.id = cb.arrival)`)
-	}
-
+	var bookings []entities.CarBooking
+	err := db.Model(&bookings).
+		Relation("Arrival").
+		Relation("Departure").
+		Relation("Car").
+		Relation("Car.CarType").
+		Select()
 	if err != nil {
-		_ = db.Close()
-		panic(err)
+		log.Fatal(err)
 	}
 
-	defer rows.Close()
-	for rows.Next() {
-		var bookId int
-		var carId int
-		var typeId int
-		var typeName string
-		var supplier string
-		var timestamp int
-		var departureId int
-		var departureName string
-		var arrivalId int
-		var arrivalName string
-		err = rows.Scan(&bookId, &carId, &typeId, &typeName, &supplier, &timestamp, &departureId, &departureName, &arrivalId, &arrivalName)
-		if err != nil {
-			panic(err)
+	var typedBooking = []entities.CarBooking{} //uggly way because orm is bad with WHERE and not working
+	if typeId != -1{
+		for _, book := range bookings {
+			if book.Car.CarType.Id == typeId{
+				typedBooking = append(typedBooking, book)
+			}
 		}
-		bookings = append(bookings, entities.CarBooking{
-			Supplier:  supplier,
-			Date:      time.Time{},
-			Id:        bookId,
-			Arrival:   entities.Node{
-				Name:              arrivalName,
-				Id:                arrivalId,
-				AvailableCarTypes: GetCarTypesForNode(arrivalId),
-			},
-			Departure: entities.Node{
-				Name:              departureName,
-				Id:                departureId,
-				AvailableCarTypes: GetCarTypesForNode(departureId),
-			},
-			Car:       entities.Car{
-				Id:      carId,
-				CarType: entities.CarType{
-					Name: typeName,
-					Id:   typeId,
-				},
-			},
-		})
+	}else{
+		typedBooking = bookings
 	}
-	// get any error encountered during iteration
-	err = rows.Err()
-	if err != nil {
-		_ = db.Close()
-		panic(err)
-	}
-	_ = db.Close()
-	return bookings
+
+	return typedBooking
 }
 
 func GetNodeFromId(id int) (entities.Node, error){
-	db := getDatabaseClient()
-	row := db.QueryRow(`SELECT cn.id, cn.name FROM ` + CollectionNode +` cn WHERE cn.id = $1`, id)
-
-	var nodeId int
-	var nodeName string
-
-	switch err := row.Scan(&nodeId, &nodeName); err {
-	case sql.ErrNoRows:
-		_ = db.Close()
-		return entities.Node{}, errors.New("No node for id " + strconv.Itoa(id))
-	case nil:
-		break
-	default:
-		panic(err)
-	}
-
-	_ = db.Close()
-
-	return entities.Node{
-		Id: nodeId,
-		Name: nodeName,
-		AvailableCarTypes: GetCarTypesForNode(nodeId),
-	}, nil
-}
-
-func GetCarTypesForNode(nodeId int) []entities.CarType{
-	db := getDatabaseClient()
-	rows, err := db.Query(`SELECT cnt.car_type_id, ct.name FROM ` + CollectionNodeCarType +` cnt INNER JOIN ` + CollectionCarType + ` ct ON (ct.id = cnt.car_type_id) WHERE cnt.node_id = $1 ORDER BY cnt.car_type_id`, nodeId)
+	node := new(entities.Node)
+	err := db.Model(node).
+		Where("node.id = ?", id).
+		Select()
 	if err != nil {
-		// handle this error better than this
-		panic(err)
+		return entities.Node{}, err
 	}
-	var types []entities.CarType
-	defer rows.Close()
-	for rows.Next() {
-		var typeId int
-		var typeName string
-		err = rows.Scan(&typeId, &typeName)
-		if err != nil {
-			_ = db.Close()
-			panic(err)
-		}
-		types = append(types, entities.CarType{
-			Name: typeName,
-			Id:   typeId,
-		})
-	}
-	// get any error encountered during iteration
-	err = rows.Err()
-	if err != nil {
-		_ = db.Close()
-		panic(err)
-	}
-	_ = db.Close()
-	return types
+	//err = db.Close()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	return *node, nil
 }
 
 func GetCarFromId(id int) (entities.Car, error) {
-	db := getDatabaseClient()
-	row := db.QueryRow(`SELECT c.id, ct.id, ct.name FROM ` + CollectionCar +` c INNER JOIN ` + CollectionCarType + ` ct ON (c.car_type = ct.id) WHERE c.id = $1`, id)
-	var carId int
-	var typeId int
-	var typeName string
-
-	switch err := row.Scan(&carId, &typeId, &typeName); err {
-		case sql.ErrNoRows:
-			_ = db.Close()
-			return entities.Car{}, errors.New("No car for id " + strconv.Itoa(id))
-		case nil:
-			break
-		default:
-			panic(err)
+	car := new(entities.Car)
+	err := db.Model(car).
+		Relation("CarType").
+		Where("car.id = ?", id).
+		Select()
+	if err != nil {
+		return entities.Car{}, err
 	}
-
-	_ = db.Close()
-	return entities.Car{
-		Id: carId,
-		CarType: entities.CarType{
-			Name: typeName,
-			Id:   typeId,
-		},
-	}, nil
+	//err = db.Close()
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	return *car, nil
 }

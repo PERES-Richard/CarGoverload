@@ -91,15 +91,15 @@ func (s *OfferService) postJson(url string, body io.Reader,  target interface{})
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
-	log.Println(buf.String())
 
-	return json.NewDecoder(r.Body).Decode(target)
+	return json.Unmarshal([]byte(buf.String()), target)
 }
 
-func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time) ([]entities.Offer, error) {
+func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time, departureNodeId string, arrivalNodeId string) ([]entities.Offer, error) {
 
 	var results []entities.Car
-	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339), &results)
+	log.Println("Requeting sur carSearching")
+	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339)+"&departureNodeId="+departureNodeId+"&arrivalNodeId="+arrivalNodeId, &results)
 	log.Println(results)
 
 	var offers []entities.Offer
@@ -115,41 +115,55 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 		})
 	}
 
-
-	for i, n := range s.suppliers {
-		if n.Name == supplierName {
-			log.Println("found supplier")
-			s.suppliers[i].Offers = append(s.suppliers[i].Offers, offers...)
-			log.Println("state of the object", s.suppliers[i].Offers)
-
+	found, supplier := s.findSupplierFromName(supplierName)
+	if !found{
+		supplier = entities.Supplier{
+			ID:rand.Int(),
+			Name:supplierName,
+			Offers:[]entities.Offer{},
 		}
+		s.suppliers = append(s.suppliers, supplier)
 	}
+
+	supplier.Offers = append(supplier.Offers, offers...)
+	log.Println("found supplier", supplier)
+	log.Println("state of the object", s.suppliers)
+
 	return offers, err
 }
 
-func (s *OfferService) ListOffersOf(supplierId int) ([]entities.Offer) {
-	for _, n := range s.suppliers {
-		if n.ID == supplierId {
-			return n.Offers
+func (s *OfferService) findSupplierFromName(supplierName string) (bool, entities.Supplier) {
+	for i, n := range s.suppliers {
+		if n.Name == supplierName {
+			return true, s.suppliers[i]
 
 		}
 	}
-	return []entities.Offer{}
+
+	return false, entities.Supplier{}
 }
 
-func (s *OfferService) PayOffer(id int) (bool, entities.Offer, string) {
+func (s *OfferService) ListOffersOf(supplierName string) (error, []entities.Offer) {
+	found, supplier := s.findSupplierFromName(supplierName)
+	if found {
+		return nil, supplier.Offers
+	}
+	return os.ErrNotExist, []entities.Offer{}
+}
+
+func (s *OfferService) PayOffer(id int, supplierName string) (bool, entities.Offer) {
 
 	for _, n := range s.suppliers {
 		for _, i := range n.Offers {
 			if i.ID == id {
-				return s.bankAPI.PerformPayment(n.Name, i.Price), i, n.Name
+				return s.bankAPI.PerformPayment(n.Name, i.Price), i
 
 			}
 		}
 
 	}
 
-	return false, entities.Offer{}, ""
+	return false, entities.Offer{}
 }
 
 func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interface{} {
@@ -161,7 +175,14 @@ func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interf
 		NodeArrivalId int `json:"arrivalId"`
 	}
 
-	var results string
+	var results struct {
+		Supplier 		string		`json:"supplier"`
+		Date  			time.Time		`json:"date"`
+		Id 				int			`json:"id"`
+		Arrival 		entities.Node		`json:"arrivalNode"`
+		Departure 		entities.Node		`json:"departureNode"`
+		Car 			entities.Car			`json:"car"`
+	}
 
 	//Todo do real ID for car
 	var body = SearchParams{Date:Ofr.BookDate.Format(time.RFC3339),CarId:1, Supplier:supplierName, NodeArrivalId:Ofr.Arrival.Id, NodeDepartureId:Ofr.Departure.Id}
@@ -170,6 +191,8 @@ func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interf
 	bodyByte, _ := json.Marshal(body)
 	err := s.postJson("http://"+s.CAR_BOOKING_HOST+":"+s.CAR_BOOKING_PORT+"/car-booking/book", bytes.NewReader(bodyByte), &results)
 	log.Println(results)
-	log.Fatalln(err)
+	if err != nil {
+		return err
+	}
 	return results
 }
