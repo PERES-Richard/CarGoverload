@@ -1,7 +1,7 @@
 class CarType{
-    constructor(databaseEntry) {
-        this.id = parseInt(databaseEntry.id);
-        this.name = databaseEntry.name;
+    constructor(id, name) {
+        this.id = id;
+        this.name = name;
     }
 }
 
@@ -13,20 +13,14 @@ class Car{
 }
 
 class Node{
-    constructor(databaseEntry) {
-        this.id = parseInt(databaseEntry.id);
-        this.name = databaseEntry.name;
-        let carTypes = []
-        if (databaseEntry.availableCarTypes !== undefined){
-            databaseEntry.availableCarTypes.forEach(function(carType){
-                carTypes.push(new CarType(carType));
-            });
-        }
-        this.carTypes = carTypes;
+    constructor(id, name, types) {
+        this.id = id;
+        this.name = name;
+        this.carTypes = types;
     }
     hasCarType(id){
         for(let i = 0; i < this.carTypes.length; i++){
-            if(this.carTypes[i].id === id) {
+            if(this.carTypes[i] === id) {
                 return true;
             }
         }
@@ -100,12 +94,13 @@ function addOptionToSelect(select, name, value, disabled, selectedValue){
 
 function loadNodes(){
     let loadIdMember = new XMLHttpRequest();
-    loadIdMember.open('GET', 'http://localhost/car-booking/getAllNodes', true);
+    loadIdMember.open('GET', 'http://localhost/car-location/findAllNodes', true);
     loadIdMember.addEventListener('readystatechange', function() {
         if(this.readyState === 4 && this.status === 200) {
             let response = JSON.parse(this.responseText);
             response.forEach(function(node){
-                listNodes.push(new Node(node));
+                let jsonObject = node._fields[0].properties;
+                listNodes.push(new Node(jsonObject.id, jsonObject.name, jsonObject.types));
                 addOptionToSelect(nodeDepartureSelect, node.name, node.id, false, null);
                 addOptionToSelect(nodeArrivalSelect, node.name, node.id, false, null);
             });
@@ -116,12 +111,13 @@ function loadNodes(){
 
 function loadCarTypes(){
     let loadIdMember = new XMLHttpRequest();
-    loadIdMember.open('GET', 'http://localhost/car-booking/getAllCarTypes', true);
+    loadIdMember.open('GET', 'http://localhost/car-location/findAllCarTypes', true);
     loadIdMember.addEventListener('readystatechange', function() {
         if(this.readyState === 4 && this.status === 200) {
             let response = JSON.parse(this.responseText);
             response.forEach(function(carType){
-                let carTypeObject = new CarType(carType)
+                let jsonObject = carType._fields[0].properties;
+                let carTypeObject = new CarType(jsonObject.id.low, jsonObject.name)
                 addOptionToSelect(carTypeIdSelect, carTypeObject.name, carTypeObject.id, false, null);
             });
         }
@@ -159,8 +155,8 @@ function loadCarTypes(){
         dateTimeDeparture = e.target.value;
     });
     document.getElementById("middle-form").addEventListener("submit", handleFormSubmit);
-    loadNodes();
     loadCarTypes();
+    loadNodes();
 })()
 
 function handleFormSubmit(e){
