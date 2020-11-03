@@ -105,7 +105,7 @@ function loadNodes(){
         if(this.readyState === 4 && this.status === 200) {
             let response = JSON.parse(this.responseText);
             response.forEach(function(node){
-               listNodes.push(new Node(node));
+                listNodes.push(new Node(node));
                 addOptionToSelect(nodeDepartureSelect, node.name, node.id, false, null);
                 addOptionToSelect(nodeArrivalSelect, node.name, node.id, false, null);
             });
@@ -311,7 +311,7 @@ function displayOffer(offer){
     container.appendChild(price);
 
     container.addEventListener("click", function(){
-       const res = confirm("Procéder à la réservation et au paiement ?")
+        const res = confirm("Procéder à la réservation et au paiement ?")
         if(res){
             book(offer, container);
         }else{
