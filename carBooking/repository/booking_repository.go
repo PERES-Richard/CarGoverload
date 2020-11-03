@@ -7,6 +7,7 @@ import (
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
 	_ "github.com/lib/pq"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -35,15 +36,15 @@ func initTestDatabase(){
 		dbHost, dbPort, dbUser, dbPassword)
 	db, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	_, err = db.Exec("DROP DATABASE IF EXISTS " + dbName)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	_, err = db.Exec("CREATE DATABASE " + dbName)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 }
 
@@ -56,23 +57,23 @@ func clearDatabase(){
 	//
 	//_, err := db.Exec("DROP TABLE IF EXISTS " + CollectionBooking)
 	//if err != nil {
-	//	panic(err)
+	//	log.Fatal(err)
 	//}
 	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionNodeCarType)
 	//if err != nil {
-	//	panic(err)
+	//	log.Fatal(err)
 	//}
 	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionNode)
 	//if err != nil {
-	//	panic(err)
+	//	log.Fatal(err)
 	//}
 	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionCar)
 	//if err != nil {
-	//	panic(err)
+	//	log.Fatal(err)
 	//}
 	//_, err = db.Exec("DROP TABLE IF EXISTS " + CollectionCarType)
 	//if err != nil {
-	//	panic(err)
+	//	log.Fatal(err)
 	//}
 }
 
@@ -88,7 +89,7 @@ func createTables(){
 			Temp: true,
 		})
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	}
 }
@@ -100,14 +101,14 @@ func populateTables(){
 	}
 	_, err := db.Model(carTypeSolid).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	carTypeLiquid := &entities.CarType{
 		Name:   "Liquid",
 	}
 	_, err = db.Model(carTypeLiquid).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// MOCKING Car
 	car1 := &entities.Car{
@@ -115,118 +116,85 @@ func populateTables(){
 	}
 	_, err = db.Model(car1).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	car2 := &entities.Car{
 		CarTypeId: carTypeSolid.Id,
 	}
 	_, err = db.Model(car2).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	car3 := &entities.Car{
 		CarTypeId: carTypeSolid.Id,
 	}
 	_, err = db.Model(car3).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	car4 := &entities.Car{
 		CarTypeId: carTypeSolid.Id,
 	}
 	_, err = db.Model(car4).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	car5 := &entities.Car{
 		CarTypeId: carTypeLiquid.Id,
 	}
 	_, err = db.Model(car5).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	// MOCKING node
 	nodeNice := &entities.Node{
 		Name: "Nice",
-		AvailableCarTypes: []entities.CarType{
-			*carTypeLiquid,
-		},
 	}
 	_, err = db.Model(nodeNice).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	nodeMarseille := &entities.Node{
 		Name: "Marseille",
-		AvailableCarTypes: []entities.CarType{
-			*carTypeLiquid,
-			*carTypeSolid,
-		},
 	}
 	_, err = db.Model(nodeMarseille).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	nodeDraguignan := &entities.Node{
 		Name: "Draguignan",
-		AvailableCarTypes: []entities.CarType{
-			*carTypeLiquid,
-			*carTypeSolid,
-		},
 	}
 	_, err = db.Model(nodeDraguignan).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	nodeToulon := &entities.Node{
 		Name: "Toulon",
-		AvailableCarTypes: []entities.CarType{
-			*carTypeSolid,
-		},
 	}
 	_, err = db.Model(nodeToulon).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	nodeLyon := &entities.Node{
 		Name: "Lyon",
-		AvailableCarTypes: []entities.CarType{
-			*carTypeSolid,
-		},
 	}
 	_, err = db.Model(nodeLyon).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	nodeAvignon := &entities.Node{
 		Name: "Avignon",
-		AvailableCarTypes: []entities.CarType{
-			*carTypeLiquid,
-		},
 	}
 	_, err = db.Model(nodeAvignon).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	nodeParis := &entities.Node{
 		Name: "Paris",
-		AvailableCarTypes: []entities.CarType{
-			*carTypeLiquid,
-			*carTypeSolid,
-		},
 	}
 	_, err = db.Model(nodeParis).Insert()
 	if err != nil {
-		panic(err)
-	}
-
-	car := new(entities.Car)
-	err = db.Model(car).
-		Relation("CarType").
-		Where("car.id = ?", car1.Id).
-		Select()
-	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	carX1, _ := GetCarFromId(1)
@@ -274,7 +242,7 @@ func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDepartu
 		Supplier: supplier,
 		DepartureId: nodeDeparture.Id,
 		Departure: nodeDeparture,
-		ArrivalId: nodeDeparture.Id,
+		ArrivalId: nodeArrival.Id,
 		Arrival: nodeArrival,
 		CarId: car.Id,
 		Car: car,
@@ -282,41 +250,30 @@ func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDepartu
 
 	_, err := db.Model(booking).Insert()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	return *booking
-}
-
-func GetAllNodes() []entities.Node{
-	var nodes =  []entities.Node{}
-	err := db.Model(&nodes).Relation("AvailableCarTypes").Select()
-	if err != nil {
-		panic(err)
-	}
-	return nodes
 }
 
 func GetAllTypes() []entities.CarType{
 	var carTypes = []entities.CarType{}
 	err := db.Model(&carTypes).Select()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	return carTypes
 }
 
-func FindAllBookings(typeId int64) []entities.CarBooking{
+func FindAllBookings(typeId int) []entities.CarBooking{
 	var bookings []entities.CarBooking
 	err := db.Model(&bookings).
 		Relation("Arrival").
 		Relation("Departure").
 		Relation("Car").
 		Relation("Car.CarType").
-		Relation("Departure.AvailableCarTypes").
-		Relation("Arrival.AvailableCarTypes").
 		Select()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	var typedBooking = []entities.CarBooking{} //uggly way because orm is bad with WHERE and not working
@@ -330,27 +287,20 @@ func FindAllBookings(typeId int64) []entities.CarBooking{
 		typedBooking = bookings
 	}
 
-	//TODO add available car types
-	//for _, book := range bookings {
-	//	book.Departure.AvailableCarTypes = GetCarTypesFromId(book.DepartureId)
-	//	book.Arrival.AvailableCarTypes = GetCarTypesFromId(book.ArrivalId)
-	//}
-
 	return typedBooking
 }
 
 func GetNodeFromId(id int) (entities.Node, error){
 	node := new(entities.Node)
 	err := db.Model(node).
-		Relation("AvailableCarTypes").
 		Where("node.id = ?", id).
 		Select()
 	if err != nil {
-		panic(err)
+		return entities.Node{}, err
 	}
 	//err = db.Close()
 	//if err != nil {
-	//	panic(err)
+	//	log.Fatal(err)
 	//}
 	return *node, nil
 }
@@ -362,11 +312,11 @@ func GetCarFromId(id int) (entities.Car, error) {
 		Where("car.id = ?", id).
 		Select()
 	if err != nil {
-		panic(err)
+		return entities.Car{}, err
 	}
 	//err = db.Close()
 	//if err != nil {
-	//	panic(err)
+	//	log.Fatal(err)
 	//}
 	return *car, nil
 }

@@ -45,7 +45,7 @@ func findBookedCarsWithType(bookingService *services.BookingService)  http.Handl
 		w.Header().Set("Content-Type", "application/json")
 
 		vars := mux.Vars(r)
-		id, _ := strconv.ParseInt(vars["typeId"], 10, 64)
+		id, _ := strconv.Atoi(vars["typeId"])
 
 		jsonError := json.NewEncoder(w).Encode(bookingService.FindAllBookings(id))
 		if jsonError != nil {
@@ -114,20 +114,6 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 	})
 }
 
-func getAllNodes(bookingService *services.BookingService)  http.Handler{
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		enableCors(&w)
-		w.Header().Set("Content-Type", "application/json")
-		jsonError := json.NewEncoder(w).Encode(bookingService.GetAllNodes())
-		if jsonError != nil {
-			e := JSONError{Message: "Internal Server Error"}
-			w.WriteHeader(http.StatusInternalServerError)
-			err2 := json.NewEncoder(w).Encode(e)
-			log.Panic(jsonError, err2)
-		}
-	})
-}
-
 func getAllCarTypes(bookingService *services.BookingService)  http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		enableCors(&w)
@@ -143,9 +129,6 @@ func getAllCarTypes(bookingService *services.BookingService)  http.Handler{
 }
 
 func MakeBookingHandlers(r *mux.Router, bookingService *services.BookingService) {
-	r.Handle("/car-booking/getAllNodes", getAllNodes(bookingService),
-	).Methods("GET", "OPTIONS").Name("getAllNodes")
-
 	r.Handle("/car-booking/getAllCarTypes", getAllCarTypes(bookingService),
 	).Methods("GET", "OPTIONS").Name("getAllCarTypes")
 
