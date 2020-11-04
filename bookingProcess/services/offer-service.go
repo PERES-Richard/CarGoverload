@@ -96,7 +96,7 @@ func (s *OfferService) postJson(url string, body io.Reader,  target interface{})
 }
 
 func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time, departureNodeId string, arrivalNodeId string) ([]entities.Offer, error) {
-
+	//Todo change results into DTO with car and nodes
 	var results []entities.Car
 	log.Println("Requeting sur carSearching")
 	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339)+"&departureNodeId="+departureNodeId+"&arrivalNodeId="+arrivalNodeId, &results)
@@ -117,12 +117,13 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 
 	found, supplier := s.findSupplierFromName(supplierName)
 	if !found{
-		supplier = entities.Supplier{
+		supplierNew := entities.Supplier{
 			ID:rand.Int(),
 			Name:supplierName,
 			Offers:[]entities.Offer{},
 		}
-		s.suppliers = append(s.suppliers, supplier)
+		s.suppliers = append(s.suppliers, supplierNew)
+		found, supplier = s.findSupplierFromName(supplierName);
 	}
 
 	supplier.Offers = append(supplier.Offers, offers...)
@@ -132,15 +133,15 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 	return offers, err
 }
 
-func (s *OfferService) findSupplierFromName(supplierName string) (bool, entities.Supplier) {
+func (s *OfferService) findSupplierFromName(supplierName string) (bool, *entities.Supplier) {
 	for i, n := range s.suppliers {
 		if n.Name == supplierName {
-			return true, s.suppliers[i]
+			return true, &s.suppliers[i]
 
 		}
 	}
 
-	return false, entities.Supplier{}
+	return false, &entities.Supplier{}
 }
 
 func (s *OfferService) ListOffersOf(supplierName string) (error, []entities.Offer) {
