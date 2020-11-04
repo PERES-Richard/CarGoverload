@@ -81,7 +81,20 @@ async function getAllNodes(res) {
     const session = driver.session();
     const records = await session.run('MATCH (a: Node) RETURN DISTINCT a', {})
     await session.close();
-    res.send(JSON.stringify(records.records));
+
+    const nodes = [];
+    records.records.forEach(function(record){
+       const recordProperties = record["_fields"][0].properties
+       nodes.push({
+           name: recordProperties.name,
+           id: recordProperties.id.low,
+           types: recordProperties.types,
+           latitude: recordProperties.latitude,
+           longitude: recordProperties.longitude
+       })
+    });
+
+    res.send(JSON.stringify(nodes));
 }
 
 async function getNode(id) {
@@ -130,18 +143,18 @@ async function deleteAllNodes() {
 
 async function getAllCarTypes(res) {
     const session = driver.session();
-    const nodes = [];
-    await session.run('MATCH (a: CarType) RETURN a', {}).subscribe({
-        onNext: record => {
-            console.log('Fetched cartype: ' + JSON.stringify(record))
-            nodes.push(record);
-        },
+    const records = await session.run('MATCH (a: CarType) RETURN a', {});
+    await session.close();
 
-        onCompleted: () => {
-            res.send(JSON.stringify(nodes));
-            session.close() // returns a Promise
-        },
-    })
+    const carTypes = [];
+    records.records.forEach(function(record){
+        const recordProperties = record["_fields"][0].properties
+        carTypes.push({
+            name: recordProperties.name,
+            id: recordProperties.id.low
+        });
+    });
+    res.send(JSON.stringify(carTypes));
 }
 
 async function deleteAllCarTypes() {

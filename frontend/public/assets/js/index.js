@@ -92,8 +92,7 @@ function loadNodes(){
         if(this.readyState === 4 && this.status === 200) {
             let response = JSON.parse(this.responseText);
             response.forEach(function(node){
-                let jsonObject = node._fields[0].properties;
-                listNodes.push(new Node(jsonObject.id.low, jsonObject.name, jsonObject.types));
+                listNodes.push(new Node(node.id, node.name, node.types));
                 addOptionToSelect(nodeDepartureSelect, node.name, node.id, false, null);
                 addOptionToSelect(nodeArrivalSelect, node.name, node.id, false, null);
             });
@@ -109,8 +108,7 @@ function loadCarTypes(){
         if(this.readyState === 4 && this.status === 200) {
             let response = JSON.parse(this.responseText);
             response.forEach(function(carType){
-                let jsonObject = carType._fields[0].properties;
-                let carTypeObject = new CarType(jsonObject.id.low, jsonObject.name)
+                let carTypeObject = new CarType(carType.id, carType.name)
                 addOptionToSelect(carTypeIdSelect, carTypeObject.name, carTypeObject.id, false, null);
             });
         }
