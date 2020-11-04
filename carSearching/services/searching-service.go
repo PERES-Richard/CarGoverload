@@ -63,10 +63,9 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 
 // Main search algorithm
 // 1: get unavailable cars at a certain date
-// 2: get nodes corresponding to departureNodeId, and carType (get close nodes if Node has no carType)
-// 3: get cars close to those nodes
-// 4: filter obtained cars with unavailable cars
-// 5: create offers (associate cars to node and add prize)
+// 2: Get nodes and cars close to the departure node
+// 3: filter obtained cars with unavailable cars
+// 4: create offers (associate cars to node and add prize)
 func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Car{
 	// Step 1: Get unavailable cars
 	bookedCars, err := s.getBookedCars(carType, date)
