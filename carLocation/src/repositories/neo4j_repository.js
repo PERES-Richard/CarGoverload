@@ -1,12 +1,46 @@
 const neo4j = require('neo4j-driver')
 let driver
 
-function initNeo4jSession() {
-   const HOST = process.env.NEO4J_HOST ? process.env.NEO4J_HOST : "localhost";
-    driver = neo4j.driver(
-        'neo4j://'+HOST,
-        neo4j.auth.basic('neo4j', 'superpassword')
-    )
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function initNeo4jSession() {
+    if (!getDriver()) {
+        throw 'Could not create driver'
+    }
+    while (!(await databaseTest())){
+        console.log('Neo4j database not ready, retrying in 10 seconds...')
+        await sleep(10000)
+    }
+    await populateDatabase()
+}
+
+function getDriver() {
+    const HOST = process.env.NEO4J_HOST ? process.env.NEO4J_HOST : "localhost";
+    try {
+        driver = neo4j.driver(
+            'neo4j://'+HOST,
+            neo4j.auth.basic('neo4j', 'superpassword')
+        )
+    } catch (e) {
+        console.log('Database connection error: ', e)
+        return false
+    }
+    return true
+}
+
+async function databaseTest() {
+    const session = driver.session()
+    try {
+        console.log('Launching Neo4j database test...')
+        await session.run('MATCH (e: Node) RETURN e')
+        console.log('Neo4j database ok')
+        return true
+    } catch(e) {
+        console.log('Database test error: ', e)
+        return false
+    }
 }
 
 async function addCarType(id, name) {
@@ -104,7 +138,8 @@ async function populateDatabase() {
 
 module.exports =  {
     initNeo4jSession,
-    populateDatabase,
+    databaseTest,
     getAllNodes,
-    getAllCarTypes
+    getAllCarTypes,
+    getNode
 }

@@ -2,10 +2,15 @@ const express = require('express')
 const app = express();
 const cors = require('cors');
 const repository = require('../repositories/neo4j_repository');
+const service = require('../services/carLocation.service');
 
 function initRoutes() {
-    app.get('/car-location/ok', (req, res) => {
-        res.send('ok')
+    app.get('/car-location/ok', async (req, res) => {
+        if(await repository.databaseTest()){
+            res.send('ok')
+        } else {
+            res.send('Waiting for neo4j')
+        }
     })
     app.get('/car-location/findAllNodes', async (req, res) => {
         await repository.getAllNodes(res);

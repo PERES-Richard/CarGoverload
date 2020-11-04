@@ -14,8 +14,8 @@ type SearchingService struct {
 	CAR_AVAILABILITY_PORT string
 	CAR_AVAILABILITY_HOST string
 
-	CAR_TRACKING_PORT string
-	CAR_TRACKING_HOST string
+	CAR_LOCATION_HOST string
+	CAR_LOCATION_PORT string
 }
 
 // Instantiate new service
@@ -31,21 +31,21 @@ func NewService() *SearchingService {
 		// OR raise error
 	}
 
-	var carTrPort string;
-	if carTrPort = os.Getenv("CAR_TRACKING_PORT"); carTrPort == "" {
-		carTrPort = "3004"
+	var carLoPort string;
+	if carLoPort = os.Getenv("CAR_LOCATION_PORT"); carLoPort == "" {
+		carLoPort = "3005"
 		// OR raise error
 	}
-	var carTrHost string;
-	if carTrHost = os.Getenv("CAR_TRACKING_HOST"); carTrHost == "" {
-		carTrHost = "localhost"
+	var carLoHost string;
+	if carLoHost = os.Getenv("CAR_LOCATION_HOST"); carLoHost == "" {
+		carLoHost = "localhost"
 		// OR raise error
 	}
 	return &SearchingService{
 		CAR_AVAILABILITY_PORT: carAvPort,
 		CAR_AVAILABILITY_HOST: carAvHost,
-		CAR_TRACKING_PORT: carTrPort,
-		CAR_TRACKING_HOST: carTrHost,
+		CAR_LOCATION_PORT:     carLoPort,
+		CAR_LOCATION_HOST:     carLoHost,
 	}
 }
 
@@ -63,10 +63,9 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 
 // Main search algorithm
 // 1: get unavailable cars at a certain date
-// 2: get nodes corresponding to departureNodeId, and carType (get close nodes if Node has no carType)
-// 3: get cars close to those nodes
-// 4: filter obtained cars with unavailable cars
-// 5: create offers (associate cars to node and add prize)
+// 2: Get nodes and cars close to the departure node
+// 3: filter obtained cars with unavailable cars
+// 4: create offers (associate cars to node and add prize)
 func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Car{
 	// Step 1: Get unavailable cars
 	bookedCars, err := s.getBookedCars(carType, date)
@@ -79,28 +78,29 @@ func (s *SearchingService) Search(carType string, date time.Time, departureNodeI
 
 	// Step 3: carTracking service mocking
 	// TODO: call for every necessary node
-	trackedCars, err := s.getTrackedCars(carType, departureNodeId)
-	log.Println("Tracked cars: ", trackedCars,"Err: ",err)
-	if err != nil {
-		return []entities.Car{}
-	}
-
-	// Step 4: Remove booked cars from result
-	for _, car := range trackedCars {
-		booked := false
-		for _, bookedCar := range bookedCars {
-			if bookedCar.Id == car.Id {
-				booked = true
-			}
-		}
-		if booked {
-			trackedCars, _ = removeCar(trackedCars, car)
-		}
-	}
-
-	// TODO - Step 5: create offers
-
-	return trackedCars
+	//trackedCars, err := s.getTrackedCars(carType, departureNodeId)
+	//log.Println("Tracked cars: ", trackedCars,"Err: ",err)
+	//if err != nil {
+	//	return []entities.Car{}
+	//}
+	//
+	//// Step 4: Remove booked cars from result
+	//for _, car := range trackedCars {
+	//	booked := false
+	//	for _, bookedCar := range bookedCars {
+	//		if bookedCar.Id == car.Id {
+	//			booked = true
+	//		}
+	//	}
+	//	if booked {
+	//		trackedCars, _ = removeCar(trackedCars, car)
+	//	}
+	//}
+	//
+	//// TODO - Step 5: create offers
+	//
+	//return trackedCars
+	return nil
 }
 
 // Get booked cars from carAvailability
@@ -113,9 +113,10 @@ func (s *SearchingService) getBookedCars(carType string, date time.Time) ([]enti
 }
 
 // Get booked cars from carAvailability
-func (s *SearchingService) getTrackedCars(carType string, nodeId string) ([]entities.Car, error) {
-	res := make([]entities.Car, 0)
-	err := s.sendRequest("http://" + s.CAR_TRACKING_HOST + ":" + s.CAR_TRACKING_PORT + "/car-tracking/get-cars?nodeId=" + nodeId + "&type=" + carType, &res)
+func (s *SearchingService) getTrackedCarsAndNodes(carType string, nodeId string) ([]entities.TrackedCar, error) {
+	res := make([]entities.TrackedCar, 0)
+	//TODO: remake request
+	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/get-cars?nodeId=" + nodeId + "&type=" + carType, &res)
 	log.Println(res)
 	return res, err
 }
