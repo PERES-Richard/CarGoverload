@@ -255,15 +255,6 @@ func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDepartu
 	return *booking
 }
 
-func GetAllTypes() []entities.CarType{
-	var carTypes = []entities.CarType{}
-	err := db.Model(&carTypes).Select()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return carTypes
-}
-
 func FindAllBookings(typeId int) []entities.CarBooking{
 	var bookings []entities.CarBooking
 	err := db.Model(&bookings).
