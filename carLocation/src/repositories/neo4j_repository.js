@@ -84,6 +84,43 @@ async function getAllNodes(res) {
     res.send(JSON.stringify(records.records));
 }
 
+async function getNode(id) {
+    const session = driver.session();
+    const records = await session.run('MATCH (a: Node) WHERE a.id = $id RETURN DISTINCT a LIMIT 1', {
+        id: neo4j.int(id)
+    });
+    await session.close();
+
+    if (records.records[0] === undefined)
+        return undefined
+    const neoNode = records.records[0]["_fields"][0].properties
+    neoNode.id = id
+    const types = []
+    for (let i = 0; i < neoNode.types.length; i++) {
+        const carType = await getCarType(neoNode.types[i])
+        types.push(carType.name)
+    }
+    neoNode.types = types
+    return neoNode
+}
+
+async function getNodesCloserThan(nodeId, distance) {
+    
+}
+
+async function getCarType(id) {
+    const session = driver.session();
+    const records = await session.run('MATCH (a: CarType) WHERE a.id = $id RETURN DISTINCT a LIMIT 1', {
+        id: neo4j.int(id)
+    });
+    await session.close();
+    if (records.records[0] === undefined)
+        return undefined
+    const neoType = records.records[0]["_fields"][0].properties
+    neoType.id = id
+    return neoType
+}
+
 async function deleteAllNodes() {
     const session = driver.session();
     await session.run('MATCH p=()-[r:Distance]->() DELETE p', {});
