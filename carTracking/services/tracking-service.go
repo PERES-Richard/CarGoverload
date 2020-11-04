@@ -14,7 +14,7 @@ func NewService() *TrackingService {
 }
 
 // Main search algorithm
-func (s *TrackingService) GetCars(nodeId string, carType string) []entities.Car{
+func (s *TrackingService) GetCars(latitude string, longitude string, carType string) []entities.Car{
 	// MOCKING - IRL we would have an algorithm to get cars close to the location specified
 	// by the nodeId parameter and corresponding to the carType parameter,
 	// but for now we return a set list of cars

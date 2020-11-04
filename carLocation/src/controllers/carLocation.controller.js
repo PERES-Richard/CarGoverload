@@ -18,6 +18,10 @@ function initRoutes() {
     app.get('/car-location/findAllCarTypes', async (req, res) => {
         await repository.getAllCarTypes(res);
     });
+    app.get('/car-location/searchTrackedCars', async (req, res) => {
+        console.log('Requested node:', req.query.node, ' carTypeId', req.query.carType);
+        await service.searchTrackedCars(req.query.node, req.query.carTypeId, res);
+    });
 }
 
 function listen(port) {
