@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"io"
 	"log"
+	"math"
 	"math/rand"
 	"net/http"
 	"os"
@@ -97,7 +98,16 @@ func (s *OfferService) postJson(url string, body io.Reader,  target interface{})
 
 func (s *OfferService) FindOffer(supplierName string, carType string, bookDate time.Time, departureNodeId string, arrivalNodeId string) ([]entities.Offer, error) {
 	//Todo change results into DTO with car and nodes
-	var results []entities.Car
+
+	type SearchItem struct {
+		BookDate time.Time `json:"bookDate"`
+		Arrival 		entities.Node		`json:"arrivalNode"`
+		Departure 		entities.Node		`json:"departureNode"`
+		Car 			entities.Car			`json:"car"`
+		Price float32 `json:"price"`
+	}
+
+	var results []SearchItem
 	log.Println("Requeting sur carSearching")
 	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339)+"&departureNodeId="+departureNodeId+"&arrivalNodeId="+arrivalNodeId, &results)
 	log.Println(results)
@@ -107,11 +117,11 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 	for _, r := range results {
 		offers = append(offers, entities.Offer{
 			ID:        rand.Int(),
-			Arrival: entities.Node{Id:2},
-			Departure: entities.Node{Id:1},
-			Car:    r,
-			BookDate:     bookDate,
-			Price: 0.0,
+			Arrival: r.Arrival,
+			Departure: r.Departure,
+			Car:    r.Car,
+			BookDate:     r.BookDate,
+			Price: s.determinePrice(r.Departure.Latitude, r.Departure.Longitude, r.Arrival.Latitude, r.Arrival.Longitude),
 		})
 	}
 
@@ -142,6 +152,31 @@ func (s *OfferService) findSupplierFromName(supplierName string) (bool, *entitie
 	}
 
 	return false, &entities.Supplier{}
+}
+
+func (s *OfferService) determinePrice(lat1 float64, lng1 float64, lat2 float64, lng2 float64) float64 {
+	const PI float64 = 3.141592653589793
+
+	radlat1 := PI * lat1 / 180
+	radlat2 := PI * lat2 / 180
+
+	theta := lng1 - lng2
+	radtheta := PI * theta / 180
+
+	dist := math.Sin(radlat1) * math.Sin(radlat2) + math.Cos(radlat1) * math.Cos(radlat2) * math.Cos(radtheta)
+
+	if dist > 1 {
+		dist = 1
+	}
+
+	dist = math.Acos(dist)
+	dist = dist * 180 / PI
+	dist = dist * 60 * 1.1515
+
+	dist = dist * 1.609344
+
+
+	return dist/ 3.3
 }
 
 func (s *OfferService) ListOffersOf(supplierName string) (error, []entities.Offer) {
@@ -185,8 +220,7 @@ func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interf
 		Car 			entities.Car			`json:"car"`
 	}
 
-	//Todo do real ID for car
-	var body = SearchParams{Date:Ofr.BookDate.Format(time.RFC3339),CarId:1, Supplier:supplierName, NodeArrivalId:Ofr.Arrival.Id, NodeDepartureId:Ofr.Departure.Id}
+	var body = SearchParams{Date:Ofr.BookDate.Format(time.RFC3339),CarId:Ofr.Car.Id, Supplier:supplierName, NodeArrivalId:Ofr.Arrival.Id, NodeDepartureId:Ofr.Departure.Id}
 	log.Println(body)
 
 	bodyByte, _ := json.Marshal(body)

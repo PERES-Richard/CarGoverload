@@ -6,6 +6,6 @@ type BankAPI struct {
 	PaymentEP string `json:"paymentEP"`
 }
 
-func (b BankAPI) PerformPayment(s string, f float32) bool {
+func (b BankAPI) PerformPayment(s string, f float64) bool {
 	return true;
 }
