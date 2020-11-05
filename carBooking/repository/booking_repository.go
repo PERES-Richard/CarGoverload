@@ -187,13 +187,13 @@ func populateTables(){
 	nodeNiceX, _ := GetNodeFromId(3)
 	nodeParisX, _ := GetNodeFromId(4)
 	nodeAvignonSolidX, _ := GetNodeFromId(5)
-	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carSolid1, "Picard", &nodeMarseilleX, &nodeAvignonSolidX)
-	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carLiquid5, "Amazoom", &nodeNiceX, &nodeMarseilleX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carSolid1, "Picard", &nodeNiceX, &nodeAvignonSolidX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carLiquid5, "Amazoom", &nodeParisX, &nodeMarseilleX)
 	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carSolid4, "Microsoft", &nodeParisX, &nodeAvignonSolidX)
 	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carLiquid2, "Fnac", &nodeAvignonLiquidX, &nodeNiceX)
-	CreateBook(time.Now().Add(time.Hour * time.Duration(1)), time.Now().Add(time.Hour * time.Duration(2)), &carLiquid3, "Darty", &nodeNiceX, &nodeParisX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(1)), time.Now().Add(time.Hour * time.Duration(2)), &carLiquid3, "Darty", &nodeMarseilleX, &nodeParisX)
 	CreateBook(time.Now().Add(time.Hour * time.Duration(2)), time.Now().Add(time.Hour * time.Duration(3)), &carSolid1, "TopAchat", &nodeAvignonSolidX, &nodeNiceX)
-	CreateBook(time.Now().Add(time.Hour * time.Duration(3)), time.Now().Add(time.Hour * time.Duration(4)), &carLiquid5, "LDLC", &nodeNiceX, &nodeAvignonLiquidX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(3)), time.Now().Add(time.Hour * time.Duration(4)), &carLiquid5, "LDLC", &nodeMarseilleX, &nodeAvignonLiquidX)
 	CreateBook(time.Now().Add(time.Hour * time.Duration(4)), time.Now().Add(time.Hour * time.Duration(5)), &carLiquid3, "MiamMiam", &nodeParisX, &nodeMarseilleX)
 }
 
