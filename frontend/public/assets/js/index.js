@@ -36,6 +36,14 @@ class Offer{
         this.departure = new Node(databaseEntry.departureNode.id, databaseEntry.departureNode.name, []);
         this.arrival = new Node(databaseEntry.arrivalNode.id, databaseEntry.arrivalNode.name, []);
         this.car = new Car(databaseEntry.car);
+        this.duration = databaseEntry.duration;
+        this.departureTime = this.date.getHours() + ':' + this.date.getMinutes();
+        const arrivalTime = this.addMinutes(this.date, this.duration);
+        this.arrivalTime = arrivalTime.getHours() + ':' + arrivalTime.getMinutes();
+    }
+
+    addMinutes(date, minutes) {
+        return new Date(date.getTime() + minutes*60000);
     }
 }
 
@@ -219,10 +227,7 @@ function launchSearch(){
     fetchOffers.send(null);
 }
 
-
-
 function displayOffer(offer){
-    console.log(offer)
     let container = document.createElement("div");
     container.classList.add("offer");
     container.title = "Réserver";
@@ -235,11 +240,20 @@ function displayOffer(offer){
 
     let node = document.createElement("div");
     node.classList.add("offer-node");
+
+    let time = document.createElement("time");
+    time.classList.add("offer-time");
+    time.appendChild(document.createTextNode(offer.departureTime + ' - '));
+    node.appendChild(time);
     node.appendChild(document.createTextNode(offer.departure.name));
     nodes.appendChild(node);
 
     node = document.createElement("div");
     node.classList.add("offer-node");
+    time = document.createElement("time");
+    time.classList.add("offer-time");
+    time.appendChild(document.createTextNode(offer.arrivalTime + ' - '));
+    node.appendChild(time);
     node.appendChild(document.createTextNode(offer.arrival.name));
     nodes.appendChild(node);
 
@@ -272,8 +286,6 @@ function displayOffer(offer){
 
     carContainer.appendChild(carInfoContainer)
     information.appendChild(carContainer)
-
-
 
     container.appendChild(information);
     let price = document.createElement("div");

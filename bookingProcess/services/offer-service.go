@@ -123,6 +123,7 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 			Car:    r.Car,
 			BookDate:     r.BookDate,
 			Price: math.Floor(kmDistance*2.5*100)/100,
+			Duration: int(math.Floor(kmDistance*100)/100),
 		})
 	}
 
