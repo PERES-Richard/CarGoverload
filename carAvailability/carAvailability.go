@@ -161,7 +161,7 @@ func main() {
 	CarBookingURL = carBookingHost + ":" + carBookingPort
 
 	if GetBookingsByTypeRoute = os.Getenv("CARBOOKING_GETBOOKING_BY_TYPE_URL"); GetBookingsRoute == "" {
-		GetBookingsByTypeRoute = "/car-booking/findAll/type"
+		GetBookingsByTypeRoute = "/car-booking/findAll/type/"
 	}
 
 	if GetBookingsRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); GetBookingsRoute == "" {
