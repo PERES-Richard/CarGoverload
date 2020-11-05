@@ -238,6 +238,7 @@ func CreateBook(date time.Time, dateArrival time.Time, car *entities.Car , suppl
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("C'est booké")
 	return *booking
 }
 

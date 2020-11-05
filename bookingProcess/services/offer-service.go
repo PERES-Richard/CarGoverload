@@ -116,7 +116,7 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 	err := s.getJson("http://"+s.CAR_SEARCHING_HOST+":"+s.CAR_SEARCHING_PORT+"/car-searching/search?carType="+carType+"&date="+bookDate.Format(time.RFC3339)+"&departureNodeId="+departureNodeId+"&arrivalNodeId="+arrivalNodeId, &results)
 	log.Println(results)
 
-	var offers []entities.Offer
+	var offers = []entities.Offer{}
 
 	for _, r := range results {
 		kmDistance := s.determinePrice(r.Departure.Latitude, r.Departure.Longitude, r.Arrival.Latitude, r.Arrival.Longitude)

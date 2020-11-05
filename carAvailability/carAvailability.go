@@ -53,7 +53,6 @@ func bookingsByType(carType int) []Booking {
 	if err != nil {
 		log.Println(err)
 	}
-	//log.Println(bookings)
 	return bookings
 }
 
@@ -81,22 +80,27 @@ func filterBookingsByFilter(bookings []Booking, filter func(car Car) bool) []Car
 func getNonAvailableCars(date time.Time, carType int) []Car {
 	var carsBookedFiltered []Car
 	bookings := bookingsByType(carType)
+	log.Println(bookings)
+	log.Println(date)
 
 	var i interface{} = filterBookingsByFilter(bookings, func(car Car) bool {
 		// If there is a date & the car is booked
 		if !date.IsZero() && (date.After(car.BeginBookedDate) && date.Before(car.EndingBookedDate)) {
+			log.Println("Ici ca retourne false")
 			return false
 		}
 
 		// If there is a carType & the carType is different
 		if carType != 0 && car.CarTypeId != carType {
+			log.Println(car.CarTypeId)
+			log.Println(carType)
 			return false
 		}
 
 		return true
 	})
 	carsBookedFiltered, ok := i.([]Car)
-
+	log.Println(carsBookedFiltered)
 	if !ok {
 		log.Println("Error filtering booked cars")
 	}

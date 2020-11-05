@@ -10,7 +10,7 @@ type JSONError struct {
 // A Car representation for this svc
 type Car struct {
 	Id               int `json:"id"`
-	CarTypeId        int `json:"carType"`
+	CarTypeId        int `json:"carTypeId"`
 	BeginBookedDate  time.Time
 	EndingBookedDate time.Time
 }
@@ -21,5 +21,5 @@ type Booking struct {
 	BeginBookedDate  time.Time `json:"beginBookedDate"`
 	EndingBookedDate time.Time `json:"endingBookedDate"`
 	Id               int       `json:"id"`
-	Car              Car       `json:"carTypeId"`
+	Car              Car       `json:"car"`
 }
