@@ -19,8 +19,7 @@ function initRoutes() {
         await repository.getAllCarTypes(res);
     });
     app.get('/car-location/searchTrackedCars', async (req, res) => {
-        console.log('Requested node:', req.query.node, ' carTypeId', req.query.carType);
-        await service.searchTrackedCars(req.query.node, req.query.carTypeId, res);
+        await service.searchTrackedCars(req.query.node, req.query.carTypeId, req.query.distance, res);
     });
 }
 

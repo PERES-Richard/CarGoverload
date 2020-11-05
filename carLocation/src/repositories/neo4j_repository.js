@@ -55,10 +55,14 @@ async function addCarType(id, name) {
 
 async function addNode(id, name, types, lat, lgt) {
     const session = driver.session();
+    const t = []
+    types.forEach(type => {
+        t.push(neo4j.int(type))
+    })
     await session.run('CREATE (a:Node {id: $id, name: $name, types: $types, latitude: $lat, longitude: $lgt}) RETURN a', {
         name: name,
         id: neo4j.int(id),
-        types: types,
+        types: t,
         lat: lat,
         lgt: lgt
     });
@@ -95,17 +99,36 @@ async function getNode(id) {
         return undefined
     const neoNode = records.records[0]["_fields"][0].properties
     neoNode.id = id
-    const types = []
-    for (let i = 0; i < neoNode.types.length; i++) {
-        const carType = await getCarType(neoNode.types[i])
-        types.push(carType.name)
-    }
-    neoNode.types = types
+    const intTypes = []
+    neoNode.types.forEach(t => {
+        intTypes.push(t.low)
+    })
+    neoNode.types = intTypes
     return neoNode
 }
 
 async function getNodesCloserThan(nodeId, distance) {
-    
+    const session = driver.session();
+    const records = await session.run('MATCH (a: Node)-[b: Distance]-(c: Node) WHERE a.id = $nodeId AND b.value < $distance RETURN c', {
+        nodeId: neo4j.int(nodeId),
+        distance: neo4j.int(distance)
+    });
+    await session.close();
+    if (records.records[0] === undefined)
+        return []
+    const res = []
+    for (let i = 0; i < records.records.length; i++) {
+        const neoNode = records.records[i]["_fields"][0].properties
+        neoNode.id = neoNode.id.low
+        const intTypes = []
+        neoNode.types.forEach(t => {
+            intTypes.push(t.low)
+        })
+        neoNode.types = intTypes
+        res.push(neoNode)
+    }
+    console.log(res)
+    return res
 }
 
 async function getCarType(id) {
@@ -178,5 +201,6 @@ module.exports =  {
     databaseTest,
     getAllNodes,
     getAllCarTypes,
+    getNodesCloserThan,
     getNode
 }
