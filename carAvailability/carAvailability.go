@@ -14,7 +14,7 @@ import (
 )
 
 // URL of the service
-var carBookingURL string
+var CarBookingURL string
 // URL to get all bookings
 var GetBookingsRoute string
 // URL to get bookings by type
@@ -36,7 +36,7 @@ func getJson(url string, target interface{}) error {
 func bookingsByType(carType string) []Booking {
 	bookings := make([]Booking, 0)
 
-	getBookingsURL := "http://" + carBookingURL
+	getBookingsURL := "http://" + CarBookingURL
 
 	// If there is no car type
 	if carType == "" {
@@ -63,7 +63,8 @@ func filterBookingsByFilter(bookings []Booking, filter func(car Car) bool) []Car
 		car := Car{
 			Id:      book.Car.Id,
 			CarType: book.Car.CarType,
-			Date:    book.Date,
+			BeginBookedDate:    book.BeginBookedDate,
+			EndingBookedDate:    book.EndingBookedDate,
 		}
 
 		if filter(car) {
@@ -81,7 +82,7 @@ func getNonAvailableCars(date time.Time, carType string) []Car {
 
 	var i interface{} = filterBookingsByFilter(bookings, func(car Car) bool {
 		// If there is a date & the car is booked
-		if !date.IsZero() && car.Date.YearDay() != date.YearDay() {
+		if !date.IsZero() && (date.After(car.BeginBookedDate) && date.Before(car.EndingBookedDate))  {
 			return false
 		}
 
@@ -155,7 +156,7 @@ func main() {
 		carBookingPort = "3002"
 	}
 
-	carBookingURL = carBookingHost + ":" + carBookingPort
+	CarBookingURL = carBookingHost + ":" + carBookingPort
 
 	if GetBookingsByTypeRoute = os.Getenv("CARBOOKING_GETBOOKING_BY_TYPE_URL"); GetBookingsRoute == "" {
 		GetBookingsByTypeRoute = "/car-booking/findAll/type"
