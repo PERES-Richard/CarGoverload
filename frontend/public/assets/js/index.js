@@ -37,10 +37,16 @@ class Offer{
         this.arrival = new Node(databaseEntry.arrivalNode.id, databaseEntry.arrivalNode.name, []);
         this.car = new Car(databaseEntry.car);
         this.duration = databaseEntry.duration;
-        this.departureTime = this.date.getHours() + ':' + this.date.getMinutes();
+        this.departureTime = this.timeWithZeros(this.date.getHours()) + ':' + this.timeWithZeros(this.date.getMinutes());
         this.dateArrival = new Date(databaseEntry.endingBookedDate);
-        this.arrivalTime = this.dateArrival.getHours() + ':' + this.dateArrival.getMinutes();
+        this.arrivalTime = this.timeWithZeros(this.dateArrival.getHours()) + ':' + this.timeWithZeros(this.dateArrival.getMinutes());
     }
+
+    timeWithZeros(time)
+    {
+        return (time < 10 ? '0' : '') + time;
+    }
+
 }
 
 listNodes = []
@@ -263,7 +269,7 @@ function displayOffer(offer){
 
     let dateContainer = document.createElement("div");
     dateContainer.classList.add("offer-date");
-    dateContainer.appendChild(document.createTextNode(offer.date.toDateString()));
+    dateContainer.appendChild(document.createTextNode("Date de départ : " + offer.date.toDateString()));
     nodes.appendChild(dateContainer);
 
     information.appendChild(nodes);
