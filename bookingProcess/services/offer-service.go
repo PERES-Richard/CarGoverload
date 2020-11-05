@@ -115,13 +115,14 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 	var offers []entities.Offer
 
 	for _, r := range results {
+		kmDistance := s.determinePrice(r.Departure.Latitude, r.Departure.Longitude, r.Arrival.Latitude, r.Arrival.Longitude)
 		offers = append(offers, entities.Offer{
 			ID:        rand.Int(),
 			Arrival: r.Arrival,
 			Departure: r.Departure,
 			Car:    r.Car,
 			BookDate:     r.BookDate,
-			Price: s.determinePrice(r.Departure.Latitude, r.Departure.Longitude, r.Arrival.Latitude, r.Arrival.Longitude),
+			Price: math.Floor(kmDistance*100)/100,
 		})
 	}
 

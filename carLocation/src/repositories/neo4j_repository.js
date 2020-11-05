@@ -201,9 +201,9 @@ async function populateDatabase() {
     await addCarType(2, "Liquid");
 
 
-    await addNode(1, 'Marseille', [1, 2], 43.9415356, 4.7632126);
+    await addNode(1, 'Marseille', [1, 2], 43.298348, 5.370525);
     await addNode(2, 'Avignon-liquid', [2], 43.9415387, 4.7632200);
-    await addNode(3, 'Nice', [1], 43.7031691, 7.1827772);
+    await addNode(3, 'Nice', [1], 43.709017, 7.255735);
     await addNode(4, 'Paris', [1, 2], 48.8588377, 2.2770202);
     await addNode(5, 'Avignon-solid', [1], 43.9415387, 4.7632200);
 
