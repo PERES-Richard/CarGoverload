@@ -20,11 +20,11 @@ func (s *TrackingService) GetCars(latitude string, longitude string, carType str
 	// by the nodeId parameter and corresponding to the carType parameter,
 	// but for now we return a set list of cars
 	cars := []entities.Car{
-		{Id: 1, CarType: entities.CarType{Name: "Liquid", Id: 1}},
-		{Id: 2, CarType: entities.CarType{Name: "Solid", Id: 2}},
-		{Id: 3, CarType: entities.CarType{Name: "Solid", Id: 2}},
-		{Id: 4, CarType: entities.CarType{Name: "Liquid", Id: 1}},
-		{Id: 5, CarType: entities.CarType{Name: "Liquid", Id: 2}},
+		{Id: 1, CarType: entities.CarType{Name: "Liquid", Id: 2}},
+		{Id: 2, CarType: entities.CarType{Name: "Solid", Id: 1}},
+		{Id: 3, CarType: entities.CarType{Name: "Solid", Id: 1}},
+		{Id: 4, CarType: entities.CarType{Name: "Liquid", Id: 2}},
+		{Id: 5, CarType: entities.CarType{Name: "Liquid", Id: 1}},
 	}
 	res := make([]entities.Car,0)
 	for _,c := range cars {
