@@ -145,7 +145,7 @@ func (s *SearchingService) getNodeFromId(nodes []entities.Node, id int) entities
 // Get booked cars from carAvailability
 func (s *SearchingService) getTrackedCarsAndNodes(carType string, nodeId string) ([]entities.TrackedCar, error) {
 	res := make([]entities.TrackedCar, 0)
-	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/searchTrackedCars?nodeId=" + nodeId + "&type=" + carType, &res)
+	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/searchTrackedCars?node=" + nodeId + "&carTypeId=" + carType + "&distance=100", &res)
 	log.Println(res)
 	return res, err
 }
