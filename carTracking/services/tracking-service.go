@@ -24,7 +24,7 @@ func (s *TrackingService) GetCars(latitude string, longitude string, carType str
 		{Id: 2, CarType: entities.CarType{Name: "Solid", Id: 1}},
 		{Id: 3, CarType: entities.CarType{Name: "Solid", Id: 1}},
 		{Id: 4, CarType: entities.CarType{Name: "Liquid", Id: 2}},
-		{Id: 5, CarType: entities.CarType{Name: "Liquid", Id: 1}},
+		{Id: 5, CarType: entities.CarType{Name: "Liquid", Id: 2}},
 	}
 	res := make([]entities.Car,0)
 	for _,c := range cars {
