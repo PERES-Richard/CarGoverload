@@ -8,6 +8,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -69,7 +70,9 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 // 4: create offers (associate cars to node and add prize)
 func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Offer{
 	everyNodes, _ := s.getAllNodes()
-	arrivalNode := s.getNodeFromId(everyNodes, arrivalNodeId)
+	arrivalId,_ := strconv.Atoi(arrivalNodeId)
+	arrivalNode := s.getNodeFromId(everyNodes, arrivalId)
+	log.Println("Arrival node: ", arrivalNode)
 
 	// Step 1: Get unavailable cars
 	bookedCars, err := s.getBookedCars(carType, date)
@@ -101,7 +104,7 @@ func (s *SearchingService) Search(carType string, date time.Time, departureNodeI
 	// Step 4 : return offers
 	var offers = []entities.Offer{}
 	for _, car := range trackedCars {
-		price := s.calculateDistance(car.Node.Latitude, car.Node.Longitude, arrivalNode.Latitude, arrivalNode.Longitude, "K") / 3
+		price := s.calculateDistance(car.Node.Latitude, car.Node.Longitude, arrivalNode.Latitude, arrivalNode.Longitude, "K") / 3.3
 		offers = append(offers, entities.Offer{
 			BookDate:  date,
 			Arrival:   arrivalNode,
@@ -126,13 +129,14 @@ func (s *SearchingService) getBookedCars(carType string, date time.Time) ([]enti
 func (s *SearchingService) getAllNodes() ([]entities.Node, error) {
 	res := make([]entities.Node, 0)
 	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/findAllNodes", &res)
-	log.Println(res)
+	log.Println(res, " --- ", err)
 	return res, err
 }
 
-func (s *SearchingService) getNodeFromId(nodes []entities.Node, id string) entities.Node {
+func (s *SearchingService) getNodeFromId(nodes []entities.Node, id int) entities.Node {
 	for _, node := range nodes {
-		if node.Id == id{
+		intId, _ := node.Id.Int64()
+		if intId == int64(id){
 			return node
 		}
 	}
