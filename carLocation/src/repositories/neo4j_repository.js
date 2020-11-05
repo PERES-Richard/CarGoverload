@@ -88,11 +88,16 @@ async function getAllNodes(res) {
 
     const nodes = [];
     records.records.forEach(function(record){
-       const recordProperties = record["_fields"][0].properties
-       nodes.push({
+        const recordProperties = record["_fields"][0].properties
+        const intTypes = []
+        recordProperties.types.forEach(t => {
+            intTypes.push(t.low)
+        })
+        recordProperties.types = intTypes
+        nodes.push({
            name: recordProperties.name,
            id: recordProperties.id.low,
-           types: recordProperties.types,
+           types: intTypes,
            latitude: recordProperties.latitude,
            longitude: recordProperties.longitude
        })
@@ -197,7 +202,7 @@ async function populateDatabase() {
 
 
     await addNode(1, 'Marseille', [1, 2], 43.9415356, 4.7632126);
-    await addNode(2, 'Avignon-liquid', [2], 43.9415356, 4.7632126);
+    await addNode(2, 'Avignon-liquid', [2], 43.9415387, 4.7632200);
     await addNode(3, 'Nice', [1], 43.7031691, 7.1827772);
     await addNode(4, 'Paris', [1, 2], 48.8588377, 2.2770202);
     await addNode(5, 'Avignon-solid', [1], 43.9415387, 4.7632200);
