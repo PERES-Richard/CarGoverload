@@ -45,8 +45,7 @@ func bookingsByType(carType int) []Booking {
 	if carType == 0 {
 		getBookingsURL += GetBookingsRoute
 	} else {
-		getBookingsURL += GetBookingsByTypeRoute + string(carType)
-
+		getBookingsURL += GetBookingsByTypeRoute + string(rune(carType))
 	}
 
 	// TODO should share the same BD with carBooking service
