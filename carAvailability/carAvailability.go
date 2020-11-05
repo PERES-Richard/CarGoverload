@@ -28,6 +28,7 @@ func getJson(url string, target interface{}) error {
 	var myClient = &http.Client{Timeout: 10 * time.Second}
 	r, err := myClient.Get(url)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	defer r.Body.Close()
@@ -80,20 +81,17 @@ func filterBookingsByFilter(bookings []Booking, filter func(car Car) bool) []Car
 func getNonAvailableCars(date time.Time, carType int) []Car {
 	var carsBookedFiltered []Car
 	bookings := bookingsByType(carType)
+	log.Println("Les bookings au début")
 	log.Println(bookings)
-	log.Println(date)
 
 	var i interface{} = filterBookingsByFilter(bookings, func(car Car) bool {
 		// If there is a date & the car is booked
-		if !date.IsZero() && (date.After(car.BeginBookedDate) && date.Before(car.EndingBookedDate)) {
-			log.Println("Ici ca retourne false")
+		if date.Before(car.BeginBookedDate) || date.After(car.EndingBookedDate) {
 			return false
 		}
 
 		// If there is a carType & the carType is different
-		if carType != 0 && car.CarTypeId != carType {
-			log.Println(car.CarTypeId)
-			log.Println(carType)
+		if car.CarTypeId != carType {
 			return false
 		}
 
@@ -104,6 +102,9 @@ func getNonAvailableCars(date time.Time, carType int) []Car {
 	if !ok {
 		log.Println("Error filtering booked cars")
 	}
+
+	log.Println("Les bookings après")
+	log.Println(carsBookedFiltered)
 
 	return carsBookedFiltered
 }

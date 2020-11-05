@@ -218,6 +218,12 @@ function launchSearch(){
             response.forEach(function(offer){
                 displayOffer(new Offer(offer))
             });
+            if(response.length === 0){
+                let container = document.createElement("div");
+                container.classList.add("text-empty");
+                container.appendChild(document.createTextNode("Aucun wagon de libre avec vos critères"));
+                mainContainer.appendChild(container);
+            }
         }
     });
     fetchOffers.send(null);

@@ -210,3 +210,8 @@ label{
     font-size: 14pt;
     color: rgba(0,0,0,0.6);
 }
+.text-empty{
+    text-align: center;
+    font-size: 18pt;
+    color: rgba(0,0,0,0.8);
+}
