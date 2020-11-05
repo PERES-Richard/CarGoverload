@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -66,41 +68,52 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 // 2: Get nodes and cars close to the departure node
 // 3: filter obtained cars with unavailable cars
 // 4: create offers (associate cars to node and add prize)
-func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Car{
+func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Offer{
+	everyNodes, _ := s.getAllNodes()
+	arrivalId,_ := strconv.Atoi(arrivalNodeId)
+	arrivalNode := s.getNodeFromId(everyNodes, arrivalId)
+
 	// Step 1: Get unavailable cars
 	bookedCars, err := s.getBookedCars(carType, date)
 	log.Println("Booked cars: ",bookedCars,"Err: ",err)
 	if err != nil {
-		return []entities.Car{}
+		return []entities.Offer{}
 	}
 
-	// TODO: Step 2 - get all necessary nodes
+	// Step 2 : Get every cars near given departure node and cartype
+	trackedCars, err := s.getTrackedCarsAndNodes(carType, departureNodeId)
+	log.Println("Tracked cars: ", trackedCars,"Err: ",err)
+	if err != nil {
+		return []entities.Offer{}
+	}
 
-	// Step 3: carTracking service mocking
-	// TODO: call for every necessary node
-	//trackedCars, err := s.getTrackedCars(carType, departureNodeId)
-	//log.Println("Tracked cars: ", trackedCars,"Err: ",err)
-	//if err != nil {
-	//	return []entities.Car{}
-	//}
-	//
-	//// Step 4: Remove booked cars from result
-	//for _, car := range trackedCars {
-	//	booked := false
-	//	for _, bookedCar := range bookedCars {
-	//		if bookedCar.Id == car.Id {
-	//			booked = true
-	//		}
-	//	}
-	//	if booked {
-	//		trackedCars, _ = removeCar(trackedCars, car)
-	//	}
-	//}
-	//
-	//// TODO - Step 5: create offers
-	//
-	//return trackedCars
-	return nil
+	// Step 3 : Remove cars already booked
+	for _, car := range trackedCars {
+		booked := false
+		for _, bookedCar := range bookedCars {
+			if bookedCar.Id == car.Car.Id {
+				booked = true
+			}
+		}
+		if booked {
+			trackedCars, _ = removeCar(trackedCars, car.Car)
+		}
+	}
+
+	// Step 4 : return offers
+	var offers = []entities.Offer{}
+	for _, car := range trackedCars {
+		price := s.calculateDistance(car.Node.Latitude, car.Node.Longitude, arrivalNode.Latitude, arrivalNode.Longitude, "K") / 3
+		offers = append(offers, entities.Offer{
+			BookDate:  date,
+			Arrival:   arrivalNode,
+			Departure: car.Node,
+			Car:       car.Car,
+			Price:     price,
+		})
+	}
+
+	return offers
 }
 
 // Get booked cars from carAvailability
@@ -112,21 +125,37 @@ func (s *SearchingService) getBookedCars(carType string, date time.Time) ([]enti
 	return res, err
 }
 
+func (s *SearchingService) getAllNodes() ([]entities.Node, error) {
+	res := make([]entities.Node, 0)
+	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/findAllNodes", &res)
+	log.Println(res)
+	return res, err
+}
+
+func (s *SearchingService) getNodeFromId(nodes []entities.Node, id int) entities.Node {
+	for _, node := range nodes {
+		if node.Id == id{
+			return node
+		}
+	}
+	return entities.Node{}
+}
+
+
 // Get booked cars from carAvailability
 func (s *SearchingService) getTrackedCarsAndNodes(carType string, nodeId string) ([]entities.TrackedCar, error) {
 	res := make([]entities.TrackedCar, 0)
-	//TODO: remake request
-	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/get-cars?nodeId=" + nodeId + "&type=" + carType, &res)
+	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/searchTrackedCars?nodeId=" + nodeId + "&type=" + carType, &res)
 	log.Println(res)
 	return res, err
 }
 
 // Remove element from array or splice
-func removeCar(carList []entities.Car, car entities.Car) ([]entities.Car, error) {
+func removeCar(carList []entities.TrackedCar, car entities.Car) ([]entities.TrackedCar, error) {
 	err := errors.New("Remove error: car not found")
-	var result []entities.Car
+	var result []entities.TrackedCar
 	for _, c := range carList {
-		if c.Id != car.Id {
+		if c.Car.Id != car.Id {
 			result = append(result, c)
 		} else {
 			err = errors.New("")
@@ -134,3 +163,34 @@ func removeCar(carList []entities.Car, car entities.Car) ([]entities.Car, error)
 	}
 	return result, err
 }
+
+func (s *SearchingService) calculateDistance(lat1 float64, lng1 float64, lat2 float64, lng2 float64, unit ...string) float64 {
+	const PI float64 = 3.141592653589793
+
+	radlat1 := PI * lat1 / 180
+	radlat2 := PI * lat2 / 180
+
+	theta := lng1 - lng2
+	radtheta := PI * theta / 180
+
+	dist := math.Sin(radlat1) * math.Sin(radlat2) + math.Cos(radlat1) * math.Cos(radlat2) * math.Cos(radtheta)
+
+	if dist > 1 {
+		dist = 1
+	}
+
+	dist = math.Acos(dist)
+	dist = dist * 180 / PI
+	dist = dist * 60 * 1.1515
+
+	if len(unit) > 0 {
+		if unit[0] == "K" {
+			dist = dist * 1.609344
+		} else if unit[0] == "N" {
+			dist = dist * 0.8684
+		}
+	}
+
+	return dist
+}
+
