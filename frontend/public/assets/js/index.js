@@ -8,7 +8,7 @@ class CarType{
 class Car{
     constructor(databaseEntry) {
         this.id = parseInt(databaseEntry.id);
-        this.carType = new CarType(databaseEntry.carType);
+        this.carType = new CarType(databaseEntry.carType.id, databaseEntry.carType.name);
     }
 }
 
@@ -32,9 +32,9 @@ class Offer{
     constructor(databaseEntry) {
         this.id = databaseEntry.id;
         this.price = databaseEntry.price;
-        this.date = new Date(databaseEntry.date);
-        this.departure = new Node(databaseEntry.departureNode);
-        this.arrival = new Node(databaseEntry.arrivalNode);
+        this.date = new Date(databaseEntry.bookDate);
+        this.departure = new Node(databaseEntry.departureNode.id, databaseEntry.departureNode.name, []);
+        this.arrival = new Node(databaseEntry.arrivalNode.id, databaseEntry.arrivalNode.name, []);
         this.car = new Car(databaseEntry.car);
     }
 }
@@ -200,7 +200,7 @@ function launchSearch(){
     mainContainer.innerHTML = "";
     addLoader();
     let fetchOffers = new XMLHttpRequest();
-    fetchOffers.open('POST', 'http://localhost/booking-process/offers?' +
+    fetchOffers.open('GET', 'http://localhost/booking-process/offers?' +
         'supplier=' + supplierInput.value +
         '&carTypeId=' + carTypeIdSelected +
         '&arrivalNodeId=' + nodeArrivalIdSelected +
@@ -218,6 +218,8 @@ function launchSearch(){
     });
     fetchOffers.send(null);
 }
+
+
 
 function displayOffer(offer){
     console.log(offer)
