@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	. "carAvailability/entities"
@@ -15,8 +16,10 @@ import (
 
 // URL of the service
 var CarBookingURL string
+
 // URL to get all bookings
 var GetBookingsRoute string
+
 // URL to get bookings by type
 var GetBookingsByTypeRoute string
 
@@ -33,16 +36,16 @@ func getJson(url string, target interface{}) error {
 }
 
 // Return the list of car booked from CarBooking service
-func bookingsByType(carType string) []Booking {
+func bookingsByType(carType int) []Booking {
 	bookings := make([]Booking, 0)
 
 	getBookingsURL := "http://" + CarBookingURL
 
 	// If there is no car type
-	if carType == "" {
+	if carType == 0 {
 		getBookingsURL += GetBookingsRoute
 	} else {
-		getBookingsURL += GetBookingsByTypeRoute+carType
+		getBookingsURL += GetBookingsByTypeRoute + string(carType)
 
 	}
 
@@ -61,10 +64,10 @@ func filterBookingsByFilter(bookings []Booking, filter func(car Car) bool) []Car
 
 	for _, book := range bookings {
 		car := Car{
-			Id:      book.Car.Id,
-			CarType: book.Car.CarType,
-			BeginBookedDate:    book.BeginBookedDate,
-			EndingBookedDate:    book.EndingBookedDate,
+			Id:               book.Car.Id,
+			CarTypeId:        book.Car.CarTypeId,
+			BeginBookedDate:  book.BeginBookedDate,
+			EndingBookedDate: book.EndingBookedDate,
 		}
 
 		if filter(car) {
@@ -76,18 +79,18 @@ func filterBookingsByFilter(bookings []Booking, filter func(car Car) bool) []Car
 }
 
 // Filters & returns the list of all booked cars by filters
-func getNonAvailableCars(date time.Time, carType string) []Car {
+func getNonAvailableCars(date time.Time, carType int) []Car {
 	var carsBookedFiltered []Car
 	bookings := bookingsByType(carType)
 
 	var i interface{} = filterBookingsByFilter(bookings, func(car Car) bool {
 		// If there is a date & the car is booked
-		if !date.IsZero() && (date.After(car.BeginBookedDate) && date.Before(car.EndingBookedDate))  {
+		if !date.IsZero() && (date.After(car.BeginBookedDate) && date.Before(car.EndingBookedDate)) {
 			return false
 		}
 
 		// If there is a carType & the carType is different
-		if carType != "" && car.CarType.Name != carType {
+		if carType != 0 && car.CarTypeId != carType {
 			return false
 		}
 
@@ -121,10 +124,9 @@ func GetNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-
 	// Get the carType from parameter
 	carTypeParam, _ := params["carType"]
-	carType := carTypeParam[0]
+	carType, _ := strconv.Atoi(carTypeParam[0])
 
 	cars := getNonAvailableCars(date, carType)
 
@@ -171,7 +173,7 @@ func main() {
 
 	// All the routes of the app
 	// Basic OK route for healthcheck
-	router.HandleFunc("/car-availability/ok", func(w http.ResponseWriter, req *http.Request) {io.WriteString(w, "ok")}).Methods("GET")
+	router.HandleFunc("/car-availability/ok", func(w http.ResponseWriter, req *http.Request) { io.WriteString(w, "ok") }).Methods("GET")
 
 	// Main handler
 	router.HandleFunc("/car-availability/getNonAvailableCars", GetNonAvailableCarsRoute).Methods("GET")
