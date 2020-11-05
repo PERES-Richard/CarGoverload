@@ -67,15 +67,15 @@ function addNodesToSelect(select){
 
     for (let i = 0; i < listNodes.length; i++){
         const node = listNodes[i];
-        if(node.hasCarType(carTypeIdSelected)){
-            if(select === nodeDepartureSelect){
-                addOptionToSelect(select, node.name, node.id, false, nodeDepartureIdSelected);
-            }
-
-            if(select === nodeArrivalSelect) {
-                addOptionToSelect(select, node.name, node.id, false, nodeArrivalIdSelected);
-            }
+        //if(node.hasCarType(carTypeIdSelected)){
+        if(select === nodeDepartureSelect){
+            addOptionToSelect(select, node.name, node.id, false, nodeDepartureIdSelected);
         }
+
+        if(select === nodeArrivalSelect) {
+            addOptionToSelect(select, node.name, node.id, false, nodeArrivalIdSelected);
+        }
+       // }
     }
 }
 
