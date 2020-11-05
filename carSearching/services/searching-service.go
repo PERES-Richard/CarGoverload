@@ -101,7 +101,7 @@ func (s *SearchingService) Search(carType string, date time.Time, departureNodeI
 	// Step 4 : return offers
 	var offers = []entities.Offer{}
 	for _, car := range trackedCars {
-		price := s.calculateDistance(car.Node.Latitude, car.Node.Longitude, arrivalNode.Latitude, arrivalNode.Longitude, "K") / 3
+		price := s.calculateDistance(car.Node.Latitude, car.Node.Longitude, arrivalNode.Latitude, arrivalNode.Longitude, "K") / 3.3
 		offers = append(offers, entities.Offer{
 			BookDate:  date,
 			Arrival:   arrivalNode,

@@ -79,7 +79,6 @@ func clearDatabase(){
 
 func createTables(){
 	models := []interface{}{
-		(*entities.CarType)(nil),
 		(*entities.Car)(nil),
 		(*entities.Node)(nil),
 		(*entities.CarBooking)(nil),
@@ -95,104 +94,85 @@ func createTables(){
 }
 
 func populateTables(){
-	// MOCKING CarType
-	carTypeSolid := &entities.CarType{
-		Name:   "Solid",
-	}
-	_, err := db.Model(carTypeSolid).Insert()
-	if err != nil {
-		log.Fatal(err)
-	}
-	carTypeLiquid := &entities.CarType{
-		Name:   "Liquid",
-	}
-	_, err = db.Model(carTypeLiquid).Insert()
-	if err != nil {
-		log.Fatal(err)
-	}
 	// MOCKING Car
+	car0 := &entities.Car{
+		CarTypeId: 1,
+		Id: 1,
+	}
+	_, err := db.Model(car0).Insert()
+	if err != nil {
+		log.Fatal(err)
+	}
 	car1 := &entities.Car{
-		CarTypeId: carTypeLiquid.Id,
+		CarTypeId: 2,
+		Id: 2,
 	}
 	_, err = db.Model(car1).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
 	car2 := &entities.Car{
-		CarTypeId: carTypeSolid.Id,
+		CarTypeId: 2,
+		Id: 3,
 	}
 	_, err = db.Model(car2).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
 	car3 := &entities.Car{
-		CarTypeId: carTypeSolid.Id,
+		CarTypeId: 1,
+		Id: 4,
 	}
 	_, err = db.Model(car3).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
 	car4 := &entities.Car{
-		CarTypeId: carTypeSolid.Id,
+		CarTypeId: 2,
+		Id: 5,
 	}
 	_, err = db.Model(car4).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
-	car5 := &entities.Car{
-		CarTypeId: carTypeLiquid.Id,
-	}
-	_, err = db.Model(car5).Insert()
-	if err != nil {
-		log.Fatal(err)
-	}
 	// MOCKING node
-	nodeNice := &entities.Node{
-		Name: "Nice",
-	}
-	_, err = db.Model(nodeNice).Insert()
-	if err != nil {
-		log.Fatal(err)
-	}
-	nodeMarseille := &entities.Node{
+	node0 := &entities.Node{
 		Name: "Marseille",
+		Id: 1,
 	}
-	_, err = db.Model(nodeMarseille).Insert()
+	_, err = db.Model(node0).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
-	nodeDraguignan := &entities.Node{
-		Name: "Draguignan",
+	node1 := &entities.Node{
+		Name: "Avignon-liquid",
+		Id: 2,
 	}
-	_, err = db.Model(nodeDraguignan).Insert()
+	_, err = db.Model(node1).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
-	nodeToulon := &entities.Node{
-		Name: "Toulon",
+	node2 := &entities.Node{
+		Name: "Nice",
+		Id: 3,
 	}
-	_, err = db.Model(nodeToulon).Insert()
+	_, err = db.Model(node2).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
-	nodeLyon := &entities.Node{
-		Name: "Lyon",
-	}
-	_, err = db.Model(nodeLyon).Insert()
-	if err != nil {
-		log.Fatal(err)
-	}
-	nodeAvignon := &entities.Node{
-		Name: "Avignon",
-	}
-	_, err = db.Model(nodeAvignon).Insert()
-	if err != nil {
-		log.Fatal(err)
-	}
-	nodeParis := &entities.Node{
+	node3 := &entities.Node{
 		Name: "Paris",
+		Id: 4,
 	}
-	_, err = db.Model(nodeParis).Insert()
+	_, err = db.Model(node3).Insert()
+	if err != nil {
+		log.Fatal(err)
+	}
+	node4 := &entities.Node{
+		Name: "Avignon-solid",
+		Id: 5,
+	}
+	_, err = db.Model(node4).Insert()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -200,16 +180,21 @@ func populateTables(){
 	carX1, _ := GetCarFromId(1)
 	carX2, _ := GetCarFromId(2)
 	carX3, _ := GetCarFromId(3)
-	nodeNiceX, _ := GetNodeFromId(1)
-	nodeMarseilleX, _ := GetNodeFromId(2)
-	nodeDraguignanX, _ := GetNodeFromId(3)
-	nodeToulonX, _ := GetNodeFromId(4)
-	nodeLyonX, _ := GetNodeFromId(5)
-	CreateBook(time.Now(), &carX1, "Picard", &nodeNiceX, &nodeMarseilleX)
-	CreateBook(time.Now().Add(5000), &carX2, "Amazoom", &nodeDraguignanX, &nodeMarseilleX)
-	CreateBook(time.Now().Add(50000), &carX2, "Microsoft", &nodeToulonX, &nodeNiceX)
-	CreateBook(time.Now().Add(50000), &carX3, "Fnac", &nodeMarseilleX, &nodeNiceX)
-	CreateBook(time.Now().Add(100000), &carX3, "Darty", &nodeLyonX, &nodeToulonX)
+	carX4, _ := GetCarFromId(4)
+	carX5, _ := GetCarFromId(5)
+	node0X, _ := GetNodeFromId(1)
+	node1X, _ := GetNodeFromId(2)
+	node2X, _ := GetNodeFromId(3)
+	node3X, _ := GetNodeFromId(4)
+	node4X, _ := GetNodeFromId(5)
+	CreateBook(time.Now(), &carX1, "Picard", &node0X, &node1X)
+	CreateBook(time.Now().Add(500), &carX1, "Amazoom", &node2X, &node3X)
+	CreateBook(time.Now().Add(5000), &carX2, "Microsoft", &node0X, &node4X)
+	CreateBook(time.Now().Add(5000), &carX1, "Fnac", &node3X, &node2X)
+	CreateBook(time.Now().Add(100000), &carX3, "Darty", &node4X, &node0X)
+	CreateBook(time.Now().Add(1000000), &carX4, "TopAchat", &node1X, &node2X)
+	CreateBook(time.Now().Add(1000000), &carX5, "LDLC", &node3X, &node1X)
+	CreateBook(time.Now().Add(1000000), &carX3, "MiamMiam", &node0X, &node2X)
 }
 
 func InitDatabase(){
@@ -261,7 +246,6 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 		Relation("Arrival").
 		Relation("Departure").
 		Relation("Car").
-		Relation("Car.CarType").
 		Select()
 	if err != nil {
 		log.Fatal(err)
@@ -270,7 +254,7 @@ func FindAllBookings(typeId int) []entities.CarBooking{
 	var typedBooking = []entities.CarBooking{} //uggly way because orm is bad with WHERE and not working
 	if typeId != -1{
 		for _, book := range bookings {
-			if book.Car.CarType.Id == typeId{
+			if book.Car.CarTypeId == typeId{
 				typedBooking = append(typedBooking, book)
 			}
 		}
@@ -299,7 +283,6 @@ func GetNodeFromId(id int) (entities.Node, error){
 func GetCarFromId(id int) (entities.Car, error) {
 	car := new(entities.Car)
 	err := db.Model(car).
-		Relation("CarType").
 		Where("car.id = ?", id).
 		Select()
 	if err != nil {
