@@ -200,7 +200,12 @@ function launchSearch(){
     mainContainer.innerHTML = "";
     addLoader();
     let fetchOffers = new XMLHttpRequest();
-    fetchOffers.open('POST', 'http://localhost/booking-process/offers', true);
+    fetchOffers.open('POST', 'http://localhost/booking-process/offers?' +
+        'supplier=' + supplierInput.value +
+        '&carTypeId=' + carTypeIdSelected +
+        '&arrivalNodeId=' + nodeArrivalIdSelected +
+        '&departureNodeId=' + nodeDepartureIdSelected +
+        '&dateTimeDeparture=' + (new Date(dateTimeDeparture)).toISOString(), true);
     fetchOffers.addEventListener('readystatechange', function() {
         if(this.readyState === 4 && this.status === 201) {
             removeLoader();
@@ -211,34 +216,7 @@ function launchSearch(){
             });
         }
     });
-    fetchOffers.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    fetchOffers.send(JSON.stringify({
-
-    }));
-    // setTimeout(function(){
-    //     displayOffers([
-    //         new Offer({
-    //             id: "g15ad65fed5",
-    //             price: "5.0",
-    //             date: new Date().toISOString(),
-    //             car: {
-    //                 id: 1,
-    //                 carType: {
-    //                     name: "Liquid",
-    //                     id: 2
-    //                 }
-    //             },
-    //             departureNode: {
-    //                 name: "Nice",
-    //                 id: 1
-    //             },
-    //             arrivalNode: {
-    //                 name: "Marseille",
-    //                 id: 2
-    //             }
-    //         })
-    //     ]);
-    // }, 50);
+    fetchOffers.send(null);
 }
 
 function displayOffer(offer){
@@ -321,6 +299,7 @@ function book(offer, view){
         if(this.readyState === 4 && this.status === 201) {
             removeLoader();
             let response = JSON.parse(this.responseText);
+            console.log(response);
             view.remove();
         }
     });
