@@ -192,21 +192,21 @@ async function populateDatabase() {
     await deleteAllNodes();
 
 
-    await addCarType(0, "Solid");
-    await addCarType(1, "Liquid");
+    await addCarType(1, "Solid");
+    await addCarType(2, "Liquid");
 
 
-    await addNode(0, 'Marseille', [0, 1], 43.9415356, 4.7632126);
-    await addNode(1, 'Avignon-liquid', [1], 43.9415356, 4.7632126);
-    await addNode(2, 'Nice', [0], 43.7031691, 7.1827772);
-    await addNode(3, 'Paris', [0, 1], 48.8588377, 2.2770202);
-    await addNode(4, 'Avignon-solid', [0], 43.9415387, 4.7632200);
+    await addNode(1, 'Marseille', [1, 2], 43.9415356, 4.7632126);
+    await addNode(2, 'Avignon-liquid', [2], 43.9415356, 4.7632126);
+    await addNode(3, 'Nice', [1], 43.7031691, 7.1827772);
+    await addNode(4, 'Paris', [1, 2], 48.8588377, 2.2770202);
+    await addNode(5, 'Avignon-solid', [1], 43.9415387, 4.7632200);
 
-    await addDistance(0,1, 85);
-    await addDistance(0,2, 215);
-    await addDistance(1, 2, 199);
-    await addDistance(0, 3, 660);
-    await addDistance(1, 4, 20);
+    await addDistance(1, 2, 85);
+    await addDistance(1, 3, 215);
+    await addDistance(2, 3, 199);
+    await addDistance(1, 4, 660);
+    await addDistance(2, 5, 20);
 }
 
 module.exports =  {
