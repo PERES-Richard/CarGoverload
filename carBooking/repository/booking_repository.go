@@ -187,14 +187,14 @@ func populateTables(){
 	node2X, _ := GetNodeFromId(3)
 	node3X, _ := GetNodeFromId(4)
 	node4X, _ := GetNodeFromId(5)
-	CreateBook(time.Now(), &carX1, "Picard", &node0X, &node1X)
-	CreateBook(time.Now().Add(500), &carX1, "Amazoom", &node2X, &node3X)
-	CreateBook(time.Now().Add(5000), &carX2, "Microsoft", &node0X, &node4X)
-	CreateBook(time.Now().Add(5000), &carX1, "Fnac", &node3X, &node2X)
-	CreateBook(time.Now().Add(100000), &carX3, "Darty", &node4X, &node0X)
-	CreateBook(time.Now().Add(1000000), &carX4, "TopAchat", &node1X, &node2X)
-	CreateBook(time.Now().Add(1000000), &carX5, "LDLC", &node3X, &node1X)
-	CreateBook(time.Now().Add(1000000), &carX3, "MiamMiam", &node0X, &node2X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carX1, "Picard", &node0X, &node1X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carX1, "Amazoom", &node2X, &node3X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carX2, "Microsoft", &node0X, &node4X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carX1, "Fnac", &node3X, &node2X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(1)), time.Now().Add(time.Hour * time.Duration(2)), &carX3, "Darty", &node4X, &node0X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(2)), time.Now().Add(time.Hour * time.Duration(3)), &carX4, "TopAchat", &node1X, &node2X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(3)), time.Now().Add(time.Hour * time.Duration(4)), &carX5, "LDLC", &node3X, &node1X)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(4)), time.Now().Add(time.Hour * time.Duration(5)), &carX3, "MiamMiam", &node0X, &node2X)
 }
 
 func InitDatabase(){
@@ -221,7 +221,7 @@ func InitDatabase(){
 	populateTables()
 }
 
-func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDeparture *entities.Node, nodeArrival *entities.Node) entities.CarBooking{
+func CreateBook(date time.Time, dateArrival time.Time, car *entities.Car , supplier string, nodeDeparture *entities.Node, nodeArrival *entities.Node) entities.CarBooking{
 	var booking = &entities.CarBooking{
 		Date: date,
 		Supplier: supplier,
@@ -231,6 +231,7 @@ func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDepartu
 		Arrival: nodeArrival,
 		CarId: car.Id,
 		Car: car,
+		DateArrival: dateArrival,
 	}
 
 	_, err := db.Model(booking).Insert()

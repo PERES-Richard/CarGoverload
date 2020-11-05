@@ -5,12 +5,14 @@ import (
 	"bookingProcess/utils"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"math"
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -86,12 +88,15 @@ func (s *OfferService) postJson(url string, body io.Reader,  target interface{})
 	var myClient = &http.Client{Timeout: 10 * time.Second}
 	r, err := myClient.Post(url,"application/json", body )
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	defer r.Body.Close()
 
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
+
+	log.Println(buf.String())
 
 	return json.Unmarshal([]byte(buf.String()), target)
 }
@@ -100,11 +105,10 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 	//Todo change results into DTO with car and nodes
 
 	type SearchItem struct {
-		BookDate time.Time `json:"bookDate"`
+		BookDate 		time.Time 			`json:"bookDate"`
 		Arrival 		entities.Node		`json:"arrivalNode"`
 		Departure 		entities.Node		`json:"departureNode"`
-		Car 			entities.Car			`json:"car"`
-		Price float32 `json:"price"`
+		Car 			entities.Car		`json:"car"`
 	}
 
 	var results []SearchItem
@@ -116,14 +120,24 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 
 	for _, r := range results {
 		kmDistance := s.determinePrice(r.Departure.Latitude, r.Departure.Longitude, r.Arrival.Latitude, r.Arrival.Longitude)
+
+		number, err := strconv.Atoi(strconv.Itoa(rand.Int())[:8])
+		if err != nil{
+			log.Println(err)
+			return []entities.Offer{}, err
+		}
+
+		duration := int(math.Floor(kmDistance*100)/100)
+
 		offers = append(offers, entities.Offer{
-			ID:        rand.Int(),
+			ID:        number,
 			Arrival: r.Arrival,
 			Departure: r.Departure,
 			Car:    r.Car,
 			BookDate:     r.BookDate,
 			Price: math.Floor(kmDistance*2.5*100)/100,
-			Duration: int(math.Floor(kmDistance*100)/100),
+			Duration: duration,
+			BookArrival: r.BookDate.Add(time.Minute * time.Duration(duration)),
 		})
 	}
 
@@ -135,7 +149,7 @@ func (s *OfferService) FindOffer(supplierName string, carType string, bookDate t
 			Offers:[]entities.Offer{},
 		}
 		s.suppliers = append(s.suppliers, supplierNew)
-		found, supplier = s.findSupplierFromName(supplierName);
+		found, supplier = s.findSupplierFromName(supplierName)
 	}
 
 	supplier.Offers = append(supplier.Offers, offers...)
@@ -189,19 +203,24 @@ func (s *OfferService) ListOffersOf(supplierName string) (error, []entities.Offe
 	return os.ErrNotExist, []entities.Offer{}
 }
 
-func (s *OfferService) PayOffer(id int, supplierName string) (bool, entities.Offer) {
-
-	for _, n := range s.suppliers {
-		for _, i := range n.Offers {
-			if i.ID == id {
-				return s.bankAPI.PerformPayment(n.Name, i.Price), i
-
+func (s *OfferService) PayOffer(id int, supplierName string) (error, entities.Offer) {
+	found, supplier := s.findSupplierFromName(supplierName)
+	if !found {
+		return errors.New("Supplier not found : " + supplierName), entities.Offer{}
+	}
+	log.Println("Offer id passed : " +  strconv.Itoa(id))
+	for _, offer := range supplier.Offers {
+		log.Println("Offer id in supplier : " + strconv.Itoa(offer.ID))
+		if offer.ID == id {
+			done := s.bankAPI.PerformPayment(supplier.Name, offer.Price)
+			if done{
+				return nil, offer
 			}
+			return errors.New("Payment erreur"), entities.Offer{}
 		}
-
 	}
 
-	return false, entities.Offer{}
+	return errors.New("Aucune recherche faite"), entities.Offer{}
 }
 
 func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interface{} {
@@ -211,24 +230,35 @@ func (s *OfferService) BookOffer(Ofr entities.Offer, supplierName string) interf
 		Supplier string `json:"supplier"`
 		NodeDepartureId int `json:"departureId"`
 		NodeArrivalId int `json:"arrivalId"`
+		DateArrival string `json:"dateArrival"`
 	}
 
 	var results struct {
-		Supplier 		string		`json:"supplier"`
-		Date  			time.Time		`json:"date"`
-		Id 				int			`json:"id"`
+		Supplier 		string				`json:"supplier"`
+		Date  			time.Time			`json:"beginBookedDate"`
+		DateArrival  	time.Time			`json:"endingBookedDate"`
+		Id 				int					`json:"id"`
 		Arrival 		entities.Node		`json:"arrivalNode"`
 		Departure 		entities.Node		`json:"departureNode"`
-		Car 			entities.Car			`json:"car"`
+		Car 			entities.Car		`json:"car"`
 	}
 
-	var body = SearchParams{Date:Ofr.BookDate.Format(time.RFC3339),CarId:Ofr.Car.Id, Supplier:supplierName, NodeArrivalId:Ofr.Arrival.Id, NodeDepartureId:Ofr.Departure.Id}
+	var body = SearchParams{
+		Date:Ofr.BookDate.Format(time.RFC3339),
+		CarId:Ofr.Car.Id,
+		Supplier:supplierName,
+		NodeArrivalId:Ofr.Arrival.Id,
+		NodeDepartureId:Ofr.Departure.Id,
+		DateArrival: Ofr.BookArrival.Format(time.RFC3339),
+	}
+	log.Println("Le body : ")
 	log.Println(body)
 
 	bodyByte, _ := json.Marshal(body)
 	err := s.postJson("http://"+s.CAR_BOOKING_HOST+":"+s.CAR_BOOKING_PORT+"/car-booking/book", bytes.NewReader(bodyByte), &results)
 	log.Println(results)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	return results
