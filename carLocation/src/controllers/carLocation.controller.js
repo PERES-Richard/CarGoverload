@@ -9,7 +9,7 @@ function initRoutes() {
         if(await repository.databaseTest()){
             res.send('ok')
         } else {
-            res.send('Waiting for neo4j')
+            res.status(500).send('Waiting for neo4j')
         }
     })
     app.get('/car-location/findAllNodes', async (req, res) => {

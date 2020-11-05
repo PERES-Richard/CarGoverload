@@ -45,7 +45,6 @@ async function getCloseCars(latitude, longitude, carTypeId) {
         .catch(e => {
             console.log('Error: car tracking service unreachable: ', e)
         })
-    console.log('---HERE'+JSON.stringify(result.data))
     return result.data
 }
 
