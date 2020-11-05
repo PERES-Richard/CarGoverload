@@ -32,18 +32,14 @@ class Offer{
     constructor(databaseEntry) {
         this.id = databaseEntry.id;
         this.price = databaseEntry.price;
-        this.date = new Date(databaseEntry.bookDate);
+        this.date = new Date(databaseEntry.beginBookedDate);
         this.departure = new Node(databaseEntry.departureNode.id, databaseEntry.departureNode.name, []);
         this.arrival = new Node(databaseEntry.arrivalNode.id, databaseEntry.arrivalNode.name, []);
         this.car = new Car(databaseEntry.car);
         this.duration = databaseEntry.duration;
         this.departureTime = this.date.getHours() + ':' + this.date.getMinutes();
-        const arrivalTime = this.addMinutes(this.date, this.duration);
-        this.arrivalTime = arrivalTime.getHours() + ':' + arrivalTime.getMinutes();
-    }
-
-    addMinutes(date, minutes) {
-        return new Date(date.getTime() + minutes*60000);
+        this.dateArrival = new Date(databaseEntry.endingBookedDate);
+        this.arrivalTime = this.dateArrival.getHours() + ':' + this.dateArrival.getMinutes();
     }
 }
 
@@ -228,6 +224,8 @@ function launchSearch(){
 }
 
 function displayOffer(offer){
+    console.log(offer)
+
     let container = document.createElement("div");
     container.classList.add("offer");
     container.title = "Réserver";
@@ -310,10 +308,11 @@ function book(offer, view){
     let bookOffer = new XMLHttpRequest();
     bookOffer.open('POST', 'http://localhost/booking-process/offers/payment', true);
     bookOffer.addEventListener('readystatechange', function() {
-        if(this.readyState === 4 && this.status === 201) {
+        if(this.readyState === 4 && this.status === 200) {
             removeLoader();
             let response = JSON.parse(this.responseText);
             console.log(response);
+            console.log(view)
             view.remove();
         }
     });

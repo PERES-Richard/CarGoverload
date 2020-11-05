@@ -22,6 +22,7 @@ type SearchParams struct {
 	Supplier string `json:"supplier"`
 	NodeDepartureId int `json:"departureId"`
 	NodeArrivalId int `json:"arrivalId"`
+	DateArrival string `json:"dateArrival"`
 }
 
 func findBookedCars(bookingService *services.BookingService)  http.Handler{
@@ -104,7 +105,17 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 			return
 		}
 
-		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, &car, sp.Supplier, &nodeDeparture, &nodeArrival))
+		dateArrival, err := time.Parse(time.RFC3339, sp.DateArrival)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_, err  := io.WriteString(w, err.Error())
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
+		}
+
+		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, dateArrival, &car, sp.Supplier, &nodeDeparture, &nodeArrival))
 		if jsonError != nil {
 			e := JSONError{Message: "Internal Server Error"}
 			w.WriteHeader(http.StatusInternalServerError)

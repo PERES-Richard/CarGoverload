@@ -177,24 +177,24 @@ func populateTables(){
 		log.Fatal(err)
 	}
 
-	carX1, _ := GetCarFromId(1)
-	carX2, _ := GetCarFromId(2)
-	carX3, _ := GetCarFromId(3)
-	carX4, _ := GetCarFromId(4)
-	carX5, _ := GetCarFromId(5)
-	node0X, _ := GetNodeFromId(1)
-	node1X, _ := GetNodeFromId(2)
-	node2X, _ := GetNodeFromId(3)
-	node3X, _ := GetNodeFromId(4)
-	node4X, _ := GetNodeFromId(5)
-	CreateBook(time.Now(), &carX1, "Picard", &node0X, &node1X)
-	CreateBook(time.Now().Add(500), &carX1, "Amazoom", &node2X, &node3X)
-	CreateBook(time.Now().Add(5000), &carX2, "Microsoft", &node0X, &node4X)
-	CreateBook(time.Now().Add(5000), &carX1, "Fnac", &node3X, &node2X)
-	CreateBook(time.Now().Add(100000), &carX3, "Darty", &node4X, &node0X)
-	CreateBook(time.Now().Add(1000000), &carX4, "TopAchat", &node1X, &node2X)
-	CreateBook(time.Now().Add(1000000), &carX5, "LDLC", &node3X, &node1X)
-	CreateBook(time.Now().Add(1000000), &carX3, "MiamMiam", &node0X, &node2X)
+	carSolid1, _ := GetCarFromId(1)
+	carLiquid2, _ := GetCarFromId(2)
+	carLiquid3, _ := GetCarFromId(3)
+	carSolid4, _ := GetCarFromId(4)
+	carLiquid5, _ := GetCarFromId(5)
+	nodeMarseilleX, _ := GetNodeFromId(1)
+	nodeAvignonLiquidX, _ := GetNodeFromId(2)
+	nodeNiceX, _ := GetNodeFromId(3)
+	nodeParisX, _ := GetNodeFromId(4)
+	nodeAvignonSolidX, _ := GetNodeFromId(5)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carSolid1, "Picard", &nodeNiceX, &nodeAvignonSolidX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carLiquid5, "Amazoom", &nodeParisX, &nodeMarseilleX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carSolid4, "Microsoft", &nodeParisX, &nodeAvignonSolidX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(0)), time.Now().Add(time.Hour * time.Duration(1)), &carLiquid2, "Fnac", &nodeAvignonLiquidX, &nodeNiceX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(1)), time.Now().Add(time.Hour * time.Duration(2)), &carLiquid3, "Darty", &nodeMarseilleX, &nodeParisX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(2)), time.Now().Add(time.Hour * time.Duration(3)), &carSolid1, "TopAchat", &nodeAvignonSolidX, &nodeNiceX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(3)), time.Now().Add(time.Hour * time.Duration(4)), &carLiquid5, "LDLC", &nodeMarseilleX, &nodeAvignonLiquidX)
+	CreateBook(time.Now().Add(time.Hour * time.Duration(4)), time.Now().Add(time.Hour * time.Duration(5)), &carLiquid3, "MiamMiam", &nodeParisX, &nodeMarseilleX)
 }
 
 func InitDatabase(){
@@ -221,7 +221,7 @@ func InitDatabase(){
 	populateTables()
 }
 
-func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDeparture *entities.Node, nodeArrival *entities.Node) entities.CarBooking{
+func CreateBook(date time.Time, dateArrival time.Time, car *entities.Car , supplier string, nodeDeparture *entities.Node, nodeArrival *entities.Node) entities.CarBooking{
 	var booking = &entities.CarBooking{
 		Date: date,
 		Supplier: supplier,
@@ -231,6 +231,7 @@ func CreateBook(date time.Time, car *entities.Car , supplier string, nodeDepartu
 		Arrival: nodeArrival,
 		CarId: car.Id,
 		Car: car,
+		DateArrival: dateArrival,
 	}
 
 	_, err := db.Model(booking).Insert()
