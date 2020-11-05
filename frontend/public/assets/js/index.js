@@ -40,7 +40,6 @@ class Offer{
         this.departureTime = this.date.getHours() + ':' + this.date.getMinutes();
         this.dateArrival = new Date(databaseEntry.endingBookedDate);
         this.arrivalTime = this.dateArrival.getHours() + ':' + this.dateArrival.getMinutes();
-        console.log(this)
     }
 }
 
@@ -225,6 +224,8 @@ function launchSearch(){
 }
 
 function displayOffer(offer){
+    console.log(offer)
+
     let container = document.createElement("div");
     container.classList.add("offer");
     container.title = "Réserver";
