@@ -8,7 +8,6 @@ import (
 	"math"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 )
 
@@ -70,8 +69,7 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 // 4: create offers (associate cars to node and add prize)
 func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Offer{
 	everyNodes, _ := s.getAllNodes()
-	arrivalId,_ := strconv.Atoi(arrivalNodeId)
-	arrivalNode := s.getNodeFromId(everyNodes, arrivalId)
+	arrivalNode := s.getNodeFromId(everyNodes, arrivalNodeId)
 
 	// Step 1: Get unavailable cars
 	bookedCars, err := s.getBookedCars(carType, date)
@@ -132,7 +130,7 @@ func (s *SearchingService) getAllNodes() ([]entities.Node, error) {
 	return res, err
 }
 
-func (s *SearchingService) getNodeFromId(nodes []entities.Node, id int) entities.Node {
+func (s *SearchingService) getNodeFromId(nodes []entities.Node, id string) entities.Node {
 	for _, node := range nodes {
 		if node.Id == id{
 			return node
@@ -146,7 +144,7 @@ func (s *SearchingService) getNodeFromId(nodes []entities.Node, id int) entities
 func (s *SearchingService) getTrackedCarsAndNodes(carType string, nodeId string) ([]entities.TrackedCar, error) {
 	res := make([]entities.TrackedCar, 0)
 	err := s.sendRequest("http://" + s.CAR_LOCATION_HOST + ":" + s.CAR_LOCATION_PORT + "/car-location/searchTrackedCars?node=" + nodeId + "&carTypeId=" + carType + "&distance=100", &res)
-	log.Println(res)
+	log.Println("Result of tracked cars and nodes", res)
 	return res, err
 }
 
