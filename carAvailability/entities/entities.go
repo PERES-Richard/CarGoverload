@@ -18,8 +18,8 @@ type Car struct {
 // A Booking representation for this svc from carBooking
 type Booking struct {
 	Supplier         string    `json:"supplier"`
-	BeginBookedDate  time.Time `json:"beginDate"`        // TODO real name
-	EndingBookedDate time.Time `json:"endingBookedDate"` // TODO real name
+	BeginBookedDate  time.Time `json:"beginBookedDate"`
+	EndingBookedDate time.Time `json:"endingBookedDate"`
 	Id               int       `json:"id"`
 	Car              Car       `json:"carTypeId"`
 }
