@@ -225,10 +225,7 @@ function launchSearch(){
                 displayOffer(new Offer(offer))
             });
             if(response.length === 0){
-                let container = document.createElement("div");
-                container.classList.add("text-empty");
-                container.appendChild(document.createTextNode("Aucun wagon de libre avec vos critères"));
-                mainContainer.appendChild(container);
+                displayEmptyText();
             }
         }
     });
@@ -244,6 +241,7 @@ function displayOffer(offer){
     let information = document.createElement("div");
     information.classList.add("offer-information");
     information.classList.add("offer-container");
+    container.classList.add("car-id-" + offer.car.id);
 
     let nodes = document.createElement("div");
     nodes.classList.add("offer-nodes-container");
@@ -308,11 +306,16 @@ function displayOffer(offer){
         const res = confirm("Procéder à la réservation et au paiement ?")
         if(res){
             book(offer, container);
-        }else{
-
         }
     });
 
+    mainContainer.appendChild(container);
+}
+
+function displayEmptyText(){
+    let container = document.createElement("div");
+    container.classList.add("text-empty");
+    container.appendChild(document.createTextNode("Aucun wagon de libre avec vos critères"));
     mainContainer.appendChild(container);
 }
 
@@ -326,6 +329,13 @@ function book(offer, view){
             console.log(response);
             console.log(view)
             view.remove();
+            let carsView = document.getElementsByClassName("car-id-" + offer.car.id);
+            console.log(carsView)
+            for(let i = 0; i<carsView.length;i++){
+                carsView[i].remove();
+            }
+            if(mainContainer.innerHTML.length === 0)
+                displayEmptyText();
         }
     });
     bookOffer.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
