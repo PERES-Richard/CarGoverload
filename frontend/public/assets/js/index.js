@@ -177,7 +177,7 @@ function getSelectValues(select) {
 function handleFormSubmit(e){
     removeLoader()
     e.preventDefault();
-    if (carTypeIdsSelected.length === 1){
+    if (carTypeIdsSelected.length === 0){
         alert("Vous devez choisir un type de wagon");
         return;
     }
