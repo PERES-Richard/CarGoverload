@@ -18,7 +18,12 @@ func GetCars(trackingService *services.TrackingService)  http.Handler{
 		w.Header().Set("Content-Type", "application/json")
 		params := req.URL.Query()
 
-		dIdParams, ok := params["nodeId"]
+		latParams, ok := params["latitude"]
+		if !ok {
+			log.Println("Error search : Node Id parameter not provided")
+		}
+
+		lgtParams, ok := params["longitude"]
 		if !ok {
 			log.Println("Error search : Node Id parameter not provided")
 		}
@@ -28,7 +33,7 @@ func GetCars(trackingService *services.TrackingService)  http.Handler{
 			log.Println("Error search : Type parameter not provided")
 		}
 
-		res := trackingService.GetCars(dIdParams[0], typeParams[0])
+		res := trackingService.GetCars(latParams[0], lgtParams[0], typeParams[0])
 
 		// Return search results as JSON Object
 		jsonError := json.NewEncoder(w).Encode(res)

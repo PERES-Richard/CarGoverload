@@ -96,11 +96,12 @@ func payOffer(offerService *services.OfferService)  http.Handler{
 			Supplier string `json:"supplier"`
 		}
 		_ = json.NewDecoder(r.Body).Decode(&payParams)
-		payment, offer :=offerService.PayOffer(payParams.OfferId, payParams.Supplier)
-		if !payment {
-			log.Println(payment)
+		log.Println(payParams)
+		err, offer :=offerService.PayOffer(payParams.OfferId, payParams.Supplier)
+		if err != nil {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Payment error"))
+			w.Write([]byte(err.Error()))
 			return
 		}
 		if err := json.NewEncoder(w).Encode(offerService.BookOffer(offer, payParams.Supplier)); err != nil {

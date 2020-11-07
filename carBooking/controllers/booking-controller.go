@@ -22,6 +22,7 @@ type SearchParams struct {
 	Supplier string `json:"supplier"`
 	NodeDepartureId int `json:"departureId"`
 	NodeArrivalId int `json:"arrivalId"`
+	DateArrival string `json:"dateArrival"`
 }
 
 func findBookedCars(bookingService *services.BookingService)  http.Handler{
@@ -104,21 +105,17 @@ func bookCar(bookingService *services.BookingService)  http.Handler {
 			return
 		}
 
-		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, &car, sp.Supplier, &nodeDeparture, &nodeArrival))
-		if jsonError != nil {
-			e := JSONError{Message: "Internal Server Error"}
-			w.WriteHeader(http.StatusInternalServerError)
-			err2 := json.NewEncoder(w).Encode(e)
-			log.Panic(jsonError, err2)
+		dateArrival, err := time.Parse(time.RFC3339, sp.DateArrival)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			_, err  := io.WriteString(w, err.Error())
+			if err != nil {
+				log.Fatal(err)
+			}
+			return
 		}
-	})
-}
 
-func getAllCarTypes(bookingService *services.BookingService)  http.Handler{
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		enableCors(&w)
-		w.Header().Set("Content-Type", "application/json")
-		jsonError := json.NewEncoder(w).Encode(bookingService.GetAllTypes())
+		jsonError := json.NewEncoder(w).Encode(bookingService.CreateBook(date, dateArrival, &car, sp.Supplier, &nodeDeparture, &nodeArrival))
 		if jsonError != nil {
 			e := JSONError{Message: "Internal Server Error"}
 			w.WriteHeader(http.StatusInternalServerError)
@@ -129,9 +126,6 @@ func getAllCarTypes(bookingService *services.BookingService)  http.Handler{
 }
 
 func MakeBookingHandlers(r *mux.Router, bookingService *services.BookingService) {
-	r.Handle("/car-booking/getAllCarTypes", getAllCarTypes(bookingService),
-	).Methods("GET", "OPTIONS").Name("getAllCarTypes")
-
 	r.Handle("/car-booking/findAll", findBookedCars(bookingService),
 	).Methods("GET", "OPTIONS").Name("findAllBookings")
 
