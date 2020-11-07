@@ -70,40 +70,47 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 // 2: filter obtained cars with unavailable cars
 // 3: create offers (associate cars to node and add prize)
 func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Offer{
-	everyNodes, _ := s.getAllNodes()
-	arrivalId,_ := strconv.Atoi(arrivalNodeId)
-	arrivalNode := s.getNodeFromId(everyNodes, arrivalId)
-	log.Println("Arrival node: ", arrivalNode)
 
 	mainWg := sync.WaitGroup{}
 	mainWg.Add(2)
+	nodeWg := sync.WaitGroup{}
+	nodeWg.Add(1)
 
 	var bookedCars []entities.Car
 	var bookedCarsErr error
-
 	var trackedCars []entities.TrackedCar
 	var trackedCarsErr error
+	var everyNodes []entities.Node
+	var arrivalNode entities.Node
+
+	go func () {
+		defer nodeWg.Done()
+		everyNodes, _ = s.getAllNodes()
+		arrivalId,_ := strconv.Atoi(arrivalNodeId)
+		arrivalNode = s.getNodeFromId(everyNodes, arrivalId)
+		log.Println("Arrival node: ", arrivalNode)
+	}()
 
 	// Step 1 - Get unavailable cars
 	go func() {
 		defer mainWg.Done()
 		bookedCars, bookedCarsErr = s.getBookedCars(carType, date)
+		log.Println("Booked cars: ",bookedCars,"Err: ",bookedCarsErr)
 	}()
 
 	// Step 1 - Get nodes and cars close to the departure node
 	go func() {
 		defer mainWg.Done()
 		trackedCars, trackedCarsErr = s.getTrackedCarsAndNodes(carType, departureNodeId)
+		log.Println("Tracked cars: ", trackedCars,"Err: ",trackedCarsErr)
 	}()
 
 	mainWg.Wait()
 
-	log.Println("Booked cars: ",bookedCars,"Err: ",bookedCarsErr)
 	if bookedCarsErr != nil {
 		return []entities.Offer{}
 	}
 
-	log.Println("Tracked cars: ", trackedCars,"Err: ",trackedCarsErr)
 	if trackedCarsErr != nil {
 		return []entities.Offer{}
 	}
@@ -120,6 +127,8 @@ func (s *SearchingService) Search(carType string, date time.Time, departureNodeI
 			trackedCars, _ = removeCar(trackedCars, car.Car)
 		}
 	}
+
+	nodeWg.Wait()
 
 	// Step 4 : return offers
 	offers := make([]entities.Offer, 0)
