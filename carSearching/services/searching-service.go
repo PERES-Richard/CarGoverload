@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -64,27 +65,46 @@ func (s *SearchingService) sendRequest(url string, target interface{}) error {
 }
 
 // Main search algorithm
-// 1: get unavailable cars at a certain date
-// 2: Get nodes and cars close to the departure node
-// 3: filter obtained cars with unavailable cars
-// 4: create offers (associate cars to node and add prize)
+// 1 (asynchronous): get unavailable cars at a certain date
+// 1 (asynchronous): get nodes and cars close to the departure node
+// 2: filter obtained cars with unavailable cars
+// 3: create offers (associate cars to node and add prize)
 func (s *SearchingService) Search(carType string, date time.Time, departureNodeId string, arrivalNodeId string) []entities.Offer{
 	everyNodes, _ := s.getAllNodes()
 	arrivalId,_ := strconv.Atoi(arrivalNodeId)
 	arrivalNode := s.getNodeFromId(everyNodes, arrivalId)
 	log.Println("Arrival node: ", arrivalNode)
 
-	// Step 1: Get unavailable cars
-	bookedCars, err := s.getBookedCars(carType, date)
-	log.Println("Booked cars: ",bookedCars,"Err: ",err)
-	if err != nil {
+	mainWg := sync.WaitGroup{}
+	mainWg.Add(2)
+
+	var bookedCars []entities.Car
+	var bookedCarsErr error
+
+	var trackedCars []entities.TrackedCar
+	var trackedCarsErr error
+
+	// Step 1 - Get unavailable cars
+	go func() {
+		defer mainWg.Done()
+		bookedCars, bookedCarsErr = s.getBookedCars(carType, date)
+	}()
+
+	// Step 1 - Get nodes and cars close to the departure node
+	go func() {
+		defer mainWg.Done()
+		trackedCars, trackedCarsErr = s.getTrackedCarsAndNodes(carType, departureNodeId)
+	}()
+
+	mainWg.Wait()
+
+	log.Println("Booked cars: ",bookedCars,"Err: ",bookedCarsErr)
+	if bookedCarsErr != nil {
 		return []entities.Offer{}
 	}
 
-	// Step 2 : Get every cars near given departure node and cartype
-	trackedCars, err := s.getTrackedCarsAndNodes(carType, departureNodeId)
-	log.Println("Tracked cars: ", trackedCars,"Err: ",err)
-	if err != nil {
+	log.Println("Tracked cars: ", trackedCars,"Err: ",trackedCarsErr)
+	if trackedCarsErr != nil {
 		return []entities.Offer{}
 	}
 
@@ -102,7 +122,7 @@ func (s *SearchingService) Search(carType string, date time.Time, departureNodeI
 	}
 
 	// Step 4 : return offers
-	var offers = []entities.Offer{}
+	offers := make([]entities.Offer, 0)
 	for _, car := range trackedCars {
 		price := s.calculateDistance(car.Node.Latitude, car.Node.Longitude, arrivalNode.Latitude, arrivalNode.Longitude, "K") / 3.3
 		offers = append(offers, entities.Offer{
