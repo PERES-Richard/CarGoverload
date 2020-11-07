@@ -51,7 +51,7 @@ class Offer{
 
 listNodes = []
 
-let carTypeIdSelected = -1;
+let carTypeIdsSelected = [];
 let nodeArrivalIdSelected = -1;
 let nodeDepartureIdSelected = -1;
 let supplierInput = null;
@@ -73,7 +73,6 @@ function addNodesToSelect(select){
 
     for (let i = 0; i < listNodes.length; i++){
         const node = listNodes[i];
-        //if(node.hasCarType(carTypeIdSelected)){
         if(select === nodeDepartureSelect){
             addOptionToSelect(select, node.name, node.id, false, nodeDepartureIdSelected);
         }
@@ -126,6 +125,21 @@ function loadCarTypes(){
     loadIdMember.send(null);
 }
 
+function getSelectValues(select) {
+    const result = [];
+    let options = select && select.options;
+    let opt;
+
+    for (let i=0, iLen=options.length; i<iLen; i++) {
+        opt = options[i];
+
+        if (opt.selected) {
+            result.push(parseInt(opt.value));
+        }
+    }
+    return result;
+}
+
 (function(){
     loadingBigContainer = document.getElementById("loading-big-container");
     nodeDepartureSelect = document.getElementById("node-departure-select");
@@ -137,7 +151,7 @@ function loadCarTypes(){
     let buttonSubmit = document.getElementById("middle-form-submit");
 
     carTypeIdSelect.addEventListener("change", function(e){ // when selecting an other value
-        carTypeIdSelected = parseInt(e.target.value);
+        carTypeIdsSelected = getSelectValues(carTypeIdSelect);
         nodeArrivalIdSelected = -1
         nodeDepartureIdSelected = -1;
         buttonSubmit.disabled = false;
@@ -163,7 +177,7 @@ function loadCarTypes(){
 function handleFormSubmit(e){
     removeLoader()
     e.preventDefault();
-    if (carTypeIdSelected === -1){
+    if (carTypeIdsSelected.length === 1){
         alert("Vous devez choisir un type de wagon");
         return;
     }
@@ -209,27 +223,31 @@ function removeLoader(){
 function launchSearch(){
     mainContainer.innerHTML = "";
     addLoader();
-    let fetchOffers = new XMLHttpRequest();
-    fetchOffers.open('GET', 'http://localhost/booking-process/offers?' +
-        'supplier=' + supplierInput.value +
-        '&carTypeId=' + carTypeIdSelected +
-        '&arrivalNodeId=' + nodeArrivalIdSelected +
-        '&departureNodeId=' + nodeDepartureIdSelected +
-        '&dateTimeDeparture=' + (new Date(dateTimeDeparture)).toISOString(), true);
-    fetchOffers.addEventListener('readystatechange', function() {
-        if(this.readyState === 4 && this.status === 201) {
-            removeLoader();
-            let response = JSON.parse(this.responseText);
-            removeLoader();
-            response.forEach(function(offer){
-                displayOffer(new Offer(offer))
-            });
-            if(response.length === 0){
-                displayEmptyText();
+    let totalSize = 0;
+    for(let i = 0; i<carTypeIdsSelected.length; i++){
+        let fetchOffers = new XMLHttpRequest();
+        fetchOffers.open('GET', 'http://localhost/booking-process/offers?' +
+            'supplier=' + supplierInput.value +
+            '&carTypeId=' + carTypeIdsSelected[i] +
+            '&arrivalNodeId=' + nodeArrivalIdSelected +
+            '&departureNodeId=' + nodeDepartureIdSelected +
+            '&dateTimeDeparture=' + (new Date(dateTimeDeparture)).toISOString(), true);
+        fetchOffers.addEventListener('readystatechange', function() {
+            if(this.readyState === 4 && this.status === 201) {
+                if(i === carTypeIdsSelected.length -1)
+                    removeLoader();
+                let response = JSON.parse(this.responseText);
+                response.forEach(function(offer){
+                    displayOffer(new Offer(offer))
+                });
+                totalSize += response.length;
+                if(i === carTypeIdsSelected.length -1 && totalSize === 0){
+                    displayEmptyText();
+                }
             }
-        }
-    });
-    fetchOffers.send(null);
+        });
+        fetchOffers.send(null);
+    }
 }
 
 function displayOffer(offer){
@@ -324,18 +342,7 @@ function book(offer, view){
     bookOffer.open('POST', 'http://localhost/booking-process/offers/payment', true);
     bookOffer.addEventListener('readystatechange', function() {
         if(this.readyState === 4 && this.status === 200) {
-            removeLoader();
-            let response = JSON.parse(this.responseText);
-            console.log(response);
-            console.log(view)
-            view.remove();
-            let carsView = document.getElementsByClassName("car-id-" + offer.car.id);
-            console.log(carsView)
-            for(let i = 0; i<carsView.length;i++){
-                carsView[i].remove();
-            }
-            if(mainContainer.innerHTML.length === 0)
-                displayEmptyText();
+            launchSearch();
         }
     });
     bookOffer.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');

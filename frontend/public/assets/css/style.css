@@ -75,8 +75,11 @@ body{
     background-color: transparent;
     padding : 8px 15px;
     margin : 3px 0;
-    resize: vertical;
     outline: none;
+    overflow: hidden;
+}
+#car-type-select{
+    height: 80px;
 }
 #middle-form select:enabled:hover, #middle-form input[type=datetime-local]:hover, #middle-form input[type=text]:hover{
     border : 2px solid var(--color-red);
