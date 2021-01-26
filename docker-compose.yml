@@ -198,3 +198,29 @@ services:
       - 80:80
       # The Web UI (enabled by --api.insecure=true)
       - 8080:8080
+
+## kafka bus configuration
+  zookeeper:
+    container_name: zookeeper
+    restart: unless-stopped
+    image: wurstmeister/zookeeper
+    environment:
+      zk_id: "1"
+    expose:
+      - 2181
+
+  kafka-service:
+    container_name: kafka
+    restart: unless-stopped
+    image: wurstmeister/kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka-service
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: "book-validation:1:1,wish-requested:1:1,wish-result:1:1,new-wish:1:1,new-search:1:1,search:1:1,car-location-result:1:1,search-result:1:1,raw-wish"
+    expose:
+      - 9092
