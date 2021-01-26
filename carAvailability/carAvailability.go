@@ -1,6 +1,8 @@
 package main
 
 import (
+	"carAvailability/tools"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -13,6 +15,9 @@ import (
 
 	. "carAvailability/entities"
 )
+
+// If there is a port variable set in env
+var port = os.Getenv("PORT")
 
 // URL of the service
 var CarBookingURL string
@@ -134,6 +139,12 @@ func GetNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 
 	cars := getNonAvailableCars(date, carType)
 
+	// TODO content
+	kafkaErr := tools.KafkaPush(context.Background(), nil, []byte("your message content"))
+	if kafkaErr != nil {
+		log.Panic(kafkaErr)
+	}
+
 	// Return logs as a JSON object
 	jsonError := json.NewEncoder(w).Encode(cars)
 	if jsonError != nil {
@@ -145,12 +156,9 @@ func GetNonAvailableCarsRoute(w http.ResponseWriter, req *http.Request) {
 
 }
 
-func main() {
-	// If there is a port variable set in env
-	var port string
-	if port = os.Getenv("PORT"); port == "" {
-		port = "3001"
-		// OR raise error
+func setupNetworking() {
+	if port == "" {
+		log.Fatal("No port set.")
 	}
 
 	var carBookingHost, carBookingPort string
@@ -171,9 +179,12 @@ func main() {
 	if GetBookingsRoute = os.Getenv("CARBOOKING_GETBOOKING_URL"); GetBookingsRoute == "" {
 		GetBookingsRoute = "/car-booking/findAll/"
 	}
+}
 
+
+func handleRoutes() (router *mux.Router){
 	// Create a new router to serve routes
-	router := mux.NewRouter()
+	router = mux.NewRouter()
 
 	// All the routes of the app
 	// Basic OK route for healthcheck
@@ -181,6 +192,22 @@ func main() {
 
 	// Main handler
 	router.HandleFunc("/car-availability/getNonAvailableCars", GetNonAvailableCarsRoute).Methods("GET")
+	return
+}
+
+func main() {
+	setupNetworking()
+
+	// SetUpKafka
+	config := tools.KafkaConfig{
+		BrokerUrl: "kafka-service:9092",
+		Topic:     "car-availability-result", // TODO voir multi topic
+		ClientId:  "car-availability",
+	}
+	reader := tools.SetUpKafka(config)
+	defer reader.Close()
+
+	router := handleRoutes()
 
 	fmt.Println("Server is running on port " + port)
 
