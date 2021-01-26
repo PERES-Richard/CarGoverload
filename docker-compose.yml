@@ -2,6 +2,20 @@ version: '3.8'
 
 services:
 
+  redis-wishs:
+    image: "redis:alpine"
+    container_name: redis-wishs
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+
+  redis-wagon:
+    image: "redis:alpine"
+    container_name: redis-wagon
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+
   booking-process:
     build: ./bookingProcess
     image: cargoverload/booking-process
@@ -16,6 +30,7 @@ services:
     depends_on:
       - car-booking
       - car-searching
+      - redis-wishs
     expose:
       - 80
     labels:
@@ -34,6 +49,7 @@ services:
       - CAR_BOOKING_HOST=car-booking
     depends_on:
       - car-booking
+      - redis-wagon
     expose:
       - 80
     labels:
@@ -55,6 +71,7 @@ services:
       - DB_PASSWORD=superpassword
     depends_on:
       - postgres
+      - redis-wagon
     expose:
       - 80
     labels:
@@ -181,5 +198,3 @@ services:
       - 80:80
       # The Web UI (enabled by --api.insecure=true)
       - 8080:8080
-
-
