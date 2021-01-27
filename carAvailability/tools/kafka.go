@@ -13,24 +13,24 @@ import (
 
 var writer *kafka.Writer
 
-func kafkaConfigure(kafkaBrokerUrls []string, clientId string, topic string) (w *kafka.Writer, err error) {
+func SetUpWriter(kafkaConfig KafkaConfig) {
+	brokers := strings.Split(kafkaConfig.BrokerUrl, ",")
+
 	dialer := &kafka.Dialer{
 		Timeout:  10 * time.Second,
-		ClientID: clientId,
+		ClientID: kafkaConfig.ClientId,
 	}
 
 	config := kafka.WriterConfig{
-		Brokers:          kafkaBrokerUrls,
-		Topic:            topic,
+		Brokers:          brokers,
+		Topic:            kafkaConfig.Topic,
 		Balancer:         &kafka.LeastBytes{},
 		Dialer:           dialer,
 		WriteTimeout:     10 * time.Second,
 		ReadTimeout:      10 * time.Second,
 		CompressionCodec: snappy.NewCompressionCodec(),
 	}
-	w = kafka.NewWriter(config)
-	writer = w
-	return w, nil
+	writer = kafka.NewWriter(config)
 }
 
 type KafkaConfig struct {
@@ -40,7 +40,7 @@ type KafkaConfig struct {
 	ClientId      string
 }
 
-func SetUpKafka(kafkaConfig KafkaConfig) *kafka.Reader {
+func GetUpKafkaReader(kafkaConfig KafkaConfig) *kafka.Reader {
 	brokers := strings.Split(kafkaConfig.BrokerUrl, ",")
 
 	// make a new reader that consumes from topic-A
@@ -59,32 +59,9 @@ func SetUpKafka(kafkaConfig KafkaConfig) *kafka.Reader {
 
 func KafkaPush(parent context.Context, key, value []byte) (err error) {
 	message := kafka.Message{
-		// TODO message
 		Key:   key,
 		Value: value,
 		Time:  time.Now(),
 	}
 	return writer.WriteMessages(parent, message)
 }
-
-// TODO Kafka Pull
-//for {
-//m, err := reader.ReadMessage(context.Background())
-//if err != nil {
-//log.Error().Msgf("error while receiving message: %s", err.Error())
-//continue
-//}
-//
-//value := m.Value
-//if m.CompressionCodec == snappy.NewCompressionCodec() {
-//_, err = snappy.NewCompressionCodec().Decode(value, m.Value)
-//}
-//
-//if err != nil {
-//log.Error().Msgf("error while receiving message: %s", err.Error())
-//continue
-//}
-//
-//fmt.Printf("message at topic/partition/offset %v/%v/%v: %s\n", m.Topic, m.Partition, m.Offset, string(value))
-//}
-//}

@@ -9,9 +9,9 @@ services:
     ports:
       - 6379:6379
 
-  redis-wagon:
+  redis-cars:
     image: "redis:alpine"
-    container_name: redis-wagon
+    container_name: redis-cars
     restart: unless-stopped
     ports:
       - 6379:6379
@@ -42,18 +42,12 @@ services:
     restart: unless-stopped
     container_name: car-availability
     environment:
-      - PORT=80
-      - CARBOOKING_GETBOOKING_BY_TYPE_URL=/car-booking/findAll/type/
-      - CARBOOKING_GETBOOKING_URL=/car-booking/findAll
-      - CAR_BOOKING_PORT=80
-      - CAR_BOOKING_HOST=car-booking
+      - REDIS=redis-cars
     depends_on:
       - car-booking
       - redis-wagon
     expose:
       - 80
-    labels:
-      - "traefik.http.routers.car-availability.rule=PathPrefix(`/car-availability`)"
 
   car-booking:
     build: ./carBooking

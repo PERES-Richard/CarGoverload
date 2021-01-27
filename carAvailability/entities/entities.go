@@ -10,16 +10,11 @@ type JSONError struct {
 // A Car representation for this svc
 type Car struct {
 	Id               int `json:"id"`
-	CarTypeId        int `json:"carTypeId"`
 	BeginBookedDate  time.Time
 	EndingBookedDate time.Time
 }
 
-// A Booking representation for this svc from carBooking
-type Booking struct {
-	Supplier         string    `json:"supplier"`
-	BeginBookedDate  time.Time `json:"beginBookedDate"`
-	EndingBookedDate time.Time `json:"endingBookedDate"`
-	Id               int       `json:"id"`
-	Car              Car       `json:"car"`
+type SearchMessage struct {
+	SearchId int       `json:"searchId"`
+	Date     time.Time `json:"time"`
 }
