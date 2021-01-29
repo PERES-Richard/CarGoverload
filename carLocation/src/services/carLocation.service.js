@@ -4,13 +4,17 @@ const axios = require('axios');
 
 async function newSearch(value) {
     const searchParameters = JSON.parse(value)
-    if (searchParameters.nodeId === undefined ||
-        searchParameters.carTypeId === undefined ||
-        searchParameters.distance === undefined) {
+    if (searchParameters.nodeId !== undefined &&
+        searchParameters.carTypeId !== undefined &&
+        searchParameters.distance !== undefined) {
             searchTrackedCars(searchParameters.nodeId, searchParameters.carTypeId, searchParameters.distance)
     } else {
         throw 'Error in message parameters'
     }
+}
+
+async function validateSearch(value) {
+    newSearch(value)
 }
 
 async function searchTrackedCars(nodeId, carTypeId, distance) {
@@ -61,5 +65,6 @@ async function getCloseCars(latitude, longitude, carTypeId) {
 }
 
 module.exports = {
-    newSearch
+    newSearch,
+    validateSearch
 }

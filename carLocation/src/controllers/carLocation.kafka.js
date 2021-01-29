@@ -19,8 +19,16 @@ async function initConnection() {
 }
 
 async function subscribeToTopics() {
-    await createConsumer("car-location-new-search", "new-search", (message => service.newSearch(message.value)))
-    await createConsumer("car-location-validation-search", "validation-search", (message => console.log(message)))
+    await createConsumer(
+        "car-location-new-search",
+        "new-search",
+        (message => service.newSearch(message.value))
+    )
+    await createConsumer(
+        "car-location-validation-search",
+        "validation-search",
+        (message => service.validateSearch(message.value))
+    )
 }
 
 async function createConsumer(groupId, topic, callback) {
