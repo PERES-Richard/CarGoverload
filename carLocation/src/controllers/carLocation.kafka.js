@@ -1,4 +1,5 @@
 const { Kafka } = require('kafkajs')
+const service = require('../services/carLocation.service')
 
 let kafka
 let ready = false
@@ -18,8 +19,16 @@ async function initConnection() {
 }
 
 async function subscribeToTopics() {
-    await createConsumer("car-location-new-search", "new-search", (message => console.log(message)))
-    await createConsumer("car-location-validation-search", "validation-search", (message => console.log(message)))
+    await createConsumer(
+        "car-location-new-search",
+        "new-search",
+        (message => service.newSearch(message.value))
+    )
+    await createConsumer(
+        "car-location-validation-search",
+        "validation-search",
+        (message => service.validateSearch(message.value))
+    )
 }
 
 async function createConsumer(groupId, topic, callback) {
@@ -36,6 +45,14 @@ async function createConsumer(groupId, topic, callback) {
 }
 
 async function sendMessage(topic, value) {
+    let timeCount = 0
+    const WAITING_TIME = 50000
+    while (!ready && timeCount < WAITING_TIME) {
+        timeCount++
+    }
+    if (timeCount >= WAITING_TIME) {
+        throw 'Error: kafka bus not ready'
+    }
     const producer = kafka.producer()
 
     await producer.connect()
