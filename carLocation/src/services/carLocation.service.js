@@ -1,7 +1,19 @@
 const repo = require('../repositories/neo4j_repository')
+const kafka = require('../controllers/carLocation.kafka')
 const axios = require('axios');
 
-async function searchTrackedCars(nodeId, carTypeId, distance, res) {
+async function newSearch(value) {
+    const searchParameters = JSON.parse(value)
+    if (searchParameters.nodeId === undefined ||
+        searchParameters.carTypeId === undefined ||
+        searchParameters.distance === undefined) {
+            searchTrackedCars(searchParameters.nodeId, searchParameters.carTypeId, searchParameters.distance)
+    } else {
+        throw 'Error in message parameters'
+    }
+}
+
+async function searchTrackedCars(nodeId, carTypeId, distance) {
     const nodes = []
     const node = await repo.getNode(nodeId)
     let includes = false
@@ -35,7 +47,7 @@ async function searchTrackedCars(nodeId, carTypeId, distance, res) {
         })
     }
 
-    res.send(JSON.stringify(trackedCars))
+    kafka.sendMessage("car-location-result", JSON.stringify(trackedCars))
 }
 
 async function getCloseCars(latitude, longitude, carTypeId) {
@@ -49,5 +61,5 @@ async function getCloseCars(latitude, longitude, carTypeId) {
 }
 
 module.exports = {
-    searchTrackedCars
+    newSearch
 }
