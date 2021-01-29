@@ -103,6 +103,8 @@ services:
     environment:
       - PORT=80
       - NEO4J_HOST=neo4j
+      - KAFKA_HOST=kafka-service
+      - KAFKA_PORT=9092
       - CAR_TRACKING_PORT=80
       - CAR_TRACKING_HOST=car-tracking
     depends_on:

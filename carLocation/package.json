@@ -9,8 +9,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "express": "^4.17.1",
+    "kafkajs": "^1.15.0",
     "neo4j-driver": "^4.1.2"
   },
   "devDependencies": {
