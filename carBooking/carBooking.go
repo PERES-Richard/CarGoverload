@@ -1,43 +1,94 @@
 package main
 
 import (
-	"carBooking/controllers"
-	"carBooking/repository"
-	"carBooking/services"
+	. "carBooking/entities"
+	"carBooking/tools"
+	"context"
+	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"io"
+	"github.com/go-redis/redis/v8"
+	"github.com/segmentio/kafka-go"
 	"log"
-	"net/http"
 	"os"
+	"strconv"
+	"strings"
 )
 
-// Basic OK route for healthcheck
-func ok(w http.ResponseWriter, _ *http.Request) {
-	_, err := io.WriteString(w, "ok")
-	if err != nil {
-		log.Fatal(err)
+var reader *kafka.Reader
+
+var redisDB, _ = strconv.Atoi(os.Getenv("REDIS_DB"))
+var rdb = redis.NewClient(&redis.Options{
+	Addr:     os.Getenv("REDIS"),
+	Password: "",      // no password set
+	DB:       redisDB, // use default DB
+})
+
+var ctx = context.Background()
+
+func BookRegisterHandler(carsBooked []CarBooked) {
+	for _, book := range carsBooked {
+		begin := book.BeginBookedDate.YearDay()
+		end := book.EndingBookedDate.YearDay()
+
+		for i := 0; i < end-begin; i++ {
+			go lockCar(begin+i, book.Id)
+		}
 	}
 }
 
-func main() {
-	// If there is a port variable set in env
-	var port string
-	if port = os.Getenv("PORT"); port == "" {
-		port = "3002"
-		// OR raise error
+func lockCar(yearDay int, carId int) {
+	var cars, adding string
+	val, err := rdb.Get(ctx, string(yearDay)).Result()
+	if err == redis.Nil {
+		// No cars previously booked
+		adding = string(rune(carId))
+	} else if err != nil {
+		panic(err)
+	} else {
+		// Add the cars to the list
+		cars = val
+		adding = "," + string(rune(carId))
 	}
+	err = rdb.Set(ctx, string(yearDay), cars+adding, 0).Err()
+	if err != nil {
+		panic(err)
+	}
+}
 
-	// Create a new router to serve routes
-	router := mux.NewRouter()
+func arrayToString(a []int) string {
+	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", ",", -1), "[]")
+}
 
-	// All the routes of the app
-	router.HandleFunc("/car-booking/ok", ok).Methods("GET")
-	repository.InitDatabase()
-	controllers.MakeBookingHandlers(router, services.NewService())
+func listenKafka() {
+	for {
+		m, err := reader.ReadMessage(context.Background())
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-	fmt.Println("Server is running on port " + port)
+		var parsedMessage []CarBooked
+		err = json.Unmarshal(m.Value, parsedMessage)
+		if err != nil {
+			log.Panic("Error unmarshaling search message:", err)
+		}
 
-	// Start the server
-	log.Fatal(http.ListenAndServe(":"+port, router))
+		BookRegisterHandler(parsedMessage)
+	}
+}
+
+func setUpKafka() {
+	configReader := tools.KafkaConfig{
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "book-register",
+		ClientId:  "car-booking",
+	}
+	reader = tools.GetUpKafkaReader(configReader)
+}
+
+func main() {
+	// Setup readers & writers
+	setUpKafka()
+
+	go listenKafka()
 }
