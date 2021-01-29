@@ -42,15 +42,15 @@ func readCarLocked(date time.Time) []Car {
 }
 
 // Filters & returns the list of all booked cars by filters
-func getNonAvailableCars(date time.Time) []Car {
+func getNonAvailableCarsId(date time.Time) []int {
 	var carsLocked []Car
-	var carsLockedFiltered = make([]Car, 0)
+	var carsLockedFiltered = make([]int, 0)
 
 	carsLocked = readCarLocked(date)
 
 	for _, car := range carsLocked {
 		if date.Before(car.BeginBookedDate) || date.After(car.EndingBookedDate) {
-			carsLockedFiltered = append(carsLockedFiltered, car)
+			carsLockedFiltered = append(carsLockedFiltered, car.Id)
 		}
 	}
 
@@ -95,15 +95,19 @@ func NewValidationSearchHandler(message SearchMessage) {
 func NewSearchHandler(message SearchMessage) {
 	//date, err = time.Parse(time.RFC3339, dateParam[0])
 
-	cars := getNonAvailableCars(message.Date)
+	carsId := getNonAvailableCarsId(message.Date)
 
-	carsJSON, err := json.Marshal(cars)
+	result := SearchResult{
+		SearchId:     message.SearchId,
+		CarsIdBooked: carsId,
+	}
+	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		log.Fatal("failed to marshal cars:", err)
 		return
 	}
 
-	kafkaErr := tools.KafkaPush(context.Background(), CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID, []byte("value"), carsJSON) // TODO Set key ?
+	kafkaErr := tools.KafkaPush(context.Background(), CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID, []byte("value"), resultJSON) // TODO Set key ?
 	if kafkaErr != nil {
 		log.Panic("failed to write message:",kafkaErr)
 	}
