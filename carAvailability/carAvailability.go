@@ -72,15 +72,15 @@ func NewSearchHandler(message SearchMessage) {
 func main() {
 	// SetUpKafka
 	configReader := tools.KafkaConfig{
-		BrokerUrl: "kafka-service:9092",
-		Topic:     "new-search",
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "new-search,validation-search",
 		ClientId:  "car-availability",
 	}
 	reader := tools.GetUpKafkaReader(configReader)
 	defer reader.Close()
 
 	configWriter := tools.KafkaConfig{
-		BrokerUrl: "kafka-service:9092",
+		BrokerUrl: os.Getenv("KAFKA"),
 		Topic:     "car-availability-result",
 		ClientId:  "car-availability",
 	}

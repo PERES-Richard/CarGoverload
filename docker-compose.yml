@@ -36,6 +36,7 @@ services:
     container_name: car-availability
     environment:
       - REDIS=redis:6379
+      - KAFKA=kafka:9092
     depends_on:
       - car-booking
       - redis
