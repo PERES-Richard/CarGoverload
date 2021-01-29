@@ -10,9 +10,4 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello();
   }
-
-  @EventPattern("wish-requested")
-  eventHandler(@Payload() data){
-    Logger.log(`The message received is ${data.value}`);
-  }
 }
