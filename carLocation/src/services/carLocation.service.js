@@ -6,8 +6,14 @@ async function newSearch(value) {
     const searchParameters = JSON.parse(value)
     if (searchParameters.nodeId !== undefined &&
         searchParameters.carTypeId !== undefined &&
-        searchParameters.distance !== undefined) {
-            searchTrackedCars(searchParameters.nodeId, searchParameters.carTypeId, searchParameters.distance)
+        searchParameters.distance !== undefined &&
+        searchParameters.searchId !== undefined) {
+            searchTrackedCars(
+                searchParameters.nodeId,
+                searchParameters.carTypeId,
+                searchParameters.distance,
+                searchParameters.searchId
+            )
     } else {
         throw 'Error in message parameters'
     }
@@ -17,7 +23,7 @@ async function validateSearch(value) {
     newSearch(value)
 }
 
-async function searchTrackedCars(nodeId, carTypeId, distance) {
+async function searchTrackedCars(nodeId, carTypeId, distance, searchId) {
     const nodes = []
     const node = await repo.getNode(nodeId)
     let includes = false
@@ -51,7 +57,7 @@ async function searchTrackedCars(nodeId, carTypeId, distance) {
         })
     }
 
-    kafka.sendMessage("car-location-result", JSON.stringify(trackedCars))
+    kafka.sendMessage("car-location-result", "{ searchId: " + searchId + ", results:" + JSON.stringify(trackedCars) + " }")
 }
 
 async function getCloseCars(latitude, longitude, carTypeId) {
