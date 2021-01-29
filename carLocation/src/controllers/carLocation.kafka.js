@@ -3,7 +3,7 @@ const { Kafka } = require('kafkajs')
 let kafka
 let ready = false
 
-function initConnection() {
+async function initConnection() {
     const HOST = process.env.KAFKA_HOST ? process.env.KAFKA_HOST : "kafka-service"
     const PORT = process.env.KAFKA_PORT ? process.env.KAFKA_PORT : "9092"
 
@@ -12,7 +12,7 @@ function initConnection() {
         brokers: [HOST+":"+PORT]
     })
 
-    subscribeToTopics().then(() => {
+    await subscribeToTopics().then(() => {
         ready = true;
     })
 }
