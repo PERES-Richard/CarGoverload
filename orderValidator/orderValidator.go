@@ -116,14 +116,12 @@ func messageHandlers(readerId int, m kafka.Message) {
 			ValidationSearchResultHandler(parsedMessage)
 		}
 	}
-
 }
 
 func main() {
 	// Setup readers & writers
 	setUpKafka()
 
-	// TODO Go func ?
 	go listenKafka(VALIDATION_SEARCH_RESULT_READER_ID)
 	go listenKafka(BOOK_VALIDATION_TOPIC_READER_ID)
 }

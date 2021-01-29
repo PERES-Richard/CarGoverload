@@ -11,9 +11,9 @@ import (
 	"github.com/segmentio/kafka-go/snappy"
 )
 
-var writer *kafka.Writer
+var writer = make([]*kafka.Writer, 2)
 
-func SetUpWriter(kafkaConfig KafkaConfig) {
+func SetUpWriter(readerId int, kafkaConfig KafkaConfig) {
 	brokers := strings.Split(kafkaConfig.BrokerUrl, ",")
 
 	dialer := &kafka.Dialer{
@@ -30,7 +30,7 @@ func SetUpWriter(kafkaConfig KafkaConfig) {
 		ReadTimeout:      10 * time.Second,
 		CompressionCodec: snappy.NewCompressionCodec(),
 	}
-	writer = kafka.NewWriter(config)
+	writer[readerId] = kafka.NewWriter(config)
 }
 
 type KafkaConfig struct {
@@ -57,11 +57,11 @@ func GetUpKafkaReader(kafkaConfig KafkaConfig) *kafka.Reader {
 	return kafka.NewReader(config)
 }
 
-func KafkaPush(parent context.Context, key, value []byte) (err error) {
+func KafkaPush(parent context.Context, writerId int, key, value []byte) (err error) {
 	message := kafka.Message{
 		Key:   key,
 		Value: value,
 		Time:  time.Now(),
 	}
-	return writer.WriteMessages(parent, message)
+	return writer[writerId].WriteMessages(parent, message)
 }
