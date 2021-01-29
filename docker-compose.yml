@@ -103,6 +103,8 @@ services:
     environment:
       - PORT=80
       - NEO4J_HOST=neo4j
+      - KAFKA_HOST=kafka-service
+      - KAFKA_PORT=9092
       - CAR_TRACKING_PORT=80
       - CAR_TRACKING_HOST=car-tracking
     depends_on:
@@ -111,6 +113,23 @@ services:
       - 80
     labels:
       - "traefik.http.routers.car-location.rule=PathPrefix(`/car-location`)"
+  ## WEATHER INFO SERVICE
+  itineraryDispatcher:
+    build: ./itineraryDispatcher
+    image: cargoverload/itinerary-dispatcher
+    restart: unless-stopped
+    container_name: itinerary-dispatcher
+    environment:
+      - PORT=80
+      - KAFKA_HOST=kafka-service:9092
+    volumes:
+      - ./itineraryDispatcher/src/:/app/src/ # FOR HOT RELOAD ONLY
+    depends_on:
+      - kafka-service
+    expose:
+      - 80
+    labels:
+      - "traefik.http.routers.weather.rule=PathPrefix(`/itinerary-dispatcher`)"
 
 
   postgres:
