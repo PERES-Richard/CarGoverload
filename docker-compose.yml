@@ -228,6 +228,6 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_BROKER_ID: 1
-      KAFKA_CREATE_TOPICS: "book-validation:1:1,wish-requested:1:1,wish-result:1:1,new-wish:1:1,new-search:1:1,search:1:1,car-location-result:1:1,search-result:1:1,raw-wish"
+      KAFKA_CREATE_TOPICS: "book-validation:1:1,wish-requested:1:1,wish-result:1:1,new-wish:1:1,new-search:1:1,search:1:1,car-location-result:1:1,search-result:1:1,raw-wish:1:1,validation-search:1:1"
     expose:
       - 9092

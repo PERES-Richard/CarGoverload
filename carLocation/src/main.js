@@ -1,5 +1,4 @@
 const repo = require('./repositories/neo4j_repository')
-const ctrl = require('./controllers/carLocation.controller')
 const kafka = require('./controllers/carLocation.kafka')
 
 
@@ -12,8 +11,6 @@ function main() {
     kafka.initConnection().catch(e => {
         console.log(e)
     })
-    
-    ctrl.initAndListen(PORT)
 }
 
 main()
