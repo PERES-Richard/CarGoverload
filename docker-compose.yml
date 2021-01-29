@@ -123,6 +123,7 @@ services:
       - 80
     labels:
       - "traefik.http.routers.car-location.rule=PathPrefix(`/car-location`)"
+
   ## WEATHER INFO SERVICE
   itineraryDispatcher:
     build: ./itineraryDispatcher
@@ -130,16 +131,11 @@ services:
     restart: unless-stopped
     container_name: itinerary-dispatcher
     environment:
-      - PORT=80
       - KAFKA_HOST=kafka-service:9092
     volumes:
       - ./itineraryDispatcher/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - kafka-service
-    expose:
-      - 80
-    labels:
-      - "traefik.http.routers.weather.rule=PathPrefix(`/itinerary-dispatcher`)"
 
 
   postgres:
