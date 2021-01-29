@@ -2,16 +2,9 @@ version: '3.8'
 
 services:
 
-  redis-wishs:
+  redis:
     image: "redis:alpine"
-    container_name: redis-wishs
-    restart: unless-stopped
-    ports:
-      - 6379:6379
-
-  redis-cars:
-    image: "redis:alpine"
-    container_name: redis-cars
+    container_name: redis
     restart: unless-stopped
     ports:
       - 6379:6379
@@ -30,7 +23,7 @@ services:
     depends_on:
       - car-booking
       - car-searching
-      - redis-wishs
+      - redis
     expose:
       - 80
     labels:
@@ -42,10 +35,10 @@ services:
     restart: unless-stopped
     container_name: car-availability
     environment:
-      - REDIS=redis-cars
+      - REDIS=redis:6379
     depends_on:
       - car-booking
-      - redis-wagon
+      - redis
     expose:
       - 80
 
@@ -65,7 +58,7 @@ services:
       - DB_PASSWORD=superpassword
     depends_on:
       - postgres
-      - redis-wagon
+      - redis
     expose:
       - 80
     labels:
