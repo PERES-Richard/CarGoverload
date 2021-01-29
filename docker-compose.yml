@@ -47,11 +47,11 @@ services:
     environment:
       - REDIS=redis:6379
       - KAFKA=kafka:9092
+      - REDIS_DB=0
     depends_on:
       - car-booking
       - redis
-    expose:
-      - 80
+      - kafka
 
   car-booking:
     build: ./carBooking
@@ -59,21 +59,12 @@ services:
     restart: unless-stopped
     container_name: car-booking
     environment:
-      - PORT=80
-      - PGHOST=postgres
-      - PGPORT=5432
-      - DB_HOST=postgres
-      - DB_USER=cargoverload
-      - DB_PORT=5432
-      - DB_NAME=cargoverload
-      - DB_PASSWORD=superpassword
+      - KAFKA=kafka:9092
+      - REDIS=redis:6379
+      - REDIS_DB=1
     depends_on:
-      - postgres
       - redis
-    expose:
-      - 80
-    labels:
-      - "traefik.http.routers.car-booking.rule=PathPrefix(`/car-booking`)"
+      - kafka
 
   car-searching:
     build: ./carSearching
@@ -136,20 +127,6 @@ services:
       - ./itineraryDispatcher/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - kafka-service
-
-
-  postgres:
-    image: postgres:latest
-    restart: always
-    container_name: cargoverload-postgres
-    environment:
-      POSTGRES_PASSWORD: superpassword
-      POSTGRES_DB: cargoverload
-      POSTGRES_USER: cargoverload
-    ports:
-      - 5432:5432
-    expose:
-      - 5432
 
   neo4j:
     image: neo4j:4.1.3
