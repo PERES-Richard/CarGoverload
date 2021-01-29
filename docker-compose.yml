@@ -29,6 +29,16 @@ services:
     labels:
       - "traefik.http.routers.booking-process.rule=PathPrefix(`/booking-process`)"
 
+  order-validator:
+    build: ./orderValidator
+    image: cargoverload/orderValidator
+    restart: unless-stopped
+    container_name: order-validator
+    environment:
+      - KAFKA=kafka:9092
+    depends_on:
+      - kafka
+
   car-availability:
     build: ./carAvailability
     image: cargoverload/car-availability
