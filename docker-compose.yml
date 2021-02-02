@@ -29,6 +29,16 @@ services:
     labels:
       - "traefik.http.routers.booking-process.rule=PathPrefix(`/booking-process`)"
 
+  order-validator:
+    build: ./orderValidator
+    image: cargoverload/orderValidator
+    restart: unless-stopped
+    container_name: order-validator
+    environment:
+      - KAFKA=kafka:9092
+    depends_on:
+      - kafka
+
   car-availability:
     build: ./carAvailability
     image: cargoverload/car-availability
@@ -37,11 +47,11 @@ services:
     environment:
       - REDIS=redis:6379
       - KAFKA=kafka:9092
+      - REDIS_DB=0
     depends_on:
       - car-booking
       - redis
-    expose:
-      - 80
+      - kafka
 
   car-booking:
     build: ./carBooking
@@ -49,21 +59,12 @@ services:
     restart: unless-stopped
     container_name: car-booking
     environment:
-      - PORT=80
-      - PGHOST=postgres
-      - PGPORT=5432
-      - DB_HOST=postgres
-      - DB_USER=cargoverload
-      - DB_PORT=5432
-      - DB_NAME=cargoverload
-      - DB_PASSWORD=superpassword
+      - KAFKA=kafka:9092
+      - REDIS=redis:6379
+      - REDIS_DB=1
     depends_on:
-      - postgres
       - redis
-    expose:
-      - 80
-    labels:
-      - "traefik.http.routers.car-booking.rule=PathPrefix(`/car-booking`)"
+      - kafka
 
   searching-aggregator:
     build: ./searchingAggregator
@@ -110,6 +111,7 @@ services:
       - 80
     labels:
       - "traefik.http.routers.car-location.rule=PathPrefix(`/car-location`)"
+
   ## WEATHER INFO SERVICE
   itineraryDispatcher:
     build: ./itineraryDispatcher
@@ -117,30 +119,11 @@ services:
     restart: unless-stopped
     container_name: itinerary-dispatcher
     environment:
-      - PORT=80
       - KAFKA_HOST=kafka-service:9092
     volumes:
       - ./itineraryDispatcher/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
       - kafka-service
-    expose:
-      - 80
-    labels:
-      - "traefik.http.routers.weather.rule=PathPrefix(`/itinerary-dispatcher`)"
-
-
-  postgres:
-    image: postgres:latest
-    restart: always
-    container_name: cargoverload-postgres
-    environment:
-      POSTGRES_PASSWORD: superpassword
-      POSTGRES_DB: cargoverload
-      POSTGRES_USER: cargoverload
-    ports:
-      - 5432:5432
-    expose:
-      - 5432
 
   neo4j:
     image: neo4j:4.1.3
