@@ -1,6 +1,6 @@
 FROM golang:1.15
 
-WORKDIR /app/carSearching
+WORKDIR /app/searchingAggregator
 COPY go.mod .
 COPY go.sum .
 
@@ -12,4 +12,4 @@ RUN go build
 RUN ls
 
 # Run the executable
-CMD ["./carSearching"]
+CMD ["./searchingAggregator"]
