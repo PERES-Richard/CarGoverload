@@ -9,6 +9,7 @@ import (
 	"orderValidator/tools"
 	"os"
 
+	controller "orderValidator/controllers"
 	. "orderValidator/entities"
 )
 
@@ -18,32 +19,6 @@ const BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID = 0
 const VALIDATION_SEARCH_WRITER_ID = 1
 
 var readers = make([]*kafka.Reader, 2)
-
-func BookValidationHandler(message BookMessage) {
-	wishData, err := json.Marshal(message.Data)
-	if err != nil {
-		log.Fatal("failed to marshal cars:", err)
-		return
-	}
-
-	kafkaErr := tools.KafkaPush(context.Background(), BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID, []byte("value"), wishData) // TODO Set key ?
-	if kafkaErr != nil {
-		log.Panic("failed to write message:", kafkaErr)
-	}
-}
-
-func ValidationSearchResultHandler(message SearchResultMessage) {
-	wishData, err := json.Marshal(message)
-	if err != nil {
-		log.Fatal("failed to marshal cars:", err)
-		return
-	}
-
-	kafkaErr := tools.KafkaPush(context.Background(), BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID, []byte("value"), wishData) // TODO Set key ?
-	if kafkaErr != nil {
-		log.Panic("failed to write message:", kafkaErr)
-	}
-}
 
 func setUpKafka() {
 	setupKafkaReaders()
@@ -104,7 +79,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling search message:", err)
 			}
-			BookValidationHandler(parsedMessage)
+			controller.BookValidationHandler(parsedMessage, BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID)
 		}
 	case VALIDATION_SEARCH_RESULT_READER_ID:
 		{
@@ -113,7 +88,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling search message:", err)
 			}
-			ValidationSearchResultHandler(parsedMessage)
+			controller.ValidationSearchResultHandler(parsedMessage, BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID)
 		}
 	}
 }
