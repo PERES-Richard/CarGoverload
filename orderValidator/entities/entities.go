@@ -1,13 +1,24 @@
 package entities
 
+import "time"
+
 type BookMessage struct {
 	Data Wish
+	OfferSelected Offer
 }
 
 type SearchResultMessage struct {
-	// TODO
+	OffersAvailable []Offer
 }
 
 type Wish struct {
-	// TODO
+	DepartureNode string    `json:"departureNode"`
+	ArrivalNode   string    `json:"arrivalNode"`
+	DateDeparture time.Time `json:"dateDeparture"`
+	CarType       string    `json:"carType"`
+	Amount        int       `json:"amount"`
+}
+
+type Offer struct {
+	// TODO OFFER STRUCT
 }
