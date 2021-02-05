@@ -117,7 +117,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			}
 		case NEW_SEARCH_TOPIC_READER_ID:
 			{
-				var parsedMessage SearchMessage
+				var parsedMessage NewSearchMessage
 				err := json.Unmarshal(m.Value, &parsedMessage)
 				if err != nil {
 					log.Panic("Error unmarshalling new search message:", err)
@@ -126,7 +126,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			}
 		case VALIDATION_SEARCH_TOPIC_READER_ID:
 			{
-				var parsedMessage SearchMessage
+				var parsedMessage NewSearchMessage
 				err := json.Unmarshal(m.Value, &parsedMessage)
 				if err != nil {
 					log.Panic("Error unmarshalling validation search message:", err)
