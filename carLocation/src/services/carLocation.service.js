@@ -23,7 +23,7 @@ async function validateSearch(value) {
     newSearch(value)
 }
 
-async function searchTrackedCars(nodeId, carTypeId, distance, searchId) {
+async function searchTrackedCars(nodeId, carTypeId, distance, searchId, destinationNodeId) {
     const nodes = []
     const node = await repo.getNode(nodeId)
     let includes = false
@@ -52,9 +52,19 @@ async function searchTrackedCars(nodeId, carTypeId, distance, searchId) {
     const trackedCars = []
     for (let i = 0; i < nodes.length; i++) {
         const cars = await getCloseCars(node.latitude, node.longitude, carTypeId)
-        cars.forEach(car => {
-            trackedCars.push({node: nodes[i], car: car})
-        })
+        const destNode = await repo.getNode(destinationNodeId)
+        if (destNode.types.includes(carTypeId)) {
+            cars.forEach(car => {
+                trackedCars.push({node: nodes[i], destinationNode: destNode, car: car})
+            })
+        } else {
+            const closeNodes = repo.getNodesCloserThan(destinationNodeId, distance)
+            closeNodes.filter(a => a.types.includes(carTypeId)).forEach(n => {
+                cars.forEach(car => {
+                    trackedCars.push({node: nodes[i], destinationNode: n, car: car})
+                })
+            })
+        }
     }
 
     kafka.sendMessage("car-location-result", "{ searchId: " + searchId + ", results:" + JSON.stringify(trackedCars) + " }")

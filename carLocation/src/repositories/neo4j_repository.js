@@ -127,7 +127,7 @@ async function getNode(id) {
 
 async function getNodesCloserThan(nodeId, distance) {
     const session = driver.session();
-    const records = await session.run('MATCH (a: Node)-[b: Distance]-(c: Node) WHERE a.id = $nodeId AND b.value < $distance RETURN c', {
+    const records = await session.run('MATCH (a: Node)-[b: Distance]-(c: Node) WHERE a.id = $nodeId AND b.value < $distance RETURN c ORDER BY b.value', {
         nodeId: neo4j.int(nodeId),
         distance: neo4j.int(distance)
     });
@@ -145,7 +145,6 @@ async function getNodesCloserThan(nodeId, distance) {
         neoNode.types = intTypes
         res.push(neoNode)
     }
-    console.log(res)
     return res
 }
 

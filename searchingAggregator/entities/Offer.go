@@ -7,5 +7,4 @@ type Offer struct {
 	Arrival 		Node		`json:"arrivalNode"`
 	Departure 		Node		`json:"departureNode"`
 	Car 			Car			`json:"car"`
-	Price 			float64 	`json:"price"`
 }
