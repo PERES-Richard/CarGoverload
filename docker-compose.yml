@@ -35,9 +35,9 @@ services:
     restart: unless-stopped
     container_name: order-validator
     environment:
-      - KAFKA=kafka:9092
+      - KAFKA=kafka-service:9092
     depends_on:
-      - kafka
+      - kafka-service
 
   car-availability:
     build: ./carAvailability
@@ -46,7 +46,7 @@ services:
     container_name: car-availability
     environment:
       - REDIS=redis:6379
-      - KAFKA=kafka:9092
+      - KAFKA=kafka-service:9092
       - REDIS_DB=0
     depends_on:
       - car-booking
@@ -59,7 +59,7 @@ services:
     restart: unless-stopped
     container_name: car-booking
     environment:
-      - KAFKA=kafka:9092
+      - KAFKA=kafka-service:9092
       - REDIS=redis:6379
       - REDIS_DB=1
     depends_on:
@@ -115,7 +115,6 @@ services:
     labels:
       - "traefik.http.routers.car-location.rule=PathPrefix(`/car-location`)"
 
-  ## WEATHER INFO SERVICE
   itineraryDispatcher:
     build: ./itineraryDispatcher
     image: cargoverload/itinerary-dispatcher
@@ -164,7 +163,7 @@ services:
 #    ports:
 #      - 27017:27017
 
-      ## REVERSE PROXY
+  ## REVERSE PROXY
   traefik:
     image: traefik:v2.3
     container_name: cargoverload-traefik
@@ -200,7 +199,7 @@ services:
       - 2181
 
   kafka-service:
-    container_name: kafka
+    container_name: kafka-service
     restart: unless-stopped
     image: wurstmeister/kafka
     depends_on:
@@ -211,6 +210,17 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_BROKER_ID: 1
-      KAFKA_CREATE_TOPICS: "book-validation:1:1,wish-requested:1:1,wish-result:1:1,new-wish:1:1,new-search:1:1,search:1:1,car-location-result:1:1,search-result:1:1,raw-wish:1:1,validation-search:1:1"
+      KAFKA_CREATE_TOPICS: "book-validation:1:1,
+                            book-validation-result:1:1,
+                            car-location-result:1:1,
+                            new-wish:1:1,
+                            new-search:1:1,
+                            raw-wish-result:1:1,
+                            search:1:1,
+                            search-result:1:1,
+                            validation-search:1:1,
+                            validation-search-result:1:1,
+                            wish-requested:1:1,
+                            wish-result:1:1,"
     expose:
       - 9092
