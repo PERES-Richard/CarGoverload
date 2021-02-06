@@ -195,6 +195,7 @@ func (s *OfferService) determinePrice(lat1 float64, lng1 float64, lat2 float64, 
 	return dist/ 3.3
 }
 
+
 func (s *OfferService) ListOffersOf(supplierName string) (error, []entities.Offer) {
 	found, supplier := s.findSupplierFromName(supplierName)
 	if found {
