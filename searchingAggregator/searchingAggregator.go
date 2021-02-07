@@ -20,7 +20,7 @@ const VALIDATION_SEARCH_TOPIC_READER_ID = 3
 const SEARCH_RESULT_TOPIC_READER_ID = 0
 const VALIDATION_SEARCH_RESULT_TOPIC_READER_ID = 1
 
-var readers = make([]*kafka.Reader, 2)
+var readers = make([]*kafka.Reader, 4)
 
 func main() {
 	// Setup readers & writers
