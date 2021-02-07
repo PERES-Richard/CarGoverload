@@ -3,7 +3,6 @@ package entities
 import "time"
 
 type NewSearchMessage struct {
-	SearchId 			string       	`json:"searchId"`
-	Date     			time.Time 	`json:"time"`
-	ExpectedResults 	int			`json:"expectedResults"`
+	SearchId 			string		`json:"searchId"`
+	Date     			time.Time	`json:"departureDate"`
 }

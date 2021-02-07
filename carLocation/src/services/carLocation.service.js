@@ -9,12 +9,12 @@ async function newSearch(value) {
     if (searchParameters.departureNode !== undefined &&
         searchParameters.arrivalNode !== undefined &&
         searchParameters.carType !== undefined &&
-        searchParameters.searchId !== undefined) {
+        searchParameters.id !== undefined) {
             searchTrackedCars(
                 searchParameters.departureNode,
                 searchParameters.arrivalNode,
                 searchParameters.carType,
-                searchParameters.searchId
+                searchParameters.id
             )
     } else {
         throw 'Error in message parameters'

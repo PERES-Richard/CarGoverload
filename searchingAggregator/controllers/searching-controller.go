@@ -7,21 +7,12 @@ import (
 	"log"
 	. "searchingAggregator/entities"
 	"searchingAggregator/tools"
-	"time"
 )
 
 const SEARCH_RESULT_TOPIC_READER_ID = 0
 const VALIDATION_SEARCH_RESULT_TOPIC_READER_ID = 1
 
-const NO_SEARCH_ID = "-1"
-
-var currentSearchId = NO_SEARCH_ID
-var currentSearchDate time.Time
-var ready = true
-var locationResults []TrackedCar
-var availabilityResults []int
-
-var validationSearch = false
+var searchArrayList []SearchData
 
 // Custom error to return in case of a JSON parsing error
 type JSONError struct {
@@ -29,44 +20,83 @@ type JSONError struct {
 }
 
 func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
-	if parsedMessage.SearchId == currentSearchId {
-		availabilityResults = parsedMessage.Cars
-		checkResults()
+	if isSearchWaited(parsedMessage.SearchId) {
+		for _, s := range searchArrayList {
+			if s.SearchId == parsedMessage.SearchId {
+				s.AvailabilityResult = parsedMessage.Cars
+				checkResults(s.SearchId)
+			}
+		}
 	} else {
 		//TODO: produce compensation message
 	}
 }
 
 func LocationResultHandler(parsedMessage LocationResultMessage) {
-	if parsedMessage.SearchId == currentSearchId {
-		locationResults = parsedMessage.Cars
-		checkResults()
+	if isSearchWaited(parsedMessage.SearchId) {
+		for _, s := range searchArrayList {
+			if s.SearchId == parsedMessage.SearchId {
+				s.LocationResult = parsedMessage.Cars
+				checkResults(s.SearchId)
+			}
+		}
 	} else {
 		//TODO: produce compensation message
 	}
 }
 
 func NewSearchHandler(parsedMessage NewSearchMessage) {
-	if ready {
-		ready = false
-		currentSearchId = parsedMessage.SearchId
-	} else {
-		//TODO: produce compensation message
-	}
+	searchArrayList = append(searchArrayList, SearchData{
+		SearchId: parsedMessage.SearchId,
+		SearchTime: parsedMessage.Date,
+		Validation: false,
+	})
 }
 
 func NewValidationSearchHandler(parsedMessage NewSearchMessage) {
-	validationSearch = true
-	NewSearchHandler(parsedMessage)
+	searchArrayList = append(searchArrayList, SearchData{
+		SearchId: parsedMessage.SearchId,
+		SearchTime: parsedMessage.Date,
+		Validation: true,
+	})
 }
 
-func checkResults() {
-	if availabilityResults != nil && locationResults != nil {
-		endSearch()
+func isSearchWaited(searchId string) bool {
+	for _, s := range searchArrayList {
+		if s.SearchId == searchId {
+			return true
+		}
+	}
+	return false
+}
+
+func checkResults(searchId string) {
+	for _, s := range searchArrayList {
+		if s.SearchId == searchId && s.AvailabilityResult != nil && s.LocationResult != nil {
+			endSearch(searchId)
+		}
 	}
 }
 
-func endSearch() {
+func endSearch(searchId string) {
+	var sd SearchData
+	found := false
+
+	for _,s := range searchArrayList {
+		if s.SearchId == searchId {
+			sd = s
+			found = true
+		}
+	}
+
+	if !found {
+		return
+	}
+
+	locationResults := sd.LocationResult
+	availabilityResults := sd.AvailabilityResult
+
+	// TODO: Enhance with multiple dates
 
 	for _, car := range locationResults {
 		booked := false
@@ -87,26 +117,23 @@ func endSearch() {
 	offers := make([]Offer, 0)
 	for _, car := range locationResults {
 		offers = append(offers, Offer{
-			BookDate:  currentSearchDate,
+			BookDate:  sd.SearchTime,
 			Arrival:   car.DestNode,
 			Departure: car.Node,
 			Car:       car.Car,
 		})
 	}
 
-	ready = true
-	currentSearchId = NO_SEARCH_ID
-	availabilityResults = nil
-	locationResults = nil
-	validationSearch = false
+	searchArrayList, _ = removeSearchData(sd.SearchId)
 
 	resultJSON, err := json.Marshal(offers)
 	if err != nil {
 		log.Fatal("failed to marshal offers:", err)
 		return
 	}
+
 	topic_id := SEARCH_RESULT_TOPIC_READER_ID
-	if validationSearch {
+	if sd.Validation {
 		topic_id = VALIDATION_SEARCH_RESULT_TOPIC_READER_ID
 	}
 	kafkaErr := tools.KafkaPush(context.Background(), topic_id, []byte("value"), resultJSON)
@@ -121,6 +148,19 @@ func removeCar(carList []TrackedCar, car Car) ([]TrackedCar, error) {
 	for _, c := range carList {
 		if c.Car.Id != car.Id {
 			result = append(result, c)
+		} else {
+			err = errors.New("")
+		}
+	}
+	return result, err
+}
+
+func removeSearchData(searchId string) ([]SearchData, error) {
+	err := errors.New("Remove error: car not found")
+	var result []SearchData
+	for _, s := range searchArrayList {
+		if s.SearchId != searchId {
+			result = append(result, s)
 		} else {
 			err = errors.New("")
 		}
