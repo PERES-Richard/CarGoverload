@@ -66,7 +66,6 @@ func NewValidationSearchHandler(message SearchMessage, topic int) {
 func NewSearchHandler(message SearchMessage, topic int) {
 	//date, err = time.Parse(time.RFC3339, dateParam[0])
 
-	// TODO range -3/+3
 	carsId := getNonAvailableCars(message.Date)
 
 	result := SearchResult{

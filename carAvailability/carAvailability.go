@@ -73,7 +73,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling new search message:", err)
 			}
-			controller.NewSearchHandler(parsedMessage, CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID)
+			go controller.NewSearchHandler(parsedMessage, CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID)
 		}
 	case VALIDATION_SEARCH_READER_ID:
 		{
@@ -82,7 +82,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling validation search message:", err)
 			}
-			controller.NewValidationSearchHandler(parsedMessage, CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID)
+			go controller.NewValidationSearchHandler(parsedMessage, CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID)
 		}
 	}
 }
