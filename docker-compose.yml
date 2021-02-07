@@ -40,6 +40,16 @@ services:
       - KAFKA=kafka-service:9092
     depends_on:
       - kafka-service
+      
+  offers-creator:
+    build: ./offersCreator
+    image: cargoverload/offers-creator
+    restart: unless-stopped
+    container_name: offers-creator
+    environment:
+      - KAFKA=kafka-service:9092
+    depends_on:
+      - kafka-service
 
   car-availability:
     build: ./carAvailability
