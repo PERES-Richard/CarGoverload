@@ -30,7 +30,7 @@ func setUpKafka() {
 func setupKafkaWriters() {
 	configWriter := tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
-		Topic:     "validation-search",
+		Topic:     "validation-search-requested",
 		ClientId:  "orderValidator",
 	}
 	tools.SetUpWriter(VALIDATION_SEARCH_WRITER_ID, configWriter)
