@@ -11,7 +11,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -57,9 +56,9 @@ func lockCar(yearDay int, carId int) {
 	}
 }
 
-func arrayToString(a []int) string {
-	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", ",", -1), "[]")
-}
+//func arrayToString(a []int) string {
+//	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", ",", -1), "[]")
+//}
 
 func listenKafka() {
 	for {
