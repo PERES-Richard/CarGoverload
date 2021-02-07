@@ -33,7 +33,7 @@ services:
 
   order-validator:
     build: ./orderValidator
-    image: cargoverload/orderValidator
+    image: cargoverload/order-validator
     restart: unless-stopped
     container_name: order-validator
     environment:
