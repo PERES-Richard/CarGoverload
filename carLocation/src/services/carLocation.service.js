@@ -2,16 +2,18 @@ const repo = require('../repositories/neo4j_repository')
 const kafka = require('../controllers/carLocation.kafka')
 const axios = require('axios');
 
+const DISTANCE_MARGIN = 50;
+
 async function newSearch(value) {
     const searchParameters = JSON.parse(value)
-    if (searchParameters.nodeId !== undefined &&
-        searchParameters.carTypeId !== undefined &&
-        searchParameters.distance !== undefined &&
+    if (searchParameters.departureNode !== undefined &&
+        searchParameters.arrivalNode !== undefined &&
+        searchParameters.carType !== undefined &&
         searchParameters.searchId !== undefined) {
             searchTrackedCars(
-                searchParameters.nodeId,
-                searchParameters.carTypeId,
-                searchParameters.distance,
+                searchParameters.departureNode,
+                searchParameters.arrivalNode,
+                searchParameters.carType,
                 searchParameters.searchId
             )
     } else {
@@ -23,9 +25,11 @@ async function validateSearch(value) {
     newSearch(value)
 }
 
-async function searchTrackedCars(nodeId, carTypeId, distance, searchId, destinationNodeId) {
+async function searchTrackedCars(departureNode, arrivalNode, carType, searchId) {
+    const carTypeId = repo.getCarType(carType)
+
     const nodes = []
-    const node = await repo.getNode(nodeId)
+    const node = await repo.getNode(departureNode)
     let includes = false
     node.types.forEach(t => {
         if (t == carTypeId) {
@@ -35,7 +39,7 @@ async function searchTrackedCars(nodeId, carTypeId, distance, searchId, destinat
     if (includes) {
         nodes.push(node)
     } else {
-        const tmpNodes = await repo.getNodesCloserThan(nodeId, distance)
+        const tmpNodes = await repo.getNodesCloserThan(node.id, DISTANCE_MARGIN)
         tmpNodes.forEach(node => {
             let inc = false
             node.types.forEach(t => {
@@ -52,13 +56,13 @@ async function searchTrackedCars(nodeId, carTypeId, distance, searchId, destinat
     const trackedCars = []
     for (let i = 0; i < nodes.length; i++) {
         const cars = await getCloseCars(node.latitude, node.longitude, carTypeId)
-        const destNode = await repo.getNode(destinationNodeId)
+        const destNode = await repo.getNode(arrivalNode)
         if (destNode.types.includes(carTypeId)) {
             cars.forEach(car => {
                 trackedCars.push({node: nodes[i], destinationNode: destNode, car: car})
             })
         } else {
-            const closeNodes = repo.getNodesCloserThan(destinationNodeId, distance)
+            const closeNodes = repo.getNodesCloserThan(destNode.id, DISTANCE_MARGIN)
             closeNodes.filter(a => a.types.includes(carTypeId)).forEach(n => {
                 cars.forEach(car => {
                     trackedCars.push({node: nodes[i], destinationNode: n, car: car})
