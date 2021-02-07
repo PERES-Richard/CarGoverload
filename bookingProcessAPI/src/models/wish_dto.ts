@@ -3,4 +3,5 @@ export class WishDTO {
     numberOfCars: number;
     departureNode: string;
     arrivalNode: string;
+    dateDeparture: string;
 }
