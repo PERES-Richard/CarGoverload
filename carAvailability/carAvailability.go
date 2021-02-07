@@ -8,6 +8,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"log"
 	"os"
+	"sync"
 
 	controller "carAvailability/controllers"
 	. "carAvailability/entities"
@@ -18,6 +19,7 @@ const VALIDATION_SEARCH_READER_ID = 1
 const CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID = 0
 
 var readers = make([]*kafka.Reader, 2)
+var wg sync.WaitGroup
 
 func listenKafka(readerId int) {
 	for {
@@ -29,6 +31,7 @@ func listenKafka(readerId int) {
 
 		messageHandlers(readerId, m)
 	}
+	wg.Done()
 }
 
 func setUpKafka() {
@@ -66,7 +69,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 	case NEW_SEARCH_READER_ID:
 		{
 			var parsedMessage SearchMessage
-			err := json.Unmarshal(m.Value, parsedMessage)
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling new search message:", err)
 			}
@@ -75,7 +78,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 	case VALIDATION_SEARCH_READER_ID:
 		{
 			var parsedMessage SearchMessage
-			err := json.Unmarshal(m.Value, parsedMessage)
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling validation search message:", err)
 			}
@@ -88,6 +91,10 @@ func main() {
 	// Setup readers & writers
 	setUpKafka()
 
+	wg.Add(2)
+
 	go listenKafka(NEW_SEARCH_READER_ID)
 	go listenKafka(VALIDATION_SEARCH_READER_ID)
+
+	wg.Wait()
 }

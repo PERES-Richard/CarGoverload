@@ -8,6 +8,7 @@ import (
 	"log"
 	"orderValidator/tools"
 	"os"
+	"sync"
 
 	controller "orderValidator/controllers"
 	. "orderValidator/entities"
@@ -19,6 +20,7 @@ const BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID = 0
 const VALIDATION_SEARCH_WRITER_ID = 1
 
 var readers = make([]*kafka.Reader, 2)
+var wg sync.WaitGroup
 
 func setUpKafka() {
 	setupKafkaReaders()
@@ -28,7 +30,7 @@ func setUpKafka() {
 func setupKafkaWriters() {
 	configWriter := tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
-		Topic:     "validation-search",
+		Topic:     "validation-search-requested",
 		ClientId:  "orderValidator",
 	}
 	tools.SetUpWriter(VALIDATION_SEARCH_WRITER_ID, configWriter)
@@ -68,6 +70,7 @@ func listenKafka(readerId int) {
 
 		messageHandlers(readerId, m)
 	}
+	wg.Done()
 }
 
 func messageHandlers(readerId int, m kafka.Message) {
@@ -97,6 +100,10 @@ func main() {
 	// Setup readers & writers
 	setUpKafka()
 
+	wg.Add(2)
+
 	go listenKafka(VALIDATION_SEARCH_RESULT_READER_ID)
 	go listenKafka(BOOK_VALIDATION_TOPIC_READER_ID)
+
+	wg.Wait()
 }

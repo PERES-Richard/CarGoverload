@@ -11,10 +11,11 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
+	"sync"
 )
 
 var reader *kafka.Reader
+var wg sync.WaitGroup
 
 var redisDB, _ = strconv.Atoi(os.Getenv("REDIS_DB"))
 var rdb = redis.NewClient(&redis.Options{
@@ -55,9 +56,9 @@ func lockCar(yearDay int, carId int) {
 	}
 }
 
-func arrayToString(a []int) string {
-	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", ",", -1), "[]")
-}
+//func arrayToString(a []int) string {
+//	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", ",", -1), "[]")
+//}
 
 func listenKafka() {
 	for {
@@ -75,6 +76,7 @@ func listenKafka() {
 
 		BookRegisterHandler(parsedMessage)
 	}
+	wg.Done()
 }
 
 func setUpKafka() {
@@ -90,5 +92,7 @@ func main() {
 	// Setup readers & writers
 	setUpKafka()
 
+	wg.Add(1)
 	go listenKafka()
+	wg.Wait()
 }

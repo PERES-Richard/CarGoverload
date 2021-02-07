@@ -10,6 +10,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"log"
 	"os"
+	"sync"
 )
 
 const CAR_AVAILABILITY_RESULT_TOPIC_READER_ID = 0
@@ -20,16 +21,21 @@ const VALIDATION_SEARCH_TOPIC_READER_ID = 3
 const SEARCH_RESULT_TOPIC_READER_ID = 0
 const VALIDATION_SEARCH_RESULT_TOPIC_READER_ID = 1
 
-var readers = make([]*kafka.Reader, 2)
+var readers = make([]*kafka.Reader, 4)
+var wg sync.WaitGroup
 
 func main() {
 	// Setup readers & writers
 	setUpKafka()
 
+	wg.Add(4)
+
 	go listenKafka(CAR_AVAILABILITY_RESULT_TOPIC_READER_ID)
 	go listenKafka(CAR_LOCATION_RESULT_TOPIC_READER_ID)
 	go listenKafka(NEW_SEARCH_TOPIC_READER_ID)
 	go listenKafka(VALIDATION_SEARCH_TOPIC_READER_ID)
+
+	wg.Wait()
 }
 
 func setUpKafka() {
@@ -87,12 +93,13 @@ func listenKafka(readerId int) {
 	for {
 		m, err := readers[readerId].ReadMessage(context.Background())
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln("Error reader " + string(rune(readerId)) + ": ", err)
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
 		messageHandlers(readerId, m)
 	}
+	wg.Done()
 }
 
 func messageHandlers(readerId int, m kafka.Message) {

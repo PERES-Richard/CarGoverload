@@ -33,7 +33,7 @@ services:
 
   order-validator:
     build: ./orderValidator
-    image: cargoverload/orderValidator
+    image: cargoverload/order-validator
     restart: unless-stopped
     container_name: order-validator
     environment:
@@ -74,10 +74,11 @@ services:
     restart: unless-stopped
     container_name: searching-aggregator
     environment:
-      - KAFKA=kafka:9092
+      - KAFKA=kafka-service:9092
     depends_on:
       - car-availability
       - car-location
+      - kafka-service
     expose:
       - 80
     labels:
@@ -109,6 +110,7 @@ services:
       - CAR_TRACKING_HOST=car-tracking
     depends_on:
       - neo4j
+      - kafka-service
     expose:
       - 80
     labels:

@@ -3,7 +3,7 @@ package entities
 import "time"
 
 type BookMessage struct {
-	Data Wish
+	Data          Wish
 	OfferSelected Offer
 }
 
@@ -16,7 +16,7 @@ type Wish struct {
 	ArrivalNode   string    `json:"arrivalNode"`
 	DateDeparture time.Time `json:"dateDeparture"`
 	CarType       string    `json:"carType"`
-	Amount        int       `json:"amount"`
+	NumberOfCars  int       `json:"numberOfCars"`
 }
 
 type Offer struct {

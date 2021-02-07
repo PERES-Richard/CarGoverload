@@ -25,7 +25,9 @@ var rdb = redis.NewClient(&redis.Options{
 func readCarLockedByDay(yearDay int) []Car {
 	val, err := rdb.Get(context.Background(), string(rune(yearDay))).Result()
 	if err != nil {
-		log.Panic("Error getting locked cars: ", err)
+		//log.Panic("Error getting locked cars: ", err)
+		log.Println("No cars booked for this date")
+		return []Car{}
 	}
 
 	var carsLocked []Car
@@ -64,6 +66,7 @@ func NewValidationSearchHandler(message SearchMessage, topic int) {
 func NewSearchHandler(message SearchMessage, topic int) {
 	//date, err = time.Parse(time.RFC3339, dateParam[0])
 
+	// TODO range -3/+3
 	carsId := getNonAvailableCars(message.Date)
 
 	result := SearchResult{
