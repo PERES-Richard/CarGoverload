@@ -4,6 +4,7 @@ package tools
 
 import (
 	"context"
+	"log"
 	"strings"
 	"time"
 
@@ -63,5 +64,6 @@ func KafkaPush(parent context.Context, writerId int, key, value []byte) (err err
 		Value: value,
 		Time:  time.Now(),
 	}
+	log.Printf("Send new message on topic '%s', value =%s\n",writer[writerId].Topic, value)
 	return writer[writerId].WriteMessages(parent, message)
 }

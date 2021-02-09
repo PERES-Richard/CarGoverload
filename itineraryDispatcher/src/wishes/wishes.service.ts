@@ -11,7 +11,7 @@ export class WishesService {
         for (let indexOfWishes = 0; indexOfWishes < wishes.length; indexOfWishes++) {
             const wish = wishes[indexOfWishes];
             for (let indexOfCars = 0; indexOfCars < wish.numberOfCars; indexOfCars++) {
-                let formatedWish = { id: `${requestTimestamp}_${indexOfWishes}-${wish.carType.charAt(0).toUpperCase()}${indexOfCars}`, carType: wish.carType, departureNode: wish.departureNode, arrivalNode: wish.arrivalNode, dateDeparture: wish.dateDeparture };
+                let formatedWish = { searchId: `${requestTimestamp}_${indexOfWishes}-${wish.carType.charAt(0).toUpperCase()}${indexOfCars}`, carType: wish.carType, departureNode: wish.departureNode, arrivalNode: wish.arrivalNode, dateDeparture: wish.dateDeparture };
                 await this.kafkaClient.emit(`new-search`, formatedWish).toPromise();
 
             }
