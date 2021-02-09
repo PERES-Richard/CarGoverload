@@ -22,7 +22,7 @@ async function newSearch(value) {
 }
 
 async function validateSearch(value) {
-    newSearch(value)
+    await newSearch(value)
 }
 
 async function searchTrackedCars(departureNode, arrivalNode, carType, searchId) {
@@ -72,6 +72,9 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId) 
     }
 
     kafka.sendMessage("car-location-result", "{ searchId: " + searchId + ", results:" + JSON.stringify(trackedCars) + " }")
+        .then(data => console.log("Data : " + data))
+        .catch(err => console.log("Error : " + err)
+    );
 }
 
 async function getCloseCars(latitude, longitude, carTypeId) {
@@ -81,7 +84,7 @@ async function getCloseCars(latitude, longitude, carTypeId) {
         .catch(e => {
             console.log('Error: car tracking service unreachable: ', e)
         })
-    return result.data
+    return result.data;
 }
 
 module.exports = {
