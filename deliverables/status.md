@@ -1,3 +1,6 @@
+# Current flag : Week 06 - YELLOW
+
+
 # Week 04: GREEN
 
 ## Ce que l'on a fait
