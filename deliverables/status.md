@@ -30,3 +30,29 @@
 ## Les blocages et risques
 
 - Mise en pratique de l'architecture conçue au préalable, donc on doit se préparer à des problèmes imprévus (flot de données, intégration...)
+
+
+
+# Week 06: YELLOW
+
+## Ce que l'on a fait
+
+- Intégration des services entre eux via Kafka (début du flow vers la fin)
+- Création de l'avant dernier service
+- Uniformisation des entitées qui transitent
+- Ajout de la logique de "range" de recherche
+
+## Ce que l'on a prévu
+
+- Ajouter le tout dernier service au projet
+- Continuer de verifier / intégrer les services entre eux (du début vers la fin)
+
+(*Plus tard*)
+- Finir la logique des services restants (BookingProcess API, SearchingAggregator, ItineraryDispatcher et OrderCreator)
+- Changer le front end ou à défaut le remplacer par des appels HTTP
+
+## Les blocages et risques
+
+- Integration des services restants via Kafka plus compliqué que prévu
+- Logique des services restants trop complexe pour être implémenté en 1 ou 2 semaines
+- Comme discuté, refactor pas assez incrémentale et donc pas d'avancement démontrable effortless
