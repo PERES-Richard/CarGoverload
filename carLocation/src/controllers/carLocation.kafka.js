@@ -22,12 +22,12 @@ async function subscribeToTopics() {
     await createConsumer(
         "car-location-new-search",
         "new-search",
-        (message => service.newSearch(message.value))
+        (message => service.newSearch(message.value, sendMessage))
     )
     await createConsumer(
         "car-location-validation-search",
         "validation-search",
-        (message => service.validateSearch(message.value))
+        (message => service.validateSearch(message.value, sendMessage))
     )
 }
 
