@@ -106,17 +106,17 @@ async function getAllNodes(res) {
     res.send(JSON.stringify(nodes));
 }
 
-async function getNode(id) {
+async function getNode(name) {
     const session = driver.session();
-    const records = await session.run('MATCH (a: Node) WHERE a.id = $id RETURN DISTINCT a LIMIT 1', {
-        id: neo4j.int(id)
+    const records = await session.run('MATCH (a: Node) WHERE a.name = $name RETURN DISTINCT a LIMIT 1', {
+        name: name
     });
     await session.close();
 
     if (records.records[0] === undefined)
         return undefined
     const neoNode = records.records[0]["_fields"][0].properties
-    neoNode.id = id
+    neoNode.id = neoNode.id.low
     const intTypes = []
     neoNode.types.forEach(t => {
         intTypes.push(t.low)
@@ -127,7 +127,7 @@ async function getNode(id) {
 
 async function getNodesCloserThan(nodeId, distance) {
     const session = driver.session();
-    const records = await session.run('MATCH (a: Node)-[b: Distance]-(c: Node) WHERE a.id = $nodeId AND b.value < $distance RETURN c', {
+    const records = await session.run('MATCH (a: Node)-[b: Distance]-(c: Node) WHERE a.id = $nodeId AND b.value < $distance RETURN c ORDER BY b.value', {
         nodeId: neo4j.int(nodeId),
         distance: neo4j.int(distance)
     });
@@ -145,20 +145,19 @@ async function getNodesCloserThan(nodeId, distance) {
         neoNode.types = intTypes
         res.push(neoNode)
     }
-    console.log(res)
     return res
 }
 
-async function getCarType(id) {
+async function getCarType(name) {
     const session = driver.session();
-    const records = await session.run('MATCH (a: CarType) WHERE a.id = $id RETURN DISTINCT a LIMIT 1', {
-        id: neo4j.int(id)
+    const records = await session.run('MATCH (a: CarType) WHERE a.name = $name RETURN DISTINCT a LIMIT 1', {
+        name: name
     });
     await session.close();
     if (records.records[0] === undefined)
         return undefined
     const neoType = records.records[0]["_fields"][0].properties
-    neoType.id = id
+    neoType.id = neoType.id.low
     return neoType
 }
 
@@ -220,5 +219,6 @@ module.exports =  {
     getAllNodes,
     getAllCarTypes,
     getNodesCloserThan,
-    getNode
+    getNode,
+    getCarType
 }

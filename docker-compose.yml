@@ -2,24 +2,54 @@ version: '3.8'
 
 services:
 
+  redis:
+    image: "redis:alpine"
+    container_name: redis
+    restart: unless-stopped
+    ports:
+      - 6379:6379
+
   booking-process:
-    build: ./bookingProcess
+    build: ./bookingProcessAPI
     image: cargoverload/booking-process
     restart: unless-stopped
     container_name: booking-process
     environment:
       - PORT=80
       - CAR_SEARCHING_PORT=80
-      - CAR_SEARCHING_HOST=car-searching
+      - CAR_SEARCHING_HOST=searching-aggregator
       - CAR_BOOKING_PORT=80
       - CAR_BOOKING_HOST=car-booking
+      - KAFKA=kafka-service:9092
+    volumes:
+      - ./bookingProcessAPI/src/:/app/src/ # FOR HOT RELOAD ONLY
     depends_on:
-      - car-booking
-      - car-searching
+      - redis
+      - kafka-service
     expose:
       - 80
     labels:
       - "traefik.http.routers.booking-process.rule=PathPrefix(`/booking-process`)"
+
+  order-validator:
+    build: ./orderValidator
+    image: cargoverload/order-validator
+    restart: unless-stopped
+    container_name: order-validator
+    environment:
+      - KAFKA=kafka-service:9092
+    depends_on:
+      - kafka-service
+      
+  offers-creator:
+    build: ./offersCreator
+    image: cargoverload/offers-creator
+    restart: unless-stopped
+    container_name: offers-creator
+    environment:
+      - KAFKA=kafka-service:9092
+    depends_on:
+      - kafka-service
 
   car-availability:
     build: ./carAvailability
@@ -27,17 +57,13 @@ services:
     restart: unless-stopped
     container_name: car-availability
     environment:
-      - PORT=80
-      - CARBOOKING_GETBOOKING_BY_TYPE_URL=/car-booking/findAll/type/
-      - CARBOOKING_GETBOOKING_URL=/car-booking/findAll
-      - CAR_BOOKING_PORT=80
-      - CAR_BOOKING_HOST=car-booking
+      - REDIS=redis:6379
+      - KAFKA=kafka-service:9092
+      - REDIS_DB=0
     depends_on:
       - car-booking
-    expose:
-      - 80
-    labels:
-      - "traefik.http.routers.car-availability.rule=PathPrefix(`/car-availability`)"
+      - redis
+      - kafka-service
 
   car-booking:
     build: ./carBooking
@@ -45,38 +71,28 @@ services:
     restart: unless-stopped
     container_name: car-booking
     environment:
-      - PORT=80
-      - PGHOST=postgres
-      - PGPORT=5432
-      - DB_HOST=postgres
-      - DB_USER=cargoverload
-      - DB_PORT=5432
-      - DB_NAME=cargoverload
-      - DB_PASSWORD=superpassword
+      - KAFKA=kafka-service:9092
+      - REDIS=redis:6379
+      - REDIS_DB=1
     depends_on:
-      - postgres
-    expose:
-      - 80
-    labels:
-      - "traefik.http.routers.car-booking.rule=PathPrefix(`/car-booking`)"
+      - redis
+      - kafka-service
 
-  car-searching:
-    build: ./carSearching
-    image: cargoverload/car-searching
+  searching-aggregator:
+    build: ./searchingAggregator
+    image: cargoverload/searching-aggregator
     restart: unless-stopped
-    container_name: car-searching
+    container_name: searching-aggregator
     environment:
-      - PORT=80
-      - CAR_AVAILABILITY_HOST=car-availability
-      - CAR_AVAILABILITY_PORT=80
-      - CAR_LOCATION_HOST=car-location
-      - CAR_LOCATION_PORT=80
+      - KAFKA=kafka-service:9092
     depends_on:
       - car-availability
+      - car-location
+      - kafka-service
     expose:
       - 80
     labels:
-      - "traefik.http.routers.car-searching.rule=PathPrefix(`/car-searching`)"
+      - "traefik.http.routers.searching-aggregator.rule=PathPrefix(`/searching-aggregator`)"
 
   car-tracking:
     build: ./carTracking
@@ -98,28 +114,29 @@ services:
     environment:
       - PORT=80
       - NEO4J_HOST=neo4j
+      - KAFKA_HOST=kafka-service
+      - KAFKA_PORT=9092
       - CAR_TRACKING_PORT=80
       - CAR_TRACKING_HOST=car-tracking
     depends_on:
       - neo4j
+      - kafka-service
     expose:
       - 80
     labels:
       - "traefik.http.routers.car-location.rule=PathPrefix(`/car-location`)"
 
-
-  postgres:
-    image: postgres:latest
-    restart: always
-    container_name: cargoverload-postgres
+  itineraryDispatcher:
+    build: ./itineraryDispatcher
+    image: cargoverload/itinerary-dispatcher
+    restart: unless-stopped
+    container_name: itinerary-dispatcher
     environment:
-      POSTGRES_PASSWORD: superpassword
-      POSTGRES_DB: cargoverload
-      POSTGRES_USER: cargoverload
-    ports:
-      - 5432:5432
-    expose:
-      - 5432
+      - KAFKA_HOST=kafka-service:9092
+    volumes:
+      - ./itineraryDispatcher/src/:/app/src/ # FOR HOT RELOAD ONLY
+    depends_on:
+      - kafka-service
 
   neo4j:
     image: neo4j:4.1.3
@@ -157,7 +174,7 @@ services:
 #    ports:
 #      - 27017:27017
 
-      ## REVERSE PROXY
+  ## REVERSE PROXY
   traefik:
     image: traefik:v2.3
     container_name: cargoverload-traefik
@@ -170,7 +187,7 @@ services:
       - booking-process
       - car-availability
       - car-booking
-      - car-searching
+      - searching-aggregator
       - car-location
       - car-tracking
     volumes:
@@ -182,4 +199,39 @@ services:
       # The Web UI (enabled by --api.insecure=true)
       - 8080:8080
 
+## kafka bus configuration
+  zookeeper:
+    container_name: zookeeper
+    restart: unless-stopped
+    image: wurstmeister/zookeeper
+    environment:
+      zk_id: "1"
+    expose:
+      - 2181
 
+  kafka-service:
+    container_name: kafka-service
+    restart: unless-stopped
+    image: wurstmeister/kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka-service
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_BROKER_ID: 1
+      KAFKA_CREATE_TOPICS: "book-validation:1:1,
+                            book-validation-result:1:1,
+                            car-location-result:1:1,
+                            new-wish:1:1,
+                            new-search:1:1,
+                            raw-wish-result:1:1,
+                            search:1:1,
+                            search-result:1:1,
+                            validation-search:1:1,
+                            validation-search-result:1:1,
+                            wish-requested:1:1,
+                            wish-result:1:1,"
+    expose:
+      - 9092
