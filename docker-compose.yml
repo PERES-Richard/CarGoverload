@@ -94,6 +94,22 @@ services:
     labels:
       - "traefik.http.routers.searching-aggregator.rule=PathPrefix(`/searching-aggregator`)"
 
+  multiple-searching-aggregator:
+    build: ./multipleSearchingAggregator
+    image: cargoverload/multiple-searching-aggregator
+    restart: unless-stopped
+    container_name: multiple-searching-aggregator
+    environment:
+      - KAFKA=kafka-service:9092
+    depends_on:
+      - car-availability
+      - car-location
+      - kafka-service
+    expose:
+      - 80
+    labels:
+      - "traefik.http.routers.multiple-searching-aggregator.rule=PathPrefix(`/multiple-searching-aggregator`)"
+
   car-tracking:
     build: ./carTracking
     image: cargoverload/car-tracking
@@ -188,6 +204,7 @@ services:
       - car-availability
       - car-booking
       - searching-aggregator
+      - multiple-searching-aggregator
       - car-location
       - car-tracking
     volumes:
