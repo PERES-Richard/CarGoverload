@@ -135,9 +135,14 @@ func endSearch(searchId string) {
 
 	searchArrayList, _ = removeSearchData(sd.SearchId)
 
-	resultJSON, err := json.Marshal(offers)
+	result := ResultMessage{
+		Offers:   offers,
+		SearchId: searchId,
+	}
+	
+	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		log.Fatal("failed to marshal offers:", err)
+		log.Fatal("failed to marshal result:", err)
 		return
 	}
 
