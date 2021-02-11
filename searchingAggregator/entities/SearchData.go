@@ -10,4 +10,5 @@ type SearchData struct {
 	Validation				bool
 	ReceivedLocation		bool
 	ReceivedAvailability	bool
+	ReceivedTime			bool
 }
