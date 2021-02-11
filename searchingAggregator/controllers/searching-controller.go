@@ -9,8 +9,8 @@ import (
 	"searchingAggregator/tools"
 )
 
-const SEARCH_RESULT_TOPIC_READER_ID = 0
-const VALIDATION_SEARCH_RESULT_TOPIC_READER_ID = 1
+const SEARCH_RESULT_TOPIC_WRITER_ID = 0
+const VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID = 1
 
 var searchArrayList []SearchData
 
@@ -20,11 +20,12 @@ type JSONError struct {
 }
 
 func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
+	log.Println("Received availability results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
 	if isSearchWaited(parsedMessage.SearchId) {
-		for _, s := range searchArrayList {
-			if s.SearchId == parsedMessage.SearchId {
-				s.AvailabilityResult = parsedMessage.Cars
-				checkResults(s.SearchId)
+		for i, _ := range searchArrayList {
+			if searchArrayList[i].SearchId == parsedMessage.SearchId {
+				searchArrayList[i].AvailabilityResult = parsedMessage.Cars
+				checkResults(searchArrayList[i].SearchId)
 			}
 		}
 	} else {
@@ -33,11 +34,12 @@ func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
 }
 
 func LocationResultHandler(parsedMessage LocationResultMessage) {
+	log.Println("Received location results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
 	if isSearchWaited(parsedMessage.SearchId) {
-		for _, s := range searchArrayList {
-			if s.SearchId == parsedMessage.SearchId {
-				s.LocationResult = parsedMessage.Cars
-				checkResults(s.SearchId)
+		for i, _ := range searchArrayList {
+			if searchArrayList[i].SearchId == parsedMessage.SearchId {
+				searchArrayList[i].LocationResult = parsedMessage.Cars
+				checkResults(searchArrayList[i].SearchId)
 			}
 		}
 	} else {
@@ -46,6 +48,7 @@ func LocationResultHandler(parsedMessage LocationResultMessage) {
 }
 
 func NewSearchHandler(parsedMessage NewSearchMessage) {
+	log.Println("Received new message : ", parsedMessage)
 	searchArrayList = append(searchArrayList, SearchData{
 		SearchId: parsedMessage.SearchId,
 		SearchTime: parsedMessage.Date,
@@ -71,14 +74,18 @@ func isSearchWaited(searchId string) bool {
 }
 
 func checkResults(searchId string) {
+	log.Println("Checking results for searchId : ", searchId)
 	for _, s := range searchArrayList {
-		if s.SearchId == searchId && s.AvailabilityResult != nil && s.LocationResult != nil {
+		log.Println(s, " - ", searchId)
+		if s.SearchId == searchId && len(s.AvailabilityResult) > 0 && len(s.LocationResult) > 0 {
 			endSearch(searchId)
 		}
 	}
 }
 
 func endSearch(searchId string) {
+	log.Println("Ending search for searchId : ", searchId)
+
 	var sd SearchData
 	found := false
 
@@ -89,6 +96,7 @@ func endSearch(searchId string) {
 		}
 	}
 
+	// if the parameter searchId does not correspond to an existing searchId we are waiting for
 	if !found {
 		return
 	}
@@ -106,6 +114,7 @@ func endSearch(searchId string) {
 			}
 		}
 		if booked {
+			log.Println("Car ", car.Car.Id, " is booked !")
 			locationResults, _ = removeCar(locationResults, car.Car)
 		}
 	}
@@ -132,9 +141,11 @@ func endSearch(searchId string) {
 		return
 	}
 
-	topic_id := SEARCH_RESULT_TOPIC_READER_ID
+	log.Println("Results for search ", searchId, " : ", offers)
+
+	topic_id := SEARCH_RESULT_TOPIC_WRITER_ID
 	if sd.Validation {
-		topic_id = VALIDATION_SEARCH_RESULT_TOPIC_READER_ID
+		topic_id = VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID
 	}
 	kafkaErr := tools.KafkaPush(context.Background(), topic_id, []byte("value"), resultJSON)
 	if kafkaErr != nil {

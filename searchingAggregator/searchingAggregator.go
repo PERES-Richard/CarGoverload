@@ -18,8 +18,8 @@ const CAR_LOCATION_RESULT_TOPIC_READER_ID = 1
 const NEW_SEARCH_TOPIC_READER_ID = 2
 const VALIDATION_SEARCH_TOPIC_READER_ID = 3
 
-const SEARCH_RESULT_TOPIC_READER_ID = 0
-const VALIDATION_SEARCH_RESULT_TOPIC_READER_ID = 1
+const SEARCH_RESULT_TOPIC_WRITER_ID = 0
+const VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID = 1
 
 var readers = make([]*kafka.Reader, 4)
 var wg sync.WaitGroup
@@ -36,6 +36,42 @@ func main() {
 	go listenKafka(VALIDATION_SEARCH_TOPIC_READER_ID)
 
 	wg.Wait()
+	//controllers.NewSearchHandler(NewSearchMessage{SearchId: "a"})
+	//controllers.LocationResultHandler(LocationResultMessage{
+	//	SearchId: "a",
+	//	Cars:     []TrackedCar{
+	//		{
+	//			Car:      Car{
+	//				Id:      0,
+	//				CarType: CarType{"liquid", 1},
+	//			},
+	//			Node:     Node{},
+	//			DestNode: Node{},
+	//		},
+	//		{
+	//			Car:      Car{
+	//				Id:      1,
+	//				CarType: CarType{"liquid", 1},
+	//			},
+	//			Node:     Node{},
+	//			DestNode: Node{},
+	//		},
+	//		{
+	//			Car:      Car{
+	//				Id:     2,
+	//				CarType: CarType{"liquid", 1},
+	//			},
+	//			Node:     Node{},
+	//			DestNode: Node{},
+	//		},
+	//	},
+	//})
+	//controllers.AvailabilityResultHandler(AvailabilityResultMessage{
+	//	Cars:     []int{
+	//		0,
+	//	},
+	//	SearchId: "a",
+	//})
 }
 
 func setUpKafka() {
@@ -49,14 +85,14 @@ func setupKafkaWriters() {
 		Topic:     "search-result",
 		ClientId:  "searching-agregator",
 	}
-	tools.SetUpWriter(SEARCH_RESULT_TOPIC_READER_ID,configWriter)
+	tools.SetUpWriter(SEARCH_RESULT_TOPIC_WRITER_ID,configWriter)
 
 	configWriter = tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
 		Topic:     "validation-search-result",
 		ClientId:  "searching-agregator",
 	}
-	tools.SetUpWriter(VALIDATION_SEARCH_RESULT_TOPIC_READER_ID,configWriter)
+	tools.SetUpWriter(VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID,configWriter)
 }
 
 func setupKafkaReaders() {
