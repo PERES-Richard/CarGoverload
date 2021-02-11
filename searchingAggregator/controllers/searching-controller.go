@@ -25,6 +25,7 @@ func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
 		for i, _ := range searchArrayList {
 			if searchArrayList[i].SearchId == parsedMessage.SearchId {
 				searchArrayList[i].AvailabilityResult = parsedMessage.Cars
+				searchArrayList[i].ReceivedAvailability = true
 				checkResults(searchArrayList[i].SearchId)
 			}
 		}
@@ -39,6 +40,7 @@ func LocationResultHandler(parsedMessage LocationResultMessage) {
 		for i, _ := range searchArrayList {
 			if searchArrayList[i].SearchId == parsedMessage.SearchId {
 				searchArrayList[i].LocationResult = parsedMessage.Cars
+				searchArrayList[i].ReceivedLocation = true
 				checkResults(searchArrayList[i].SearchId)
 			}
 		}
@@ -61,6 +63,8 @@ func NewValidationSearchHandler(parsedMessage NewSearchMessage) {
 		SearchId: parsedMessage.SearchId,
 		SearchTime: parsedMessage.Date,
 		Validation: true,
+		ReceivedAvailability: false,
+		ReceivedLocation: false,
 	})
 }
 
@@ -77,7 +81,7 @@ func checkResults(searchId string) {
 	log.Println("Checking results for searchId : ", searchId)
 	for _, s := range searchArrayList {
 		log.Println(s, " - ", searchId)
-		if s.SearchId == searchId && len(s.AvailabilityResult) > 0 && len(s.LocationResult) > 0 {
+		if s.SearchId == searchId && s.ReceivedAvailability && s.ReceivedLocation {
 			endSearch(searchId)
 		}
 	}
