@@ -7,6 +7,7 @@ import (
 	"log"
 	. "searchingAggregator/entities"
 	"searchingAggregator/tools"
+	"time"
 )
 
 const SEARCH_RESULT_TOPIC_WRITER_ID = 0
@@ -21,31 +22,41 @@ type JSONError struct {
 
 func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
 	log.Println("Received availability results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
-	if isSearchWaited(parsedMessage.SearchId) {
-		for i, _ := range searchArrayList {
-			if searchArrayList[i].SearchId == parsedMessage.SearchId {
-				searchArrayList[i].AvailabilityResult = parsedMessage.Cars
-				searchArrayList[i].ReceivedAvailability = true
-				checkResults(searchArrayList[i].SearchId)
-			}
+	if !isSearchWaited(parsedMessage.SearchId) {
+		searchArrayList = append(searchArrayList, SearchData{
+			SearchId: parsedMessage.SearchId,
+			SearchTime: time.Now(),
+			Validation: false,
+			ReceivedAvailability: false,
+			ReceivedLocation: false,
+		})
+	}
+	for i, _ := range searchArrayList {
+		if searchArrayList[i].SearchId == parsedMessage.SearchId {
+			searchArrayList[i].AvailabilityResult = parsedMessage.Cars
+			searchArrayList[i].ReceivedAvailability = true
+			checkResults(searchArrayList[i].SearchId)
 		}
-	} else {
-		//TODO: produce compensation message
 	}
 }
 
 func LocationResultHandler(parsedMessage LocationResultMessage) {
 	log.Println("Received location results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
-	if isSearchWaited(parsedMessage.SearchId) {
-		for i, _ := range searchArrayList {
-			if searchArrayList[i].SearchId == parsedMessage.SearchId {
-				searchArrayList[i].LocationResult = parsedMessage.Cars
-				searchArrayList[i].ReceivedLocation = true
-				checkResults(searchArrayList[i].SearchId)
-			}
+	if !isSearchWaited(parsedMessage.SearchId) {
+		searchArrayList = append(searchArrayList, SearchData{
+			SearchId: parsedMessage.SearchId,
+			SearchTime: time.Now(),
+			Validation: false,
+			ReceivedAvailability: false,
+			ReceivedLocation: false,
+		})
+	}
+	for i, _ := range searchArrayList {
+		if searchArrayList[i].SearchId == parsedMessage.SearchId {
+			searchArrayList[i].LocationResult = parsedMessage.Cars
+			searchArrayList[i].ReceivedLocation = true
+			checkResults(searchArrayList[i].SearchId)
 		}
-	} else {
-		//TODO: produce compensation message
 	}
 }
 
@@ -55,6 +66,8 @@ func NewSearchHandler(parsedMessage NewSearchMessage) {
 		SearchId: parsedMessage.SearchId,
 		SearchTime: parsedMessage.Date,
 		Validation: false,
+		ReceivedAvailability: false,
+		ReceivedLocation: false,
 	})
 }
 
