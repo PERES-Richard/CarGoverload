@@ -13,12 +13,13 @@ import (
 	"sync"
 )
 
+const READERS_NB = 2
 const NEW_WISH_TOPIC_READER_ID = 0
 const SEARCH_RESULT_TOPIC_READER_ID = 1
 
 const RAW_WISH_RESULT_TOPIC_WRITER_ID = 0
 
-var readers = make([]*kafka.Reader, 4)
+var readers = make([]*kafka.Reader, READERS_NB)
 var wg sync.WaitGroup
 
 func main() {
