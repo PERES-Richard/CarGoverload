@@ -19,13 +19,13 @@ type JSONError struct {
 }
 
 func SearchResultHandler(parsedMessage SearchResultMessage) {
-	log.Println(parsedMessage)
+	log.Println("Search received for seardhId : ", parsedMessage.SearchId)
 	for i := range searchArrayList {
 		for j := range searchArrayList[i].SearchIds {
 			if searchArrayList[i].SearchIds[j] == parsedMessage.SearchId {
-				//TODO remove doublons
 				searchArrayList[i].SearchWithOffers[parsedMessage.SearchId] = parsedMessage.Offers
 				searchArrayList[i].SearchesRemaining = searchArrayList[i].SearchesRemaining - 1
+				log.Println("Test nombre search restantes : ", searchArrayList[i].SearchesRemaining)
 				if searchArrayList[i].SearchesRemaining == 0 {
 					FinishAggregatingResults(searchArrayList[i])
 				}
@@ -44,7 +44,9 @@ func NewWishHandler(parsedMessage NewWishMessageResult) {
 }
 
 func FinishAggregatingResults(searchData SearchData) {
-	log.Println(searchData)
+	log.Println("Entering finish aggregate")
+	removeDuplicates(searchData)
+
 	searchArrayList, _ = removeSearchData(searchData.WishId)
 
 	offers := make([]Offer, 0)
@@ -78,6 +80,72 @@ func FinishAggregatingResults(searchData SearchData) {
 	if kafkaErr != nil {
 		log.Panic("failed to write message:", kafkaErr)
 	}
+}
+
+func removeDuplicates(searchData SearchData) {
+	offersInWish :=  make(map[string][]Offer)
+	carsAlreadyUsed := make([]Car, 0)
+	for key, value := range searchData.SearchWithOffers {
+		carsOfOffer := make([]Offer, 0)
+		for i := range value {
+			carsOfOffer = append(carsOfOffer, value[i])
+		}
+		offersInWish[key] = carsOfOffer
+	}
+	result :=  make(map[string][]Offer)
+	for isARemainingOffer(offersInWish) {
+		for key, value := range offersInWish {
+			offersInWish[key] = removeOffersWithCarsAlreadyUsed(value, carsAlreadyUsed)
+			if len(offersInWish[key]) > 0 { // on vérifie si la search a toujours des offers disponibles
+				offerToKeep := offersInWish[key][0]
+				result[key] = append(result[key], offerToKeep)                              // on ajoute au résultat la première offer pour cette recherche puis on passe à la suivante etc
+				carsAlreadyUsed = append(carsAlreadyUsed, offerToKeep.Car)                  // la car est maintenant use dans une offer
+				offersInWish[key] = removeFromArrayAtIndex(0, offersInWish[key]) // remove la premiere offer car maintenant on l'a use
+			}
+		}
+	}
+	for key, value := range result {
+		searchData.SearchWithOffers[key] = value
+	}
+	log.Println("Final result : ", result)
+}
+
+func removeFromArrayAtIndex(index int, offers []Offer) []Offer {
+	log.Println("Before removing : ", offers)
+	offers = append(offers[:index], offers[index + 1:]...)
+	log.Println("After removing : ", offers)
+	return offers
+}
+
+func isARemainingOffer(offersInWish map[string][]Offer) bool {
+	for key := range offersInWish {
+		if len(offersInWish[key]) > 0 {
+			return true
+		}
+	}
+	return false
+}
+
+func removeOffersWithCarsAlreadyUsed(offers []Offer, cars []Car) []Offer {
+	log.Println("Entering first remove : ", offers)
+	result := make([]Offer, 0)
+	for i := range offers {
+		log.Println("Remove offers : ", offers[i])
+		offer := offers[i]
+		if !isCarAlreadyUsed(offer.Car, cars) {
+			result = append(result, offer)
+		}
+	}
+	return result
+}
+
+func isCarAlreadyUsed(car Car, cars []Car) bool {
+	for i := range cars {
+		if cars[i].Id == car.Id {
+			return true
+		}
+	}
+	return false
 }
 
 func removeSearchData(wishId string) ([]SearchData, error) {
