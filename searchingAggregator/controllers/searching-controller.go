@@ -21,47 +21,85 @@ type JSONError struct {
 
 func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
 	log.Println("Received availability results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
-	if isSearchWaited(parsedMessage.SearchId) {
-		for i, _ := range searchArrayList {
-			if searchArrayList[i].SearchId == parsedMessage.SearchId {
-				searchArrayList[i].AvailabilityResult = parsedMessage.Cars
-				checkResults(searchArrayList[i].SearchId)
-			}
+	if !isSearchWaited(parsedMessage.SearchId) {
+		searchArrayList = append(searchArrayList, SearchData{
+			SearchId: parsedMessage.SearchId,
+			Validation: false,
+			ReceivedAvailability: false,
+			ReceivedLocation: false,
+			ReceivedTime: false,
+		})
+	}
+	for i, _ := range searchArrayList {
+		if searchArrayList[i].SearchId == parsedMessage.SearchId {
+			searchArrayList[i].AvailabilityResult = parsedMessage.Cars
+			searchArrayList[i].ReceivedAvailability = true
+			checkResults(searchArrayList[i].SearchId)
 		}
-	} else {
-		//TODO: produce compensation message
 	}
 }
 
 func LocationResultHandler(parsedMessage LocationResultMessage) {
 	log.Println("Received location results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
-	if isSearchWaited(parsedMessage.SearchId) {
-		for i, _ := range searchArrayList {
-			if searchArrayList[i].SearchId == parsedMessage.SearchId {
-				searchArrayList[i].LocationResult = parsedMessage.Cars
-				checkResults(searchArrayList[i].SearchId)
-			}
+	if !isSearchWaited(parsedMessage.SearchId) {
+		searchArrayList = append(searchArrayList, SearchData{
+			SearchId: parsedMessage.SearchId,
+			Validation: false,
+			ReceivedAvailability: false,
+			ReceivedLocation: false,
+			ReceivedTime: false,
+		})
+	}
+	for i, _ := range searchArrayList {
+		if searchArrayList[i].SearchId == parsedMessage.SearchId {
+			searchArrayList[i].LocationResult = parsedMessage.Cars
+			searchArrayList[i].ReceivedLocation = true
+			checkResults(searchArrayList[i].SearchId)
 		}
-	} else {
-		//TODO: produce compensation message
 	}
 }
 
 func NewSearchHandler(parsedMessage NewSearchMessage) {
 	log.Println("Received new message : ", parsedMessage)
-	searchArrayList = append(searchArrayList, SearchData{
-		SearchId: parsedMessage.SearchId,
-		SearchTime: parsedMessage.Date,
-		Validation: false,
-	})
+	if !isSearchWaited(parsedMessage.SearchId) {
+		searchArrayList = append(searchArrayList, SearchData{
+			SearchId: parsedMessage.SearchId,
+			SearchTime: parsedMessage.Date,
+			Validation: false,
+			ReceivedAvailability: false,
+			ReceivedLocation: false,
+			ReceivedTime: true,
+		})
+	} else {
+		for i, _ := range searchArrayList {
+			if searchArrayList[i].SearchId == parsedMessage.SearchId {
+				searchArrayList[i].SearchTime = parsedMessage.Date
+				searchArrayList[i].ReceivedTime = true
+				checkResults(parsedMessage.SearchId)
+			}
+		}
+	}
 }
 
 func NewValidationSearchHandler(parsedMessage NewSearchMessage) {
-	searchArrayList = append(searchArrayList, SearchData{
-		SearchId: parsedMessage.SearchId,
-		SearchTime: parsedMessage.Date,
-		Validation: true,
-	})
+	if !isSearchWaited(parsedMessage.SearchId) {
+		searchArrayList = append(searchArrayList, SearchData{
+			SearchId: parsedMessage.SearchId,
+			SearchTime: parsedMessage.Date,
+			Validation: true,
+			ReceivedAvailability: false,
+			ReceivedLocation: false,
+			ReceivedTime: true,
+		})
+	} else {
+		for i, _ := range searchArrayList {
+			if searchArrayList[i].SearchId == parsedMessage.SearchId {
+				searchArrayList[i].SearchTime = parsedMessage.Date
+				searchArrayList[i].ReceivedTime = true
+				checkResults(parsedMessage.SearchId)
+			}
+		}
+	}
 }
 
 func isSearchWaited(searchId string) bool {
@@ -77,7 +115,7 @@ func checkResults(searchId string) {
 	log.Println("Checking results for searchId : ", searchId)
 	for _, s := range searchArrayList {
 		log.Println(s, " - ", searchId)
-		if s.SearchId == searchId && len(s.AvailabilityResult) > 0 && len(s.LocationResult) > 0 {
+		if s.SearchId == searchId && s.ReceivedAvailability && s.ReceivedLocation && s.ReceivedTime {
 			endSearch(searchId)
 		}
 	}

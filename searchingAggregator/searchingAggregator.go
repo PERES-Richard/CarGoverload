@@ -36,7 +36,6 @@ func main() {
 	go listenKafka(VALIDATION_SEARCH_TOPIC_READER_ID)
 
 	wg.Wait()
-	//controllers.NewSearchHandler(NewSearchMessage{SearchId: "a"})
 	//controllers.LocationResultHandler(LocationResultMessage{
 	//	SearchId: "a",
 	//	Cars:     []TrackedCar{
@@ -66,12 +65,8 @@ func main() {
 	//		},
 	//	},
 	//})
-	//controllers.AvailabilityResultHandler(AvailabilityResultMessage{
-	//	Cars:     []int{
-	//		0,
-	//	},
-	//	SearchId: "a",
-	//})
+	//controllers.AvailabilityResultHandler(AvailabilityResultMessage{SearchId: "a"})
+	//controllers.NewSearchHandler(NewSearchMessage{SearchId: "a"})
 }
 
 func setUpKafka() {
