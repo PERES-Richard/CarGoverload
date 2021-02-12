@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { OffersController } from './offers.controller';
-import { OffersService } from './offers.service';
+import { BookingsController } from './bookingsController';
+import { BookingsService } from './bookings.service';
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { KAFKA } from "../env_variable";
-import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [ClientsModule.register([
@@ -20,8 +19,8 @@ import { RedisModule } from 'src/redis/redis.module';
         }
       }
     },
-  ]), RedisModule],
-  controllers: [OffersController],
-  providers: [OffersService]
+  ]),],
+  controllers: [BookingsController],
+  providers: [BookingsService]
 })
-export class OffersModule { }
+export class BookingModule { }
