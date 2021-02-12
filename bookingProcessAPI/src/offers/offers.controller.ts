@@ -14,10 +14,10 @@ export class OffersController {
 
     @Get()
     getOffers(@Body() wishes: WishDTO[]): string {
-        Logger.log(`Searching request`);
+        Logger.log(`Starting new search request`);
         console.dir(wishes);
-        this.offersService.startSearchingProcess(wishes);
-        return `Search initiated`;
+        let startedWish = this.offersService.startSearchingProcess(wishes);
+        return `Search initiated, wishId generated : ${startedWish}`;
     }
 
     @Get('/payment')
