@@ -9,6 +9,8 @@ export class OffersController {
     }
     @EventPattern("wish-result")
     wishResultHandler(@Payload() data) {
+        // TODO stock offers result of this wish in redis
+        // TODO print wish id also
         Logger.log(`The wish result is ${data.value}`);
     }
 
@@ -18,10 +20,5 @@ export class OffersController {
         console.dir(wishes);
         let startedWish = this.offersService.startSearchingProcess(wishes);
         return `Search initiated, wishId generated : ${startedWish}`;
-    }
-
-    @Get('/payment')
-    payOffer() {
-        return true;
     }
 }
