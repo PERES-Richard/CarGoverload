@@ -75,8 +75,7 @@ func FinishAggregatingResults(searchData SearchData) {
 
 	log.Println("Results for wish ", searchData.WishId, " : ", offers)
 
-	topic_id := RAW_WISH_RESULT_TOPIC_WRITER_ID
-	kafkaErr := tools.KafkaPush(context.Background(), topic_id, []byte("value"), resultJSON)
+	kafkaErr := tools.KafkaPush(context.Background(), RAW_WISH_RESULT_TOPIC_WRITER_ID, []byte("value"), resultJSON)
 	if kafkaErr != nil {
 		log.Panic("failed to write message:", kafkaErr)
 	}

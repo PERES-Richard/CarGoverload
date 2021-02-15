@@ -85,7 +85,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling search message:", err)
 			}
-			controller.RawWishhandler(parsedMessage, WISH_RESULT_TOPIC_WRITER_ID)
+			controller.RawWishHandler(parsedMessage, WISH_RESULT_TOPIC_WRITER_ID)
 		}
 	}
 }
