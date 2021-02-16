@@ -1,4 +1,4 @@
-# Current flag : Week 06 - YELLOW
+# Current flag : Week 07 - YELLOW
 
 
 # Week 04: GREEN
@@ -59,3 +59,21 @@
 - Integration des services restants via Kafka plus compliqué que prévu
 - Logique des services restants trop complexe pour être implémenté en 1 ou 2 semaines
 - Comme discuté, refactor pas assez incrémentale et donc pas d'avancement démontrable effortless
+
+# Week 07: YELLOW
+
+## Ce que l'on a fait
+
+- Scenario de recherche d'offres fonctionnel (Via BookingProcess, ItineraryDispatcher, SearchingAggregator, CarBooking, CarLocation, CarAvailability, MultiSearchingAgregator)
+- Mise en place de redis
+- Reprise d'un avancement incremental
+
+## Ce que l'on a prévu
+
+- Renvoyer le retour de la recherche à notre acteur (via BookingProcessAPI) et l'enregistrer dans redis
+- Réaliser le scenario de paiement d'une offre précedemment proposée
+- Màj du Front-end pour coller aux nouvelles attentes
+
+## Les blocages et risques
+
+- Logique trop complexe pour certains services et manque potentiel de temps
