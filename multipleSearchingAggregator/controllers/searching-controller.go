@@ -49,8 +49,9 @@ func FinishAggregatingResults(searchData SearchData) {
 
 	searchArrayList, _ = removeSearchData(searchData.WishId)
 
-	offers := make([]Offer, 0)
-	for _, value := range searchData.SearchWithOffers {
+	rawWishResults := make([]RawWishResult, 0)
+	for key, value := range searchData.SearchWithOffers {
+		offers := make([]Offer, 0)
 		for i := range value {
 			offer := value[i]
 			offers = append(offers, Offer{
@@ -60,10 +61,14 @@ func FinishAggregatingResults(searchData SearchData) {
 				Car:       offer.Car,
 			})
 		}
+		rawWishResults = append(rawWishResults, RawWishResult{
+			SearchId: key,
+			Offers: offers,
+		})
 	}
 
 	result := ResultMessage{
-		Offers:   offers,
+		OfferPossibilities:  rawWishResults,
 		WishId: searchData.WishId,
 	}
 
@@ -73,7 +78,7 @@ func FinishAggregatingResults(searchData SearchData) {
 		return
 	}
 
-	log.Println("Results for wish ", searchData.WishId, " : ", offers)
+	log.Println("Results for wish ", searchData.WishId, " : ", rawWishResults)
 
 	kafkaErr := tools.KafkaPush(context.Background(), RAW_WISH_RESULT_TOPIC_WRITER_ID, []byte("value"), resultJSON)
 	if kafkaErr != nil {

@@ -69,9 +69,8 @@ func messageHandlers(readerId int, m kafka.Message) {
 	switch readerId {
 	case WISH_REQUESTED_TOPIC_READER_ID:
 		{
-		// TODO
-			var parsedMessage Wish
-			err := json.Unmarshal(m.Value, parsedMessage)
+			var parsedMessage InitialWishRequest
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling book validation message:", err)
 			}
@@ -79,11 +78,10 @@ func messageHandlers(readerId int, m kafka.Message) {
 		}
 	case RAW_WISH_RESULT_TOPIC_READER_ID:
 		{
-		// TODO
-			var parsedMessage Wish
-			err := json.Unmarshal(m.Value, parsedMessage)
+			var parsedMessage WishWithPossibilities
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
-				log.Panic("Error unmarshaling search message:", err)
+				log.Panic("Error unmarshaling offer possibilities search message:", err)
 			}
 			controller.RawWishHandler(parsedMessage, WISH_RESULT_TOPIC_WRITER_ID)
 		}

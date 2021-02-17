@@ -26,47 +26,47 @@ var wg sync.WaitGroup
 
 func main() {
 	// Setup readers & writers
-	//setUpKafka()
-	//
-	//wg.Add(4)
-	//
-	//go listenKafka(CAR_AVAILABILITY_RESULT_TOPIC_READER_ID)
-	//go listenKafka(CAR_LOCATION_RESULT_TOPIC_READER_ID)
-	//go listenKafka(NEW_SEARCH_TOPIC_READER_ID)
-	//go listenKafka(VALIDATION_SEARCH_TOPIC_READER_ID)
-	//
-	//wg.Wait()
-	controllers.NewSearchHandler(NewSearchMessage{SearchId: "a"})
-	controllers.LocationResultHandler(LocationResultMessage{
-		SearchId: "a",
-		Cars:     []TrackedCar{
-			{
-				Car:      Car{
-					Id:      0,
-					CarType: CarType{"liquid", 1},
-				},
-				Node:     Node{},
-				DestNode: Node{},
-			},
-			{
-				Car:      Car{
-					Id:      1,
-					CarType: CarType{"liquid", 1},
-				},
-				Node:     Node{},
-				DestNode: Node{},
-			},
-			{
-				Car:      Car{
-					Id:     2,
-					CarType: CarType{"liquid", 1},
-				},
-				Node:     Node{},
-				DestNode: Node{},
-			},
-		},
-	})
-	controllers.AvailabilityResultHandler(AvailabilityResultMessage{SearchId: "a"})
+	setUpKafka()
+
+	wg.Add(4)
+
+	go listenKafka(CAR_AVAILABILITY_RESULT_TOPIC_READER_ID)
+	go listenKafka(CAR_LOCATION_RESULT_TOPIC_READER_ID)
+	go listenKafka(NEW_SEARCH_TOPIC_READER_ID)
+	go listenKafka(VALIDATION_SEARCH_TOPIC_READER_ID)
+
+	wg.Wait()
+	//controllers.NewSearchHandler(NewSearchMessage{SearchId: "a"})
+	//controllers.LocationResultHandler(LocationResultMessage{
+	//	SearchId: "a",
+	//	Cars:     []TrackedCar{
+	//		{
+	//			Car:      Car{
+	//				Id:      0,
+	//				CarType: CarType{"liquid", 1},
+	//			},
+	//			Node:     Node{},
+	//			DestNode: Node{},
+	//		},
+	//		{
+	//			Car:      Car{
+	//				Id:      1,
+	//				CarType: CarType{"liquid", 1},
+	//			},
+	//			Node:     Node{},
+	//			DestNode: Node{},
+	//		},
+	//		{
+	//			Car:      Car{
+	//				Id:     2,
+	//				CarType: CarType{"liquid", 1},
+	//			},
+	//			Node:     Node{},
+	//			DestNode: Node{},
+	//		},
+	//	},
+	//})
+	//controllers.AvailabilityResultHandler(AvailabilityResultMessage{SearchId: "a"})
 }
 
 func setUpKafka() {

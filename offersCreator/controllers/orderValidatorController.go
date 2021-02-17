@@ -5,23 +5,25 @@ import (
 	"encoding/json"
 	"log"
 	"math/rand"
+	. "offersCreator/entities"
 	"offersCreator/tools"
 	"sort"
-
-	. "offersCreator/entities"
 )
 
 const STANDARD_CAR_PRICE = 100
-var WISHES = make([]Wish, 0)
+var WISHES = make([]InitialWishRequest, 0)
 
 
 
-func WishRequestedHandler(message Wish) {
+func WishRequestedHandler(message InitialWishRequest) {
 	// TODO save wish
+	log.Println(message)
 }
 
-func RawWishHandler(rawWishesResult []Book, topic int) {
-	enhanceBook(&rawWishesResult)
+func RawWishHandler(rawWishesResult WishWithPossibilities, topic int) {
+	enhanceOffer(&rawWishesResult.OfferPossibilities)
+
+	//TODO do the scoring
 
 	offers, err := json.Marshal(rawWishesResult)
 	if err != nil {
@@ -35,25 +37,25 @@ func RawWishHandler(rawWishesResult []Book, topic int) {
 	}
 }
 
-func enhanceBook(rawWishesResult *[]Book) {
+func enhanceOffer(offersPossibilities *[]OfferPossibilities) {
 	// Sort Offers by total amount
-	sort.Slice(rawWishesResult, func(i, j int) bool {
-		return len((*rawWishesResult)[i].Offers) < len((*rawWishesResult)[j].Offers)
+	sort.Slice(offersPossibilities, func(i, j int) bool {
+		return len((*offersPossibilities)[i].Offers) < len((*offersPossibilities)[j].Offers)
 	})
 
-	max := len((*rawWishesResult)[0].Offers)
+	max := len((*offersPossibilities)[0].Offers)
 
-	for _, book := range *rawWishesResult {
-		coeff := float32(len(book.Offers)) / float32(max)
-		determinePrice(&book, coeff)
+	for _, offer := range *offersPossibilities {
+		coefficient := float32(len(offer.Offers)) / float32(max)
+		determinePrice(&offer, coefficient)
 	}
 }
 
-func determinePrice(book *Book, coeff float32) {
+func determinePrice(offerPossibilities *OfferPossibilities, coefficient float32) {
 	var sum float32 = 0.0
-	for _, offer := range book.Offers {
-		offer.Price = (STANDARD_CAR_PRICE + float32(rand.Intn(10-(-10)) + (-10))) * coeff*2
+	for _, offer := range offerPossibilities.Offers {
+		offer.Price = (STANDARD_CAR_PRICE + float32(rand.Intn(10-(-10)) + (-10))) * coefficient*2
 		sum += offer.Price
 	}
-	book.TotalPrice = sum
+	offerPossibilities.TotalPrice = sum
 }

@@ -30,6 +30,11 @@ type Wish struct {
 	NumberOfCars  int       `json:"numberOfCars"`
 }
 
+type InitialWishRequest struct {
+	WishId			string		`json:"wishId"`
+	Wishes			[]Wish		`json:"wishes"`
+}
+
 type Offer struct {
 	BookDate  time.Time `json:"bookDate"`
 	Arrival   Node      `json:"arrivalNode"`
@@ -39,9 +44,20 @@ type Offer struct {
 	//Score     float32   `json:"score,omitempty"`
 }
 
-type Book struct {
-	Id         json.Number `json:"id,number"`
-	Offers     []Offer     `json:"offers"`
-	WishId     string      `json:"wishId"`
-	TotalPrice float32     `json:"TotalPrice,omitempty"`
+//type Book struct {
+//	Id         json.Number `json:"id,number"`
+//	Offers     []Offer     `json:"offers"`
+//	WishId     string      `json:"wishId"`
+//	TotalPrice float32     `json:"TotalPrice,omitempty"`
+//}
+
+type WishWithPossibilities struct {
+	OfferPossibilities	[]OfferPossibilities		`json:"offerPossibilities"`
+	WishId				string				`json:"wishId"`
+}
+
+type OfferPossibilities struct {
+	SearchId 		string 		`json:"searchId"`
+	Offers	 		[]Offer		`json:"offers"`
+	TotalPrice		float32     `json:"TotalPrice,omitempty"`
 }
