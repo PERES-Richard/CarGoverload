@@ -4,5 +4,5 @@ import "time"
 
 type NewSearchMessage struct {
 	SearchId 			string		`json:"searchId"`
-	Date     			time.Time	`json:"departureDate"`
+	Date     			time.Time	`json:"dateDeparture"`
 }
