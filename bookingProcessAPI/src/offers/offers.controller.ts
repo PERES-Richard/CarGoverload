@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger } from '@nestjs/common';
+import {Body, Controller, Logger, Post} from '@nestjs/common';
 import { EventPattern, Payload } from "@nestjs/microservices";
 import { WishDTO } from 'src/models/wish_dto';
 import { OffersService } from "./offers.service";
@@ -14,11 +14,11 @@ export class OffersController {
         Logger.log(`The wish result is ${data.value}`);
     }
 
-    @Get()
+    @Post()
     getOffers(@Body() wishes: WishDTO[]): string {
         Logger.log(`Starting new search request`);
         console.dir(wishes);
-        let startedWish = this.offersService.startSearchingProcess(wishes);
+        const startedWish = this.offersService.startSearchingProcess(wishes);
         return `Search initiated, wishId generated : ${startedWish}`;
     }
 }

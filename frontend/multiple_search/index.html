@@ -19,8 +19,7 @@
             <div class="input-container">
                 <label for="node-departure-select" class="color-grey">Noeud de départ</label>
                 <div class="no-margin">
-                    <select class="background-main-color color-grey" title="Noeud de départ" disabled name="node-departure-select" id="node-departure-select">
-                        <option value="0">Aucun noeud de départ sélectionné</option>
+                    <select class="background-main-color color-grey" title="Noeud de départ" name="node-departure-select" id="node-departure-select">
                     </select>
                 </div>
             </div>
@@ -39,35 +38,19 @@
                 </div>
             </div>
 
-
-
-            <div class="input-container">
-                <label for="car-type-select" class="color-grey">Type de wagon</label>
-                <div class="no-margin">
-                    <select class="background-main-color color-grey" title="Type de wagon" name="car-type-select" id="car-type-select">
-                        <option selected disabled value="0">Aucun type sélectionné</option>
-                    </select>
-                </div>
+            <div class="flex-center width-full">
+                <div id="plus"></div>
             </div>
 
-            <div class="input-container">
-                <label for="node-arrival-select" class="color-grey">Noeud d'arrivée</label>
-                <div class="no-margin">
-                    <select class="background-main-color color-grey" title="Noeud d'arrivée" disabled name="node-arrival-select" id="node-arrival-select">
-                        <option value="0">Aucun noeud de d'arrivée sélectionné</option>
-                    </select>
-                </div>
-            </div>
-
-
+            <div id="main-container" class="width-full"></div>
             <div id="middle-form-submit-container">
-                <input type="submit" disabled value="Rechercher des wagons" id="middle-form-submit" />
+                <input type="submit" disabled value="Rechercher des offres" id="middle-form-submit" class="button-form"/>
             </div>
         </form>
         <div id="loading-big-container">
 
         </div>
-        <div id="main-container">
+        <div id="offers-result-container">
 
         </div>
     </div>

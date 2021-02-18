@@ -43,12 +43,9 @@ body{
     justify-content: center;
     align-items: center;
 }
-#middle-form-submit{
+.button-form, .no-button-form{
     text-align: center;
     font-size: 18px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     padding: 10px 25px;
     margin: 5px;
     text-transform: uppercase;
@@ -58,12 +55,12 @@ body{
     background-color: transparent;
     outline: none;
 }
-#middle-form-submit:enabled:hover{
+.button-form:enabled:hover, .no-button-form:hover{
     background-color: var(--color-red);
     color: white;
     cursor: pointer;
 }
-#middle-form select, #middle-form input[type=datetime-local], #middle-form input[type=text] {
+#middle-form select, #middle-form input[type=datetime-local], #middle-form input[type=text], #middle-form input[type=number] {
     transition: 0.2s;
     box-sizing: border-box;
     font-size : 12pt;
@@ -78,10 +75,7 @@ body{
     outline: none;
     overflow: hidden;
 }
-#car-type-select{
-    height: 80px;
-}
-#middle-form select:enabled:hover, #middle-form input[type=datetime-local]:hover, #middle-form input[type=text]:hover{
+#middle-form select:enabled:hover, #middle-form input[type=datetime-local]:hover, #middle-form input[type=text]:hover, #middle-form input[type=number]:hover{
     border : 2px solid var(--color-red);
 }
 label{
@@ -217,4 +211,55 @@ label{
     text-align: center;
     font-size: 18pt;
     color: rgba(0,0,0,0.8);
+}
+.hide {
+    display: none;
+}
+.flex-center {
+    display: flex;
+    justify-content: center;
+}
+#plus {
+    cursor: pointer;
+    margin-top: 20px;
+    border-radius: 50%;
+    transition: 0.2s;
+    width: 60px;
+    height: 60px;
+    background-color: transparent;
+    border: 1px solid var(--color-red);
+    position: relative;
+}
+#plus:hover {
+    background-color: var(--color-red);
+}
+#plus::before, #plus::after {
+    content: "";
+    width: 2px;
+    height: 35px;
+    background-color: rgba(0,0,0,0.4);
+    position: absolute;
+    top : 50%;
+    left: 50%;
+}
+#plus::before {
+    transform: translate(-50%, -50%);
+}
+#plus::after {
+    transform: translate(-50%, -50%) rotate(90deg);
+}
+#plus:hover::before {
+    background-color: white;
+}
+#plus:hover::after {
+    background-color: white;
+}
+.width-full {
+    width: 100%;
+}
+.new-wish-line {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }

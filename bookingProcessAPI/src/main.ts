@@ -4,7 +4,7 @@ import { KAFKA, PORT } from "./env_variable";
 import { Transport } from "@nestjs/microservices";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { cors: true });
   app.connectMicroservice({
     transport: Transport.KAFKA,
     options: {
