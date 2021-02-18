@@ -19,7 +19,7 @@ func WishRequestedHandler(message InitialWishRequest) {
 	log.Println(message)
 }
 
-func RawWishHandler(rawWishesResult WishWithPossibilities, topic int) {
+func RawWishHandler(rawWishesResult *WishWithPossibilities, topic int) {
 	enhanceOffer(&rawWishesResult.OfferPossibilities)
 
 	//TODO do the scoring
@@ -42,20 +42,19 @@ func enhanceOffer(offersPossibilities *[]OfferPossibilities) {
 	//	return len((*offersPossibilities)[i].Offers) < len((*offersPossibilities)[j].Offers)
 	//})
 
-	//max := len((*offersPossibilities)[0].Offers)
-	max := 200
+	max := len((*offersPossibilities)[0].Offers)
+	//max := rand.Intn(200)
 
-	for _, offer := range *offersPossibilities {
-		coefficient := float32(len(offer.Offers)) / float32(max)
-		determinePrice(&offer, coefficient)
+	for i, _ := range *offersPossibilities {
+		coefficient := float32(len((*offersPossibilities)[i].Offers)) / float32(max)
+		determinePrice(&(*offersPossibilities)[i], coefficient)
+
 	}
 }
 
 func determinePrice(offerPossibilities *OfferPossibilities, coefficient float32) {
-	var sum float32 = 0.0
-	for _, offer := range offerPossibilities.Offers {
-		offer.Price = (STANDARD_CAR_PRICE + float32(rand.Intn(10-(-10)) + (-10))) * coefficient*2
-		sum += offer.Price
+	for i, _ := range (*offerPossibilities).Offers {
+		offerPossibilities.Offers[i].Price = (STANDARD_CAR_PRICE + float32(rand.Intn(10-(-10)) + (-10))) * coefficient*2
+		offerPossibilities.TotalPrice += offerPossibilities.Offers[i].Price
 	}
-	offerPossibilities.TotalPrice = sum
 }

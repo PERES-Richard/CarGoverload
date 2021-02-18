@@ -83,7 +83,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling offer possibilities search message:", err)
 			}
-			controller.RawWishHandler(parsedMessage, WISH_RESULT_TOPIC_WRITER_ID)
+			controller.RawWishHandler(&parsedMessage, WISH_RESULT_TOPIC_WRITER_ID)
 		}
 	}
 }
