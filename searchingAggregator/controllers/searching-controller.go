@@ -105,6 +105,7 @@ func endSearch(searchId string) {
 			Arrival:   car.DestNode,
 			Departure: car.Node,
 			Car:       car.Car,
+			Distance:  car.Distance,
 		})
 	}
 
