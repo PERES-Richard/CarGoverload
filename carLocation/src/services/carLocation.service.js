@@ -62,13 +62,23 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, 
         console.log("############# Node arrival : ", destNode);
         if (destNode.types.includes(carTypeId)) {
             cars.forEach(car => {
-                trackedCars.push({node: nodes[i], destinationNode: destNode, car: car})
+                trackedCars.push({
+                    node: nodes[i],
+                    destinationNode: destNode,
+                    car: car,
+                    distance: getDistanceFromLatLonInKm(node.latitude, node.longitude, destNode.latitude, destNode.longitude)
+                })
             })
         } else {
             const closeNodes = repo.getNodesCloserThan(destNode.id, DISTANCE_MARGIN)
             closeNodes.filter(a => a.types.includes(carTypeId)).forEach(n => {
                 cars.forEach(car => {
-                    trackedCars.push({node: nodes[i], destinationNode: n, car: car})
+                    trackedCars.push({
+                        node: nodes[i],
+                        destinationNode: n,
+                        car: car,
+                        distance: getDistanceFromLatLonInKm(node.latitude, node.longitude, n.latitude, n.longitude)
+                    })
                 })
             })
         }
@@ -76,6 +86,24 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, 
 
     console.log(JSON.stringify(trackedCars));
     callback("car-location-result", "{ \"searchId\": \"" + searchId + "\", \"results\":" + JSON.stringify(trackedCars) + " }").catch(err => console.log("Error: " + err));
+}
+
+function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);  // deg2rad below
+    const dLon = deg2rad(lon2-lon1);
+    const a =
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon/2) * Math.sin(dLon/2)
+    ;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+     // Distance in km
+    return R * c;
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI/180)
 }
 
 async function getCloseCars(latitude, longitude, carTypeId) {
