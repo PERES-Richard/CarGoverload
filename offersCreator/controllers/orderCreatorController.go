@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	. "offersCreator/entities"
 	"offersCreator/tools"
-	"sort"
 )
 
 const STANDARD_CAR_PRICE = 100
@@ -39,11 +38,12 @@ func RawWishHandler(rawWishesResult WishWithPossibilities, topic int) {
 
 func enhanceOffer(offersPossibilities *[]OfferPossibilities) {
 	// Sort Offers by total amount
-	sort.Slice(offersPossibilities, func(i, j int) bool {
-		return len((*offersPossibilities)[i].Offers) < len((*offersPossibilities)[j].Offers)
-	})
+	//sort.Slice(offersPossibilities, func(i, j int) bool {
+	//	return len((*offersPossibilities)[i].Offers) < len((*offersPossibilities)[j].Offers)
+	//})
 
-	max := len((*offersPossibilities)[0].Offers)
+	//max := len((*offersPossibilities)[0].Offers)
+	max := 200
 
 	for _, offer := range *offersPossibilities {
 		coefficient := float32(len(offer.Offers)) / float32(max)
