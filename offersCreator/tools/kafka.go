@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/snappy"
 )
 
 var writer = make([]*kafka.Writer, 2)
@@ -22,22 +21,22 @@ func SetUpWriter(readerId int, kafkaConfig KafkaConfig) {
 	}
 
 	config := kafka.WriterConfig{
-		Brokers:          brokers,
-		Topic:            kafkaConfig.Topic,
-		Balancer:         &kafka.LeastBytes{},
-		Dialer:           dialer,
-		WriteTimeout:     10 * time.Second,
-		ReadTimeout:      10 * time.Second,
-		CompressionCodec: snappy.NewCompressionCodec(),
+		Brokers:      brokers,
+		Topic:        kafkaConfig.Topic,
+		Balancer:     &kafka.LeastBytes{},
+		Dialer:       dialer,
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		//CompressionCodec: snappy.NewCompressionCodec(),
 	}
 	writer[readerId] = kafka.NewWriter(config)
 }
 
 type KafkaConfig struct {
-	BrokerUrl     string
-	Topic         string
+	BrokerUrl string
+	Topic     string
 	// ConsumerGroup string
-	ClientId      string
+	ClientId string
 }
 
 func GetUpKafkaReader(kafkaConfig KafkaConfig) *kafka.Reader {

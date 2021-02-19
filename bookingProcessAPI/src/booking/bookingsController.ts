@@ -31,9 +31,9 @@ export class BookingsController {
 
     @Get('/payment')
     payBooking(@Body() bookingID: string): string {
-        let paid = this.bookingsService.payAndBookById(bookingID)
+        let paid = false //this.bookingsService.payAndBookById(bookingID)
 
-        if(!paid)
+        if (!paid)
             return "Payment for booking n°" + bookingID + " failed.";
 
         return "Successfully Paid. Booking n°" + bookingID + " is complete.";

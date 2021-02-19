@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientKafka } from "@nestjs/microservices";
 import { WishDTO } from 'src/models/wish_dto';
-import {Booking} from "../models/booking";
 
 @Injectable()
 export class BookingsService {
@@ -16,17 +15,17 @@ export class BookingsService {
         return null;
     }
 
-    payAndBookById(bookingID: string): boolean {
-        // TODO
-        let booking = this.getBookingFromID(bookingID)
-        this.kafkaClient.emit(`book-register`, booking);
-        return true
-    }
+    // payAndBookById(bookingID: string): boolean {
+    //     // TODO
+    //     let booking = this.getBookingFromID(bookingID)
+    //     this.kafkaClient.emit(`book-register`, booking);
+    //     return true
+    // }
 
-    private getBookingFromID(bookingID: string): Booking {
-        // TODO from redis
-        return null
-    }
+    // private getBookingFromID(bookingID: string): Booking {
+    //     // TODO from redis
+    //     return null
+    // }
 
     handleBookValidation(result) {
         // TODO

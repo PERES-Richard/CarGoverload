@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
-import * as redis from 'redis';
+import * as asyncRedis from 'async-redis';
 import { REDIS_HOST } from '../env_variable';
 
 const RedisProvider = {
     provide: "redis",
-    useFactory: () => redis.createClient(`redis://${REDIS_HOST}`)
+    useFactory: () => asyncRedis.createClient(`redis://${REDIS_HOST}`)
 }
 
 @Module({
