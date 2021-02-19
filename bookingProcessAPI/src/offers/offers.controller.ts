@@ -1,4 +1,4 @@
-import { Body, Controller, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Logger, Param, Post, Sse } from '@nestjs/common';
 import { EventPattern, Payload } from "@nestjs/microservices";
 import { WishDTO } from 'src/models/wish_dto';
 import { OffersService } from "./offers.service";
@@ -10,11 +10,14 @@ export class OffersController {
 
     @EventPattern("wish-result")
     wishResultHandler(@Payload() data) {
-        // TODO stock offers result of this wish in redis
-        // TODO print wish id also
-        Logger.log(`The wish result is ${data.value}`);
+        Logger.log(`The wish result is ${data.value.wishId} has been received, saving...`);
         this.offersService.saveWishResult(data.value);
+    }
 
+    @Sse('/:wishId')
+    offersResult(@Param('wishId') wishId: string) {
+        Logger.log(`New sse client on ${wishId}`);
+        return this.offersService.getOffersSubjectOf(wishId);
     }
 
     @Post()
