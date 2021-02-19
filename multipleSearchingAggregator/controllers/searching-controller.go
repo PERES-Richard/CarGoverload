@@ -90,35 +90,38 @@ func FinishAggregatingResults(searchData SearchData) {
 func removeDuplicates(searchData SearchData) {
 	offersInWish :=  make(map[string][]Offer)
 	carsAlreadyUsed := make([]Car, 0)
+	log.Println("Offers at start : ")
 	for key, value := range searchData.SearchWithOffers {
 		carsOfOffer := make([]Offer, 0)
 		for i := range value {
 			carsOfOffer = append(carsOfOffer, value[i])
 		}
 		offersInWish[key] = carsOfOffer
+		log.Println("Offers for : ", key, " - ", offersInWish[key])
 	}
 	result :=  make(map[string][]Offer)
 	for isARemainingOffer(offersInWish) {
 		for key, value := range offersInWish {
 			offersInWish[key] = removeOffersWithCarsAlreadyUsed(value, carsAlreadyUsed)
 			if len(offersInWish[key]) > 0 { // on vérifie si la search a toujours des offers disponibles
+				log.Println("Il y a des offres pour la search : ", key)
 				offerToKeep := offersInWish[key][0]
 				result[key] = append(result[key], offerToKeep)                              // on ajoute au résultat la première offer pour cette recherche puis on passe à la suivante etc
 				carsAlreadyUsed = append(carsAlreadyUsed, offerToKeep.Car)                  // la car est maintenant use dans une offer
-				offersInWish[key] = removeFromArrayAtIndex(0, offersInWish[key]) // remove la premiere offer car maintenant on l'a use
+				offersInWish[key] = removeFromArrayAtIndex(0, offersInWish[key]) 		// remove la premiere offer car maintenant on l'a use
 			}
 		}
 	}
 	for key, value := range result {
 		searchData.SearchWithOffers[key] = value
 	}
-	log.Println("Final result : ", result)
+	//log.Println("Final result : ", result)
 }
 
 func removeFromArrayAtIndex(index int, offers []Offer) []Offer {
-	log.Println("Before removing : ", offers)
+	//log.Println("Before removing : ", offers)
 	offers = append(offers[:index], offers[index + 1:]...)
-	log.Println("After removing : ", offers)
+	//log.Println("After removing : ", offers)
 	return offers
 }
 
@@ -132,10 +135,10 @@ func isARemainingOffer(offersInWish map[string][]Offer) bool {
 }
 
 func removeOffersWithCarsAlreadyUsed(offers []Offer, cars []Car) []Offer {
-	log.Println("Entering first remove : ", offers)
+	//log.Println("Entering first remove : ", offers)
 	result := make([]Offer, 0)
 	for i := range offers {
-		log.Println("Remove offers : ", offers[i])
+		//log.Println("Remove offers : ", offers[i])
 		offer := offers[i]
 		if !isCarAlreadyUsed(offer.Car, cars) {
 			result = append(result, offer)

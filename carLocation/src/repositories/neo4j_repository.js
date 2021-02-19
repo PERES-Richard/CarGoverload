@@ -132,8 +132,11 @@ async function getNodesCloserThan(nodeId, distance) {
         distance: neo4j.int(distance)
     });
     await session.close();
-    if (records.records[0] === undefined)
+    if (records.records[0] === undefined) {
+        console.log("records.records[0] is undefined")
+        console.log(records)
         return []
+    }
     const res = []
     for (let i = 0; i < records.records.length; i++) {
         const neoNode = records.records[i]["_fields"][0].properties
@@ -207,7 +210,7 @@ async function populateDatabase() {
     await addNode(5, 'Avignon-solid', [1], 43.9415387, 4.7632200);
 
     await addDistance(1, 2, 85);
-    await addDistance(1, 3, 215);
+    await addDistance(1, 3, 157);
     await addDistance(2, 3, 199);
     await addDistance(1, 4, 660);
     await addDistance(2, 5, 20);
