@@ -29,8 +29,8 @@ export class OffersService {
 
     }
 
-    getOffersSubjectOf(wishId: string): Observable<OfferPossibility[]> {
-        return this.offersResults.get(wishId).asObservable();
+    getOffersSubjectOf(wishId: string) {
+        return this.offersResults.get(wishId);
     }
 
 }

@@ -1,7 +1,9 @@
-import { Body, Controller, Logger, Param, Post, Sse } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post, Sse } from '@nestjs/common';
 import { EventPattern, Payload } from "@nestjs/microservices";
 import { WishDTO } from 'src/models/wish_dto';
 import { OffersService } from "./offers.service";
+
+
 
 @Controller('booking-process/offers')
 export class OffersController {
@@ -14,10 +16,9 @@ export class OffersController {
         this.offersService.saveWishResult(data.value);
     }
 
-    @Sse('/:wishId')
+    @Get('/:wishId')
     offersResult(@Param('wishId') wishId: string) {
-        Logger.log(`New sse client on ${wishId}`);
-        return this.offersService.getOffersSubjectOf(wishId);
+        return this.offersService.getOffersSubjectOf(wishId).value;
     }
 
     @Post()

@@ -282,6 +282,24 @@ class Node{
 //
 // }
 
+function launchCheckSearchResult(wishId){
+	let checkSearch = setInterval(()=>{
+		let searchRequest = new XMLHttpRequest();
+		searchRequest.open('GET', 'http://localhost/booking-process/offers/' + wishId, true);
+		searchRequest.addEventListener('readystatechange', function() {
+			if(this.readyState === 4 && this.status === 200) {
+				if(this.responseText != null){
+					const response = JSON.parse(this.responseText); //Todo display offer
+					console.log(response);
+					clearInterval(checkSearch);
+				}
+			}
+		});
+		searchRequest.setRequestHeader('Content-Type', 'application/json');
+		searchRequest.send();
+	}, 3000);
+}
+
 
 function launchSearch(searches){
     addLoader();
@@ -293,12 +311,7 @@ function launchSearch(searches){
             console.log("Message received : ", this.responseText)
             const response = JSON.parse(this.responseText);
             const wishId = response.wishId;
-            const evtSource = new EventSource('http://localhost/booking-process/offers/' + wishId);
-            console.log("creating eventsource for url", 'http://localhost/booking-process/offers/' + wishId)
-            evtSource.onmessage = function(e) {
-                const message = e.data;
-                console.log(message);
-            }
+            launchCheckSearchResult(wishId);
         }
     });
     searchRequest.setRequestHeader('Content-Type', 'application/json');
