@@ -25,6 +25,9 @@ export class OffersController {
         Logger.log(`Starting new search request`);
         console.dir(wishes);
         const startedWish = this.offersService.startSearchingProcess(wishes);
-        return `Search initiated, wishId generated : ${startedWish}`;
+        const res = {
+            wishId: startedWish
+        };
+        return JSON.stringify(res);
     }
 }

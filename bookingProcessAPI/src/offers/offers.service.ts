@@ -11,7 +11,7 @@ export class OffersService {
     offersResults: Map<string, BehaviorSubject<OfferPossibility[]>> = new Map();
 
     startSearchingProcess(wishes: WishDTO[]) {
-        let wishRequest = { wishId: `${Date.now()}`, wishes: wishes };
+        const wishRequest = { wishId: `${Date.now()}`, wishes: wishes };
         this.kafkaClient.emit(`wish-requested`, wishRequest);
         this.offersResults.set(wishRequest.wishId, new BehaviorSubject(null));
         return wishRequest.wishId

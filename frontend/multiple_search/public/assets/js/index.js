@@ -285,11 +285,20 @@ class Node{
 
 function launchSearch(searches){
     addLoader();
+    console.log("Making request")
     let searchRequest = new XMLHttpRequest();
     searchRequest.open('POST', 'http://localhost/booking-process/offers', true);
     searchRequest.addEventListener('readystatechange', function() {
-        if(this.readyState === 4 && this.status === 200) {
-            console.log("ICI")
+        if(this.readyState === 4 && this.status === 201) {
+            console.log("Message received : ", this.responseText)
+            const response = JSON.parse(this.responseText);
+            const wishId = response.wishId;
+            const evtSource = new EventSource('http://localhost/booking-process/offers/' + wishId);
+            console.log("creating eventsource for url", 'http://localhost/booking-process/offers/' + wishId)
+            evtSource.onmessage = function(e) {
+                const message = e.data;
+                console.log(message);
+            }
         }
     });
     searchRequest.setRequestHeader('Content-Type', 'application/json');
