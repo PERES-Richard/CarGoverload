@@ -65,10 +65,10 @@ function checkIfFormValid() {
     const wishes = mainContainer.querySelectorAll('.new-wish-line');
     for (let i = 0; i < wishes.length; i++) {
         const wish = wishes[i];
-        let departureNode = wish.querySelector('#node-departure-select').value;
+        let arrivalNode = wish.querySelector('#node-departure-select').value;
         let carType = wish.querySelector('#car-type-select').value;
         let wagonsNumber = wish.querySelector('#number-cars-input').value;
-        if (departureNode === null || carType === null || wagonsNumber == null || wagonsNumber.length === 0 || parseInt(wagonsNumber) === 0) {
+        if (arrivalNode === null || carType === null || wagonsNumber == null || arrivalNode === formSelectedDepartureNode || wagonsNumber.length === 0 || parseInt(wagonsNumber) === 0) {
             formSubmitButton.disabled = true;
             return;
         }
@@ -93,7 +93,7 @@ function initAvailableNodes() {
 
 function initDateSelect() {
     document.getElementById('date-departure').addEventListener('input', function(e){
-        formSelectedDepartureDate = e.target.value;
+        formSelectedDepartureDate = (new Date(e.target.value)).toISOString();
         checkIfFormValid();
         console.log('Selected departure date : ' + formSelectedDepartureDate);
     });
@@ -150,12 +150,10 @@ function createSelectArrivalNode() {
     select.id = 'node-departure-select';
     select.addEventListener('change', checkIfFormValid);
     availableNodes.forEach(node => {
-        if (node !== formSelectedDepartureNode) {
-            let option = document.createElement('option');
-            option.value = node;
-            option.appendChild(document.createTextNode(node));
-            select.appendChild(option);
-        }
+        let option = document.createElement('option');
+        option.value = node;
+        option.appendChild(document.createTextNode(node));
+        select.appendChild(option);
     });
     div.appendChild(select);
     subContainer.appendChild(div);
@@ -286,7 +284,6 @@ class Node{
 
 
 function launchSearch(searches){
-    mainContainer.innerHTML = '';
     addLoader();
     let searchRequest = new XMLHttpRequest();
     searchRequest.open('POST', 'http://localhost/booking-process/offers', true);
@@ -295,7 +292,7 @@ function launchSearch(searches){
             console.log("ICI")
         }
     });
-    searchRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    searchRequest.setRequestHeader('Content-Type', 'application/json');
     searchRequest.send(JSON.stringify(searches));
 }
 

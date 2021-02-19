@@ -1,7 +1,7 @@
 const repo = require('../repositories/neo4j_repository')
 const axios = require('axios');
 
-const DISTANCE_MARGIN = 50;
+const DISTANCE_MARGIN = 250;
 
 async function newSearch(value, callback) {
     const searchParameters = JSON.parse(value)
@@ -28,6 +28,8 @@ async function validateSearch(value, callback) {
 async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, callback) {
     const carTypeId = (await repo.getCarType(carType)).id;
     console.log("######## car type id : ", carTypeId)
+
+    console.log("######## searchId : ", searchId)
 
     const nodes = []
     const node = await repo.getNode(departureNode);
@@ -70,7 +72,8 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, 
                 })
             })
         } else {
-            const closeNodes = repo.getNodesCloserThan(destNode.id, DISTANCE_MARGIN)
+            const closeNodes = await repo.getNodesCloserThan(destNode.id, DISTANCE_MARGIN)
+            console.log("########## Close nodes fetched : ", closeNodes)
             closeNodes.filter(a => a.types.includes(carTypeId)).forEach(n => {
                 cars.forEach(car => {
                     trackedCars.push({
