@@ -56,10 +56,11 @@ func FinishAggregatingResults(searchData SearchData) {
 			offer := value[i]
 			offers = append(offers, Offer{
 				DateDeparture:  offer.DateDeparture,
-				Arrival:   offer.Arrival,
-				Departure: offer.Departure,
-				CarType:   offer.CarType,
-				Distance:  offer.Distance,
+				Arrival:	offer.Arrival,
+				Departure:	offer.Departure,
+				CarType:	offer.CarType,
+				Car: 		offer.Car,
+				Distance:	offer.Distance,
 			})
 		}
 		rawWishResults = append(rawWishResults, RawWishResult{

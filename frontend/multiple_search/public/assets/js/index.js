@@ -16,6 +16,7 @@ let loadingBigContainer = null;
 let mainContainer = null;
 let formSubmitButton = null;
 let buttonPay = null;
+let wishesContainer = document.getElementById("offers-result-container");
 
 let formSelectedDepartureNode = availableNodes[0];
 let formSelectedDepartureDate = null;
@@ -61,7 +62,7 @@ class Offer{
         this.distance = databaseEntry.distance;
         this.departure = new Node(databaseEntry.departureNode.id, databaseEntry.departureNode.name, []);
         this.arrival = new Node(databaseEntry.arrivalNode.id, databaseEntry.arrivalNode.name, []);
-        this.date = new Date(databaseEntry.bookDate);
+        this.date = new Date(databaseEntry.dateDeparture);
         this.car = new Car(databaseEntry.car);
         this.departureTime = this.timeWithZeros(this.date.getHours()) + ':' + this.timeWithZeros(this.date.getMinutes());
 
@@ -123,12 +124,12 @@ function checkIfEnableButtonPay() {
         size++;
         totalPrice += selectedWishes[key].price;
     }
-    buttonPay.innerText = "Payer " + totalPrice + "€";
-    if (selectedWishes.length < searchesInWish) {
-        buttonPay.disabled = true;
+    buttonPay.innerText = "Payer " + totalPrice.toFixed(2) + "€";
+    if (size === searchesInWish) {
+        buttonPay.disabled = false;
         return;
     }
-    buttonPay.disabled = false;
+    buttonPay.disabled = true;
 }
 
 function handleForm(e) {
@@ -147,7 +148,7 @@ function handleForm(e) {
         searches.push({
             departureNode: departureNode,
             carType: carType,
-            numberOfCars: wagonsNumber,
+            numberOfCars: parseInt(wagonsNumber),
             arrivalNode: arrivalNode,
             dateDeparture: departureDate
         })
@@ -351,6 +352,9 @@ function launchCheckSearchResult(wishId){
 }
 
 function launchSearch(searches){
+    buttonPay.disabled = true;
+    buttonPay.innerText = "Payer";
+    wishesContainer.innerHTML = "";
     addLoader();
     let searchRequest = new XMLHttpRequest();
     searchRequest.open('POST', 'http://localhost/booking-process/offers', true);
@@ -375,21 +379,18 @@ function buildOffers(offerPossibilities) {
 }
 
 function displayWish(wishPossibilities) {
-    let container = document.getElementById("offers-result-container");
-    container.innerHTML = "";
-
     const wishId = document.createElement("div");
     wishId.classList.add("full-width");
     wishId.id = "wish-id";
     wishId.appendChild(document.createTextNode("WishId: " + wishPossibilities.wishId));
-    container.appendChild(wishId);
+    wishesContainer.appendChild(wishId);
 
     const searchesContainer = document.createElement("div");
     searchesContainer.classList.add("searches-container");
     wishPossibilities.offerPossibilities.forEach(search => {
         displaySearch(searchesContainer, search);
     });
-    container.appendChild(searchesContainer);
+    wishesContainer.appendChild(searchesContainer);
     removeLoader();
 }
 

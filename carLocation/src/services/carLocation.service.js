@@ -74,7 +74,7 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, 
         } else {
             const closeNodes = await repo.getNodesCloserThan(destNode.id, DISTANCE_MARGIN)
             console.log("########## Close nodes fetched : ", closeNodes)
-            closeNodes.filter(a => a.types.includes(carTypeId)).forEach(n => {
+            closeNodes.filter(a => a.types.includes(carTypeId) && a.name !== node.name).forEach(n => {
                 cars.forEach(car => {
                     trackedCars.push({
                         node: nodes[i],

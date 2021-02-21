@@ -10,7 +10,7 @@ export class OfferPossibility {
 }
 
 export class Offer {
-    bookDate: string;
+    dateDeparture: string;
     arrivalNode: NodePoint;
     departureNode: NodePoint;
     car: Car;
