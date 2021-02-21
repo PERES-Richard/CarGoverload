@@ -87,7 +87,7 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, 
         }
     }
 
-    console.log(JSON.stringify(trackedCars));
+    console.log("{ \"searchId\": \"" + searchId + "\", \"results\":" + JSON.stringify(trackedCars) + " }");
     callback("car-location-result", "{ \"searchId\": \"" + searchId + "\", \"results\":" + JSON.stringify(trackedCars) + " }").catch(err => console.log("Error: " + err));
 }
 

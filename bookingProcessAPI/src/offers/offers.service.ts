@@ -8,7 +8,7 @@ import { OfferPossibility, WishResult } from 'src/models/wish_result';
 export class OffersService {
     constructor(@Inject("BOOKINGPROCESS_SERVICE") private readonly kafkaClient: ClientKafka, @Inject("redis") private readonly redisClient) { }
 
-    offersResults: Map<string, BehaviorSubject<OfferPossibility[]>> = new Map();
+    offersResults: Map<string, BehaviorSubject<WishResult>> = new Map();
 
     startSearchingProcess(wishes: WishDTO[]) {
         const wishRequest = { wishId: `${Date.now()}`, wishes: wishes };
@@ -19,10 +19,10 @@ export class OffersService {
 
     async saveWishResult(result: WishResult) {
         Logger.log(`Saving result ${result.wishId}`);
-        this.redisClient.set(result.wishId, JSON.stringify(result.offerPossibilities))
+        this.redisClient.set(result.wishId, JSON.stringify(result))
             .then((done) => {
                 console.log(done);
-                this.offersResults.get(result.wishId).next(result.offerPossibilities);
+                this.offersResults.get(result.wishId).next(result);
 
             })
             .catch((err) => Logger.log(err));
