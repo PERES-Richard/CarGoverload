@@ -3,9 +3,11 @@ package entities
 import "time"
 
 type Offer struct {
-	BookDate 		time.Time 	`json:"bookDate"`
-	Arrival 		Node		`json:"arrivalNode"`
-	Departure 		Node		`json:"departureNode"`
-	Car 			Car			`json:"car"`
-	Distance 		float32		`json:"distance"`
+	DateDeparture time.Time `json:"dateDeparture"`
+	Arrival       Node      `json:"arrivalNode"`
+	Departure     Node      `json:"departureNode"`
+	CarType       string    `json:"carType"`
+	Car           Car    `json:"car,omitempty"`
+	Distance      float32   `json:"distance"`
+	NumberOfCars  int       `json:"numberOfCars"`
 }

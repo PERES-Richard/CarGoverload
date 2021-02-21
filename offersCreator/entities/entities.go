@@ -31,8 +31,8 @@ type Wish struct {
 }
 
 type InitialWishRequest struct {
-	WishId			string		`json:"wishId"`
-	Wishes			[]Wish		`json:"wishes"`
+	WishId string `json:"wishId"`
+	Wishes []Wish `json:"wishes"`
 }
 
 type Offer struct {
@@ -40,7 +40,7 @@ type Offer struct {
 	Arrival   Node      `json:"arrivalNode"`
 	Departure Node      `json:"departureNode"`
 	Car       Car       `json:"car"`
-	Distance  float32	`json:"distance"`
+	Distance  float32   `json:"distance"`
 	Price     float32   `json:"price,omitempty"`
 	//Score     float32   `json:"score,omitempty"`
 }
@@ -53,12 +53,12 @@ type Offer struct {
 //}
 
 type WishWithPossibilities struct {
-	OfferPossibilities	[]OfferPossibilities		`json:"offerPossibilities"`
-	WishId				string				`json:"wishId"`
+	OfferPossibilities []OfferPossibilities `json:"offerPossibilities"`
+	WishId             string               `json:"wishId"`
 }
 
 type OfferPossibilities struct {
-	SearchId 		string 		`json:"searchId"`
-	Offers	 		[]Offer		`json:"offers"`
-	TotalPrice		float32     `json:"TotalPrice,omitempty"`
+	SearchId   string  `json:"searchId"`
+	Offers     []Offer `json:"offers"`
+	TotalPrice float32 `json:"TotalPrice,omitempty"`
 }

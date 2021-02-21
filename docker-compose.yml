@@ -91,10 +91,6 @@ services:
       - car-availability
       - car-location
       - kafka-service
-    expose:
-      - 80
-    labels:
-      - "traefik.http.routers.searching-aggregator.rule=PathPrefix(`/searching-aggregator`)"
 
   multiple-searching-aggregator:
     build: ./multipleSearchingAggregator
@@ -198,10 +194,6 @@ services:
       - "--providers.docker"
     depends_on:
       - booking-process
-      - car-availability
-      - car-booking
-      - searching-aggregator
-      - multiple-searching-aggregator
       - car-location
       - car-tracking
     volumes:

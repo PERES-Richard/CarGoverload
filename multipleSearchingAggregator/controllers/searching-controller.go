@@ -36,10 +36,10 @@ func SearchResultHandler(parsedMessage SearchResultMessage) {
 
 func NewWishHandler(parsedMessage NewWishMessageResult) {
 	searchArrayList = append(searchArrayList, SearchData{
-		SearchIds: parsedMessage.SearchIds,
-		WishId: parsedMessage.WishId,
+		SearchIds:         parsedMessage.SearchIds,
+		WishId:            parsedMessage.WishId,
 		SearchesRemaining: len(parsedMessage.SearchIds),
-		SearchWithOffers: make(map[string][]Offer),
+		SearchWithOffers:  make(map[string][]Offer),
 	})
 }
 
@@ -55,22 +55,22 @@ func FinishAggregatingResults(searchData SearchData) {
 		for i := range value {
 			offer := value[i]
 			offers = append(offers, Offer{
-				BookDate:  offer.BookDate,
+				DateDeparture:  offer.DateDeparture,
 				Arrival:   offer.Arrival,
 				Departure: offer.Departure,
-				Car:       offer.Car,
+				CarType:   offer.CarType,
 				Distance:  offer.Distance,
 			})
 		}
 		rawWishResults = append(rawWishResults, RawWishResult{
 			SearchId: key,
-			Offers: offers,
+			Offers:   offers,
 		})
 	}
 
 	result := ResultMessage{
-		OfferPossibilities:  rawWishResults,
-		WishId: searchData.WishId,
+		OfferPossibilities: rawWishResults,
+		WishId:             searchData.WishId,
 	}
 
 	resultJSON, err := json.Marshal(result)
@@ -88,7 +88,7 @@ func FinishAggregatingResults(searchData SearchData) {
 }
 
 func removeDuplicates(searchData SearchData) {
-	offersInWish :=  make(map[string][]Offer)
+	offersInWish := make(map[string][]Offer)
 	carsAlreadyUsed := make([]Car, 0)
 	log.Println("Offers at start : ")
 	for key, value := range searchData.SearchWithOffers {
@@ -99,16 +99,16 @@ func removeDuplicates(searchData SearchData) {
 		offersInWish[key] = carsOfOffer
 		log.Println("Offers for : ", key, " - ", offersInWish[key])
 	}
-	result :=  make(map[string][]Offer)
+	result := make(map[string][]Offer)
 	for isARemainingOffer(offersInWish) {
 		for key, value := range offersInWish {
 			offersInWish[key] = removeOffersWithCarsAlreadyUsed(value, carsAlreadyUsed)
 			if len(offersInWish[key]) > 0 { // on vérifie si la search a toujours des offers disponibles
 				log.Println("Il y a des offres pour la search : ", key)
 				offerToKeep := offersInWish[key][0]
-				result[key] = append(result[key], offerToKeep)                              // on ajoute au résultat la première offer pour cette recherche puis on passe à la suivante etc
-				carsAlreadyUsed = append(carsAlreadyUsed, offerToKeep.Car)                  // la car est maintenant use dans une offer
-				offersInWish[key] = removeFromArrayAtIndex(0, offersInWish[key]) 		// remove la premiere offer car maintenant on l'a use
+				result[key] = append(result[key], offerToKeep)                   // on ajoute au résultat la première offer pour cette recherche puis on passe à la suivante etc
+				carsAlreadyUsed = append(carsAlreadyUsed, offerToKeep.Car)       // la car est maintenant use dans une offer
+				offersInWish[key] = removeFromArrayAtIndex(0, offersInWish[key]) // remove la premiere offer car maintenant on l'a use
 			}
 		}
 	}
@@ -120,7 +120,7 @@ func removeDuplicates(searchData SearchData) {
 
 func removeFromArrayAtIndex(index int, offers []Offer) []Offer {
 	//log.Println("Before removing : ", offers)
-	offers = append(offers[:index], offers[index + 1:]...)
+	offers = append(offers[:index], offers[index+1:]...)
 	//log.Println("After removing : ", offers)
 	return offers
 }
