@@ -1,4 +1,4 @@
-# Current flag : Week 07 - YELLOW
+# Current flag : Week 08 - GREEN
 
 
 # Week 04: GREEN
@@ -77,3 +77,24 @@
 ## Les blocages et risques
 
 - Logique trop complexe pour certains services et manque potentiel de temps
+
+# Week 08: GREEN
+
+## Ce que l'on a fait
+
+- Renvoyer le retour de la recherche à notre acteur (via BookingProcessAPI) et l'enregistrer dans redis
+- Enregistrement des offres proposée dans redis pour payer plus tard
+- Màj du Front-end pour coller aux nouvelles attentes
+- Premiers developpement pour le paiement
+
+
+## Ce que l'on a prévu
+
+- Finir le paiement et son scenario
+- Préparer la présentation
+- Faire de l'injection de charge pour tester les performances
+
+
+## Les blocages et risques
+
+- Manque potentiel de temps
