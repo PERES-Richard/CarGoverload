@@ -108,7 +108,31 @@ class WishPossibilities{
     loadingBigContainer = document.getElementById('loading-big-container');
     buttonPay = document.getElementById('button-pay');
     buttonPay.addEventListener('click', function() {
-       alert("Merci d'avoir fait confiance à CarGoverload");
+        let payRequest = new XMLHttpRequest();
+        payRequest.open('POST', 'http://localhost/booking-process/booking/payment', true);
+        payRequest.addEventListener('readystatechange', function() {
+            if(this.readyState === 4 && this.status === 201) {
+                const response = this.responseText;
+                if (response === "OK") {
+                    alert("Merci d'avoir fait confiance à CarGoverload");
+                }
+
+            }
+        });
+        payRequest.setRequestHeader('Content-Type', 'application/json');
+        const result = {
+            wishId: wishId,
+            wishes: []
+        };
+        for (let key in selectedWishes) {
+            result.wishes.push({
+               searchId: key,
+               wagonId: selectedWishes[key].car.id
+            });
+        }
+        console.log(result);
+        payRequest.send(JSON.stringify(result));
+
     });
     initAvailableNodes();
     initDateSelect();
@@ -348,7 +372,7 @@ function launchCheckSearchResult(wishId){
 		});
 		searchRequest.setRequestHeader('Content-Type', 'application/json');
 		searchRequest.send();
-	}, 3000);
+	}, 1000);
 }
 
 function launchSearch(searches){

@@ -1,20 +1,19 @@
-import { Body, Controller, Get, Post, Logger } from '@nestjs/common';
+import { Body, Controller, Post, Logger } from '@nestjs/common';
 import { EventPattern, Payload } from "@nestjs/microservices";
-import { WishDTO } from 'src/models/wish_dto';
 import { BookingsService } from "./bookings.service";
+import {WishPaymentDTO} from "../models/wish_payment_dto";
 
 @Controller('booking-process/booking/')
 export class BookingsController {
     constructor(private readonly bookingsService: BookingsService) {
     }
+    
     @EventPattern("book-validation-result")
     bookValidationResultHandler(@Payload() data) {
         Logger.log(`Book validation result received. Processing validity...`);
         // TODO Check if offer selected is in the Offer's List
-        // Unmarshall data
         let result
         this.bookingsService.handleBookValidation(result)
-        // print result
     }
 
     @Post()
@@ -23,19 +22,16 @@ export class BookingsController {
         console.dir(offerID);
 
         // Get the Wishes associated to this offerID
-        let initialWish = this.bookingsService.getWishesFromOfferID(offerID)
+        const initialWish = this.bookingsService.getWishesFromOfferID(offerID)
 
         this.bookingsService.startBookValidation(initialWish);
         return `Book validation initiated`;
     }
 
-    @Get('/payment')
-    payBooking(@Body() bookingID: string): string {
-        let paid = false //this.bookingsService.payAndBookById(bookingID)
-
-        if (!paid)
-            return "Payment for booking n°" + bookingID + " failed.";
-
-        return "Successfully Paid. Booking n°" + bookingID + " is complete.";
+    @Post('payment')
+    payBooking(@Body() wishPayment: WishPaymentDTO): string {
+        // let paid = false //this.bookingsService.payAndBookById(bookingID)
+        Logger.log("Wish received : " + wishPayment);
+        return "OK";
     }
 }
