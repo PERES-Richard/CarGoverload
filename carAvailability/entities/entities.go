@@ -11,6 +11,7 @@ type JSONError struct {
 type Car struct {
 	Id				int	    `json:"carId"`
 	DateDeparture 	time.Time `json:"dateDeparture"`
+	BookedYearDate	int
 }
 
 type SearchMessage struct {
