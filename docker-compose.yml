@@ -228,6 +228,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_BROKER_ID: 1
       KAFKA_CREATE_TOPICS: "book-validation:1:1,
+                            book-confirmation:1:1,
+                            book-register:1:1,
                             book-validation-result:1:1,
                             car-location-result:1:1,
                             new-wish:1:1,

@@ -17,6 +17,7 @@ import (
 const NEW_SEARCH_READER_ID = 0
 const VALIDATION_SEARCH_READER_ID = 1
 const CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID = 0
+const VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID = 1
 
 var readers = make([]*kafka.Reader, 2)
 var wg sync.WaitGroup
@@ -77,7 +78,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 		}
 	case VALIDATION_SEARCH_READER_ID:
 		{
-			var parsedMessage SearchMessage
+			var parsedMessage []Car
 			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling validation search message:", err)

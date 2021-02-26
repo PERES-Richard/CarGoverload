@@ -2,23 +2,17 @@ package entities
 
 import "time"
 
-type BookMessage struct {
-	Data          Wish
-	OfferSelected Offer
-}
-
-type SearchResultMessage struct {
-	OffersAvailable []Offer
+type BookValidationMessage struct {
+	Wishes		[]Wish	`json:"wishes"`
+	WishId		string	`json:"wishId"`
 }
 
 type Wish struct {
+	SearchId		string	`json:"searchId"`
 	DepartureNode string    `json:"departureNode"`
 	ArrivalNode   string    `json:"arrivalNode"`
 	DateDeparture time.Time `json:"dateDeparture"`
 	CarType       string    `json:"carType"`
-	NumberOfCars  int       `json:"numberOfCars"`
+	CarId			string	`json:"carId"`
 }
 
-type Offer struct {
-	// TODO OFFER STRUCT
-}

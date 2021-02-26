@@ -58,8 +58,9 @@ func getNonAvailableCars(date time.Time) []Car {
 	return carsAggregate
 }
 
-func NewValidationSearchHandler(message SearchMessage, topic int) {
-	NewSearchHandler(message, topic)
+func NewValidationSearchHandler(message []Car, topic int) {
+	//TODO check if cars are available
+	// then send result to validation-search-result
 }
 
 // Return the list of all car unavailable with given filters

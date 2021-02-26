@@ -1,31 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientKafka } from "@nestjs/microservices";
-import { WishDTO } from 'src/models/wish_dto';
+import {WishPaymentDTO} from "../models/wish_payment_dto";
 
 @Injectable()
 export class BookingsService {
     constructor(@Inject("BOOKINGPROCESS_SERVICE") private readonly kafkaClient: ClientKafka) { }
 
-    startBookValidation(wishes: WishDTO[]) {
-        this.kafkaClient.emit(`book-validation`, wishes);
+    payAndBookById(wishPayment: WishPaymentDTO): boolean {
+        this.kafkaClient.emit(`book-validation`, wishPayment);
+        return true
     }
-
-    getWishesFromOfferID(offerID: string): WishDTO[] {
-        // TODO search in redis
-        return null;
-    }
-
-    // payAndBookById(bookingID: string): boolean {
-    //     // TODO
-    //     let booking = this.getBookingFromID(bookingID)
-    //     this.kafkaClient.emit(`book-register`, booking);
-    //     return true
-    // }
-
-    // private getBookingFromID(bookingID: string): Booking {
-    //     // TODO from redis
-    //     return null
-    // }
 
     handleBookValidation(result) {
         // TODO
