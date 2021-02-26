@@ -1,4 +1,7 @@
 export class SearchCarDTO {
     searchId: string;
-    carId: string;
+    departureNode: string;
+    arrivalNode: string;
+    dateDeparture: string;
+    carId: number;
 }

@@ -12,7 +12,6 @@ type Wish struct {
 	DepartureNode string    `json:"departureNode"`
 	ArrivalNode   string    `json:"arrivalNode"`
 	DateDeparture time.Time `json:"dateDeparture"`
-	CarType       string    `json:"carType"`
 	CarId			string	`json:"carId"`
 }
 

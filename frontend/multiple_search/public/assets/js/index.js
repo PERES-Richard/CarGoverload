@@ -89,6 +89,7 @@ class OfferPossibility{
 
 class WishPossibilities{
     constructor(databaseEntry) {
+        wishId = databaseEntry.wishId;
         this.wishId = databaseEntry.wishId;
         this.offerPossibilities = [];
         databaseEntry.offerPossibilities.forEach(offerPossibility => {
@@ -116,7 +117,6 @@ class WishPossibilities{
                 if (response === "OK") {
                     alert("Merci d'avoir fait confiance à CarGoverload");
                 }
-
             }
         });
         payRequest.setRequestHeader('Content-Type', 'application/json');
@@ -125,9 +125,14 @@ class WishPossibilities{
             wishes: []
         };
         for (let key in selectedWishes) {
+            const selectedWish = selectedWishes[key];
+            console.log(selectedWish)
             result.wishes.push({
-               searchId: key,
-               wagonId: selectedWishes[key].car.id
+                searchId: key,
+                carId: selectedWish.car.id,
+                departureNode: selectedWish.departure.name,
+                arrivalNode: selectedWish.arrival.name,
+                dateDeparture: selectedWish.date.toISOString(),
             });
         }
         console.log(result);
