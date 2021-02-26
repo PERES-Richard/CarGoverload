@@ -86,12 +86,12 @@ func messageHandlers(readerId int, m kafka.Message) {
 		}
 	case VALIDATION_SEARCH_RESULT_READER_ID:
 		{
-			//var parsedMessage SearchResultMessage
-			//err := json.Unmarshal(m.Value, &parsedMessage)
-			//if err != nil {
-			//	log.Panic("Error unmarshaling search message:", err)
-			//}
-			//controller.ValidationSearchResultHandler(parsedMessage, BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID)
+			var parsedMessage bool
+			err := json.Unmarshal(m.Value, &parsedMessage)
+			if err != nil {
+				log.Panic("Error unmarshaling search message:", err)
+			}
+			controller.ValidationSearchResultHandler(parsedMessage, BOOK_REGISTER_WRITER_ID)
 		}
 	}
 }
