@@ -2,6 +2,11 @@ package entities
 
 import "time"
 
+type BookValidationResult struct {
+	WishId		string		`json:"wishId"`
+	IsValid		bool		`json:"isValid"`
+}
+
 type BookValidationMessage struct {
 	Wishes		[]Wish	`json:"wishes"`
 	WishId		string	`json:"wishId"`

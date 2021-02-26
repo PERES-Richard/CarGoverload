@@ -85,7 +85,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 		}
 	case VALIDATION_SEARCH_READER_ID:
 		{
-			var parsedMessage []Car
+			var parsedMessage BookValidationMessage
 			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling validation search message:", err)

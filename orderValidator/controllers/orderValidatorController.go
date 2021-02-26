@@ -14,7 +14,7 @@ var bookingWaiting []BookValidationMessage
 func BookValidationHandler(message BookValidationMessage, topic int) {
 	bookingWaiting = append(bookingWaiting, message)
 
-	wishData, err := json.Marshal(message.Wishes)
+	wishData, err := json.Marshal(message)
 	if err != nil {
 		log.Fatal("failed to marshal wishes:", err)
 		return
@@ -26,15 +26,30 @@ func BookValidationHandler(message BookValidationMessage, topic int) {
 	}
 }
 
-func ValidationSearchResultHandler(valid bool, topic int) {
-	result, err := json.Marshal(valid)
-	if err != nil {
-		log.Fatal("failed to marshal cars:", err)
-		return
+func ValidationSearchResultHandler(valid BookValidationResult, topic int) {
+	bookingWaitingFinal := make([]BookValidationMessage, 0)
+	toReturn := BookValidationMessage {}
+
+	for i := range bookingWaiting {
+		if bookingWaiting[i].WishId == valid.WishId {
+			toReturn = bookingWaiting[i]
+		} else {
+			bookingWaitingFinal = append(bookingWaitingFinal, toReturn)
+		}
 	}
 
-	kafkaErr := tools.KafkaPush(context.Background(), topic, []byte("value"), result) // TODO Set key ?
-	if kafkaErr != nil {
-		log.Panic("failed to write message:", kafkaErr)
+	if !valid.IsValid {
+		//TODO car is already booked by someone else so notify booking process api
+	} else {
+		result, err := json.Marshal(toReturn)
+		if err != nil {
+			log.Fatal("failed to marshal cars:", err)
+			return
+		}
+
+		kafkaErr := tools.KafkaPush(context.Background(), topic, []byte("value"), result)
+		if kafkaErr != nil {
+			log.Panic("failed to write message:", kafkaErr)
+		}
 	}
 }

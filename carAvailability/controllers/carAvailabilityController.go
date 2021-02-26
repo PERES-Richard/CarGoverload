@@ -71,10 +71,15 @@ func checkIfCarsAreAvailable(cars []Car) bool {
 	return true
 }
 
-func NewValidationSearchHandler(cars []Car, topic int) {
-	result := checkIfCarsAreAvailable(cars)
+func NewValidationSearchHandler(bookValidation BookValidationMessage, topic int) {
+	result := checkIfCarsAreAvailable(bookValidation.Wishes)
 
-	resultJSON, err := json.Marshal(result)
+	finalResult := BookValidationResult {
+		WishId: bookValidation.WishId,
+		IsValid: result,
+	}
+
+	resultJSON, err := json.Marshal(finalResult)
 	if err != nil {
 		log.Fatal("failed to marshal cars available:", err)
 		return
