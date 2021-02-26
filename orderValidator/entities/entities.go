@@ -8,10 +8,10 @@ type BookValidationMessage struct {
 }
 
 type Wish struct {
-	SearchId		string	`json:"searchId"`
-	DepartureNode string    `json:"departureNode"`
-	ArrivalNode   string    `json:"arrivalNode"`
-	DateDeparture time.Time `json:"dateDeparture"`
-	CarId			string	`json:"carId"`
+	SearchId		string		`json:"searchId"`
+	DepartureNode 	string    	`json:"departureNode"`
+	ArrivalNode   	string    	`json:"arrivalNode"`
+	DateDeparture 	time.Time 	`json:"dateDeparture"`
+	CarId			int			`json:"carId"`
 }
 
