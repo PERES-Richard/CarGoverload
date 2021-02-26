@@ -58,9 +58,32 @@ func getNonAvailableCars(date time.Time) []Car {
 	return carsAggregate
 }
 
-func NewValidationSearchHandler(message []Car, topic int) {
-	//TODO check if cars are available
-	// then send result to validation-search-result
+func checkIfCarsAreAvailable(cars []Car) bool {
+	for _, car := range cars {
+		bookedCars := readCarLockedByDay(car.DateDeparture.YearDay())
+		for _, bookedCar := range bookedCars {
+			if bookedCar.Id == car.Id {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func NewValidationSearchHandler(cars []Car, topic int) {
+	result := checkIfCarsAreAvailable(cars)
+
+	resultJSON, err := json.Marshal(result)
+	if err != nil {
+		log.Fatal("failed to marshal cars available:", err)
+		return
+	}
+
+	kafkaErr := tools.KafkaPush(context.Background(), topic, []byte("value"), resultJSON) // TODO Set key ?
+	if kafkaErr != nil {
+		log.Panic("failed to write message:", kafkaErr)
+	}
 }
 
 // Return the list of all car unavailable with given filters

@@ -47,6 +47,13 @@ func setupKafkaWriters() {
 		ClientId:  "car-availability",
 	}
 	tools.SetUpWriter(CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID, configWriter)
+
+	configWriter = tools.KafkaConfig{
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "validation-search-result",
+		ClientId:  "car-availability",
+	}
+	tools.SetUpWriter(VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID, configWriter)
 }
 
 func setupKafkaReaders() {
@@ -83,7 +90,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling validation search message:", err)
 			}
-			go controller.NewValidationSearchHandler(parsedMessage, CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID)
+			go controller.NewValidationSearchHandler(parsedMessage, VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID)
 		}
 	}
 }
