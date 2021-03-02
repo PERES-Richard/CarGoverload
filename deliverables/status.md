@@ -1,4 +1,4 @@
-# Current flag : Week 08 - GREEN
+# Current flag : Week 09 - GREEN
 
 
 # Week 04: GREEN
@@ -98,3 +98,19 @@
 ## Les blocages et risques
 
 - Manque potentiel de temps
+
+
+# Week 09: GREEN
+
+## Ce que l'on a fait
+- Scenario de validation d'une offre pour paiement
+- Scénario du paiement
+- Modification du front pour le paiement
+- Script pour faire le test de charge en locust
+
+## Ce que l'on a prévu
+
+- Préparer la présentation
+- Faire de l'injection de charge pour tester les performances à partir du script locust
+
+## Les blocages et risques
