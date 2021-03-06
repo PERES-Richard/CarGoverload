@@ -2,6 +2,6 @@ package entities
 
 
 type AvailabilityResultMessage struct {
-	Cars 		[]int		`json:"cars"`
+	Cars 		[]int			`json:"carIdsBooked"`
 	SearchId 	string			`json:"searchId"`
 }

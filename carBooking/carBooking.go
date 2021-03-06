@@ -26,31 +26,53 @@ var rdb = redis.NewClient(&redis.Options{
 
 var ctx = context.Background()
 
-func BookRegisterHandler(carsBooked []CarBooked) {
-	for _, book := range carsBooked {
+func BookRegisterHandler(wishBooked WishBooked) {
+	log.Println("Storing in redis for book : ", wishBooked)
+	bookByDay := make(map[string]string)
+	for _, book := range wishBooked.CarsBooked {
 		begin := book.BeginBookedDate.YearDay()
 		end := book.EndingBookedDate.YearDay()
 
-		for i := 0; i < end-begin; i++ {
-			go lockCar(begin+i, book.Id)
+		log.Println("Begin : ", begin)
+		log.Println("End : ", end)
+
+		if bookByDay[strconv.Itoa(begin)] == "" {
+			bookByDay[strconv.Itoa(begin)] =strconv.Itoa(book.CarId)
+		} else {
+			bookByDay[strconv.Itoa(begin)] = bookByDay[strconv.Itoa(begin)] + "," + strconv.Itoa(book.CarId)
 		}
+
+		if end != begin {
+			if bookByDay[strconv.Itoa(end)] == "" {
+				bookByDay[strconv.Itoa(end)] = strconv.Itoa(book.CarId)
+			} else {
+				bookByDay[strconv.Itoa(end)] = bookByDay[strconv.Itoa(end)] + "," + strconv.Itoa(book.CarId)
+			}
+		}
+	}
+
+	for key, value := range bookByDay {
+		go lockCar(key, value)
 	}
 }
 
-func lockCar(yearDay int, carId int) {
-	var cars, adding string
-	val, err := rdb.Get(ctx, string(yearDay)).Result()
+func lockCar(yearDay string, carIds string) {
+	var cars string
+	val, err := rdb.Get(ctx, yearDay).Result()
 	if err == redis.Nil {
-		// No cars previously booked
-		adding = string(rune(carId))
+		log.Println("No car already booked")
+		cars = carIds
+		log.Println("Need to store : ", cars)
 	} else if err != nil {
 		panic(err)
 	} else {
+		log.Println("Some cars already booked")
 		// Add the cars to the list
-		cars = val
-		adding = "," + string(rune(carId))
+		cars = val + "," + carIds
+		log.Println("Need to store : ", val, "and", carIds)
 	}
-	err = rdb.Set(ctx, string(yearDay), cars+adding, 0).Err()
+	log.Println("Adding to database : ", cars, "for key", yearDay)
+	err = rdb.Set(ctx, yearDay, cars, 0).Err()
 	if err != nil {
 		panic(err)
 	}
@@ -68,8 +90,8 @@ func listenKafka() {
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		var parsedMessage []CarBooked
-		err = json.Unmarshal(m.Value, parsedMessage)
+		var parsedMessage WishBooked
+		err = json.Unmarshal(m.Value, &parsedMessage)
 		if err != nil {
 			log.Panic("Error unmarshaling search message:", err)
 		}

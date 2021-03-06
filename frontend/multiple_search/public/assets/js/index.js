@@ -65,10 +65,9 @@ class Offer{
         this.date = new Date(databaseEntry.dateDeparture);
         this.car = new Car(databaseEntry.car);
         this.departureTime = this.timeWithZeros(this.date.getHours()) + ':' + this.timeWithZeros(this.date.getMinutes());
-
         this.duration = this.distance / 200; // 200km / 200km*h = 1h
-        this.arrivalTime = this.date.addHours(this.duration);
-        this.arrivalTime = this.timeWithZeros(this.arrivalTime.getHours()) + ':' + this.timeWithZeros(this.arrivalTime.getMinutes());
+        this.dateArrival = new Date(databaseEntry.dateDeparture).addHours(this.duration)
+        this.arrivalTime = this.timeWithZeros(this.dateArrival.getHours()) + ':' + this.timeWithZeros(this.dateArrival.getMinutes());
     }
 
     timeWithZeros(time)
@@ -133,6 +132,7 @@ class WishPossibilities{
                 departureNode: selectedWish.departure.name,
                 arrivalNode: selectedWish.arrival.name,
                 dateDeparture: selectedWish.date.toISOString(),
+                dateArrival: selectedWish.dateArrival.toISOString()
             });
         }
         console.log(result);

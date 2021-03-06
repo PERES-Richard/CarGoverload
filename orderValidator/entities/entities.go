@@ -17,6 +17,7 @@ type Wish struct {
 	DepartureNode 	string    	`json:"departureNode"`
 	ArrivalNode   	string    	`json:"arrivalNode"`
 	DateDeparture 	time.Time 	`json:"dateDeparture"`
+	DateArrival 	time.Time 	`json:"dateArrival"`
 	CarId			int			`json:"carId"`
 }
 

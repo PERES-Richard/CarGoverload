@@ -26,10 +26,10 @@ type Car struct {
 
 type SearchMessage struct {
 	SearchId string    `json:"searchId"`
-	Date     time.Time `json:"time"`
+	Date     time.Time `json:"dateDeparture"`
 }
 
 type SearchResult struct {
 	SearchId     string		`json:"searchId"`
-	CarsIdBooked []Car 		`json:"carsBookedByDay"`
+	CarsIdBooked []int 		`json:"carIdsBooked"`
 }

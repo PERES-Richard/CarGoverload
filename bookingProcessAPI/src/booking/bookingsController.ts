@@ -17,7 +17,8 @@ export class BookingsController {
 
     @Post('payment')
     payBooking(@Body() wishPayment: WishPaymentDTO): string {
-        Logger.log("Wish received : " + wishPayment);
+        Logger.log("Wish received : ");
+        console.dir(wishPayment)
         this.bookingsService.payAndBookById(wishPayment);
         return "Waiting for payment";
     }

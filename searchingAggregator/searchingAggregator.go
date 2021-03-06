@@ -10,6 +10,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"log"
 	"os"
+	"strconv"
 	"sync"
 )
 
@@ -124,7 +125,7 @@ func listenKafka(readerId int) {
 	for {
 		m, err := readers[readerId].ReadMessage(context.Background())
 		if err != nil {
-			log.Fatalln("Error reader " + string(rune(readerId)) + ": ", err)
+			log.Fatalln("Error reader " + strconv.Itoa(readerId) + ": ", err)
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 

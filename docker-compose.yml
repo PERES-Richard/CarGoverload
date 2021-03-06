@@ -61,7 +61,7 @@ services:
     environment:
       - REDIS=redis:6379
       - KAFKA=kafka-service:9092
-      - REDIS_DB=0
+      - REDIS_DB=1
     depends_on:
       - car-booking
       - redis
