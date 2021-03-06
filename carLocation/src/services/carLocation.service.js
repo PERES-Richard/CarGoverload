@@ -57,7 +57,7 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, 
         })
     }
 
-    const trackedCars = []
+    let trackedCars = []
     for (let i = 0; i < nodes.length; i++) {
         const cars = await getCloseCars(node.latitude, node.longitude, carTypeId)
         const destNode = await repo.getNode(arrivalNode);
@@ -87,8 +87,25 @@ async function searchTrackedCars(departureNode, arrivalNode, carType, searchId, 
         }
     }
 
+    // remove duplicates in case of close nodes search
+    trackedCars = trackedCars.filter((value, index, array) => array.findIndex(t => (t.car.id === value.car.id)) === index);
+
     console.log("{ \"searchId\": \"" + searchId + "\", \"results\":" + JSON.stringify(trackedCars) + " }");
     callback("car-location-result", "{ \"searchId\": \"" + searchId + "\", \"results\":" + JSON.stringify(trackedCars) + " }").catch(err => console.log("Error: " + err));
+}
+
+function removeDuplicates(originalArray, prop) {
+    var newArray = [];
+    var lookupObject  = {};
+
+    for(var i in originalArray) {
+        lookupObject[originalArray[i][prop]] = originalArray[i];
+    }
+
+    for(i in lookupObject) {
+        newArray.push(lookupObject[i]);
+    }
+    return newArray;
 }
 
 function getDistanceFromLatLonInKm(lat1, lon1, lat2, lon2) {

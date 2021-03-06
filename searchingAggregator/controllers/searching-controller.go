@@ -19,7 +19,8 @@ type JSONError struct {
 }
 
 func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
-	log.Println("Received availability results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
+	//log.Println("Received availability results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
+	log.Println("Received availability results for search : ", parsedMessage.SearchId)
 	if searchMap[parsedMessage.SearchId] == nil {
 		searchMap[parsedMessage.SearchId] = &SearchData{}
 	}
@@ -28,7 +29,8 @@ func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
 }
 
 func LocationResultHandler(parsedMessage LocationResultMessage) {
-	log.Println("Received location results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
+	//log.Println("Received location results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
+	log.Println("Received location results for search : ", parsedMessage.SearchId)
 	if searchMap[parsedMessage.SearchId] == nil {
 		searchMap[parsedMessage.SearchId] = &SearchData{}
 	}
@@ -37,7 +39,7 @@ func LocationResultHandler(parsedMessage LocationResultMessage) {
 }
 
 func NewSearchHandler(parsedMessage NewSearchMessage) {
-	log.Println("Received new message : ", parsedMessage)
+	log.Println("Received new search : ", parsedMessage.SearchId)
 	if searchMap[parsedMessage.SearchId] == nil {
 		searchMap[parsedMessage.SearchId] = &SearchData{}
 	}
@@ -46,7 +48,7 @@ func NewSearchHandler(parsedMessage NewSearchMessage) {
 }
 
 func NewValidationSearchHandler(parsedMessage NewSearchMessage) {
-	log.Println("Received new message : ", parsedMessage)
+	log.Println("Received new validation search : ", parsedMessage.SearchId)
 	if searchMap[parsedMessage.SearchId] == nil {
 		searchMap[parsedMessage.SearchId] = &SearchData{}
 	}
