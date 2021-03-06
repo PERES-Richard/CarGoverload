@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"offersCreator/tools"
 	"os"
 	"sync"
+
+	"github.com/segmentio/kafka-go"
 
 	controller "offersCreator/controllers"
 	. "offersCreator/entities"
@@ -60,7 +61,7 @@ func listenKafka(readerId int) {
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		messageHandlers(readerId, m)
+		go messageHandlers(readerId, m)
 	}
 	wg.Done()
 }

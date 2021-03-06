@@ -1,17 +1,18 @@
 package main
 
 import (
-	. "searchingAggregator/entities"
-	"searchingAggregator/tools"
-	"searchingAggregator/controllers"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"os"
+	"searchingAggregator/controllers"
+	. "searchingAggregator/entities"
+	"searchingAggregator/tools"
 	"strconv"
 	"sync"
+
+	"github.com/segmentio/kafka-go"
 )
 
 const CAR_AVAILABILITY_RESULT_TOPIC_READER_ID = 0
@@ -81,14 +82,14 @@ func setupKafkaWriters() {
 		Topic:     "search-result",
 		ClientId:  "searching-agregator",
 	}
-	tools.SetUpWriter(SEARCH_RESULT_TOPIC_WRITER_ID,configWriter)
+	tools.SetUpWriter(SEARCH_RESULT_TOPIC_WRITER_ID, configWriter)
 
 	configWriter = tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
 		Topic:     "validation-search-result",
 		ClientId:  "searching-agregator",
 	}
-	tools.SetUpWriter(VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID,configWriter)
+	tools.SetUpWriter(VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID, configWriter)
 }
 
 func setupKafkaReaders() {
@@ -125,52 +126,52 @@ func listenKafka(readerId int) {
 	for {
 		m, err := readers[readerId].ReadMessage(context.Background())
 		if err != nil {
-			log.Fatalln("Error reader " + strconv.Itoa(readerId) + ": ", err)
+			log.Fatalln("Error reader "+strconv.Itoa(readerId)+": ", err)
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		messageHandlers(readerId, m)
+		go messageHandlers(readerId, m)
 	}
 	wg.Done()
 }
 
 func messageHandlers(readerId int, m kafka.Message) {
 	switch readerId {
-		case CAR_AVAILABILITY_RESULT_TOPIC_READER_ID:
-			{
-				var parsedMessage AvailabilityResultMessage
-				err := json.Unmarshal(m.Value, &parsedMessage)
-				if err != nil {
-					log.Panic("Error unmarshalling availability result message:", err)
-				}
-				controllers.AvailabilityResultHandler(parsedMessage)
+	case CAR_AVAILABILITY_RESULT_TOPIC_READER_ID:
+		{
+			var parsedMessage AvailabilityResultMessage
+			err := json.Unmarshal(m.Value, &parsedMessage)
+			if err != nil {
+				log.Panic("Error unmarshalling availability result message:", err)
 			}
-		case CAR_LOCATION_RESULT_TOPIC_READER_ID:
-			{
-				var parsedMessage LocationResultMessage
-				err := json.Unmarshal(m.Value, &parsedMessage)
-				if err != nil {
-					log.Panic("Error unmarshalling location result message:", err)
-				}
-				controllers.LocationResultHandler(parsedMessage)
+			controllers.AvailabilityResultHandler(parsedMessage)
+		}
+	case CAR_LOCATION_RESULT_TOPIC_READER_ID:
+		{
+			var parsedMessage LocationResultMessage
+			err := json.Unmarshal(m.Value, &parsedMessage)
+			if err != nil {
+				log.Panic("Error unmarshalling location result message:", err)
 			}
-		case NEW_SEARCH_TOPIC_READER_ID:
-			{
-				var parsedMessage NewSearchMessage
-				err := json.Unmarshal(m.Value, &parsedMessage)
-				if err != nil {
-					log.Panic("Error unmarshalling new search message:", err)
-				}
-				controllers.NewSearchHandler(parsedMessage)
+			controllers.LocationResultHandler(parsedMessage)
+		}
+	case NEW_SEARCH_TOPIC_READER_ID:
+		{
+			var parsedMessage NewSearchMessage
+			err := json.Unmarshal(m.Value, &parsedMessage)
+			if err != nil {
+				log.Panic("Error unmarshalling new search message:", err)
 			}
-		case VALIDATION_SEARCH_TOPIC_READER_ID:
-			{
-				var parsedMessage NewSearchMessage
-				err := json.Unmarshal(m.Value, &parsedMessage)
-				if err != nil {
-					log.Panic("Error unmarshalling validation search message:", err)
-				}
-				controllers.NewValidationSearchHandler(parsedMessage)
+			controllers.NewSearchHandler(parsedMessage)
+		}
+	case VALIDATION_SEARCH_TOPIC_READER_ID:
+		{
+			var parsedMessage NewSearchMessage
+			err := json.Unmarshal(m.Value, &parsedMessage)
+			if err != nil {
+				log.Panic("Error unmarshalling validation search message:", err)
 			}
+			controllers.NewValidationSearchHandler(parsedMessage)
+		}
 	}
 }

@@ -1,16 +1,17 @@
 package main
 
 import (
-	. "multipleSearchingAggregator/entities"
-	"multipleSearchingAggregator/tools"
-	"multipleSearchingAggregator/controllers"
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"log"
+	"multipleSearchingAggregator/controllers"
+	. "multipleSearchingAggregator/entities"
+	"multipleSearchingAggregator/tools"
 	"os"
 	"sync"
+
+	"github.com/segmentio/kafka-go"
 )
 
 const READERS_NB = 2
@@ -45,7 +46,7 @@ func setupKafkaWriters() {
 		Topic:     "raw-wish-result",
 		ClientId:  "multiple-searching-aggregator",
 	}
-	tools.SetUpWriter(RAW_WISH_RESULT_TOPIC_WRITER_ID,configWriter)
+	tools.SetUpWriter(RAW_WISH_RESULT_TOPIC_WRITER_ID, configWriter)
 }
 
 func setupKafkaReaders() {
@@ -67,18 +68,18 @@ func listenKafka(readerId int) {
 	for {
 		m, err := readers[readerId].ReadMessage(context.Background())
 		if err != nil {
-			log.Fatalln("Error reader " + string(rune(readerId)) + ": ", err)
+			log.Fatalln("Error reader "+string(rune(readerId))+": ", err)
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		messageHandlers(readerId, m)
+		go messageHandlers(readerId, m)
 	}
 	wg.Done()
 }
 
 func messageHandlers(readerId int, m kafka.Message) {
 	switch readerId {
-		case SEARCH_RESULT_TOPIC_READER_ID:
+	case SEARCH_RESULT_TOPIC_READER_ID:
 		{
 			var parsedMessage SearchResultMessage
 			err := json.Unmarshal(m.Value, &parsedMessage)
@@ -87,7 +88,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			}
 			controllers.SearchResultHandler(parsedMessage)
 		}
-		case NEW_WISH_TOPIC_READER_ID:
+	case NEW_WISH_TOPIC_READER_ID:
 		{
 			var parsedMessage NewWishMessageResult
 			err := json.Unmarshal(m.Value, &parsedMessage)
