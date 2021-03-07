@@ -4,18 +4,18 @@ package tools
 
 import (
 	"context"
-	"github.com/segmentio/kafka-go"
-	"github.com/segmentio/kafka-go/snappy"
 	"log"
 	"strings"
 	"time"
+
+	"github.com/segmentio/kafka-go"
 )
 
 type KafkaConfig struct {
-	BrokerUrl     string
-	Topic         string
+	BrokerUrl string
+	Topic     string
 	// ConsumerGroup string
-	ClientId      string
+	ClientId string
 }
 
 func GetUpKafkaReader(kafkaConfig KafkaConfig) *kafka.Reader {
@@ -44,13 +44,13 @@ func GetKafkaWriter(kafkaConfig KafkaConfig) *kafka.Writer {
 	}
 
 	config := kafka.WriterConfig{
-		Brokers:          brokers,
-		Topic:            kafkaConfig.Topic,
-		Balancer:         &kafka.LeastBytes{},
-		Dialer:           dialer,
-		WriteTimeout:     10 * time.Second,
-		ReadTimeout:      10 * time.Second,
-		CompressionCodec: snappy.NewCompressionCodec(),
+		Brokers:      brokers,
+		Topic:        kafkaConfig.Topic,
+		Balancer:     &kafka.LeastBytes{},
+		Dialer:       dialer,
+		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  10 * time.Second,
+		//CompressionCodec: snappy.NewCompressionCodec(),
 	}
 	return kafka.NewWriter(config)
 }
@@ -64,4 +64,3 @@ func KafkaPush(writer *kafka.Writer, parent context.Context, key, value []byte) 
 	log.Printf("Send new message on topic '%s', value =%s\n", "book-confirmation", value)
 	return writer.WriteMessages(parent, message)
 }
-
