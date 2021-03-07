@@ -14,7 +14,8 @@ import (
 	"sync"
 )
 
-var reader *kafka.Reader
+var kafkaReader *kafka.Reader
+var kafkaWriter *kafka.Writer
 var wg sync.WaitGroup
 
 var redisDB, _ = strconv.Atoi(os.Getenv("REDIS_DB"))
@@ -54,6 +55,21 @@ func BookRegisterHandler(wishBooked WishBooked) {
 	for key, value := range bookByDay {
 		go lockCar(key, value)
 	}
+
+	bookConfirmation := BookConfirmation {
+		WishId: wishBooked.WishId,
+		Result: "true",
+	}
+	resultJSON, err := json.Marshal(bookConfirmation)
+	if err != nil {
+		log.Fatal("failed to marshal result:", err)
+		return
+	}
+
+	kafkaErr := tools.KafkaPush(kafkaWriter, context.Background(), []byte("value"), resultJSON)
+	if kafkaErr != nil {
+		log.Panic("failed to write message:", kafkaErr)
+	}
 }
 
 func lockCar(yearDay string, carIds string) {
@@ -78,13 +94,9 @@ func lockCar(yearDay string, carIds string) {
 	}
 }
 
-//func arrayToString(a []int) string {
-//	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", ",", -1), "[]")
-//}
-
 func listenKafka() {
 	for {
-		m, err := reader.ReadMessage(context.Background())
+		m, err := kafkaReader.ReadMessage(context.Background())
 		if err != nil {
 			log.Fatalln(err)
 		}
@@ -96,23 +108,33 @@ func listenKafka() {
 			log.Panic("Error unmarshaling search message:", err)
 		}
 
-		BookRegisterHandler(parsedMessage)
+		go BookRegisterHandler(parsedMessage)
 	}
 	wg.Done()
 }
 
-func setUpKafka() {
+func setUpKafkaReader() {
 	configReader := tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
 		Topic:     "book-register",
 		ClientId:  "car-booking",
 	}
-	reader = tools.GetUpKafkaReader(configReader)
+	kafkaReader = tools.GetUpKafkaReader(configReader)
+}
+
+func setupKafkaWriter() {
+	configWriter := tools.KafkaConfig{
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "book-confirmation",
+		ClientId:  "car-booking",
+	}
+	kafkaWriter = tools.GetKafkaWriter(configWriter)
 }
 
 func main() {
 	// Setup readers & writers
-	setUpKafka()
+	setUpKafkaReader()
+	setupKafkaWriter()
 
 	wg.Add(1)
 	go listenKafka()

@@ -3,10 +3,12 @@
 package tools
 
 import (
+	"context"
+	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/snappy"
+	"log"
 	"strings"
 	"time"
-
-	"github.com/segmentio/kafka-go"
 )
 
 type KafkaConfig struct {
@@ -32,3 +34,34 @@ func GetUpKafkaReader(kafkaConfig KafkaConfig) *kafka.Reader {
 
 	return kafka.NewReader(config)
 }
+
+func GetKafkaWriter(kafkaConfig KafkaConfig) *kafka.Writer {
+	brokers := strings.Split(kafkaConfig.BrokerUrl, ",")
+
+	dialer := &kafka.Dialer{
+		Timeout:  10 * time.Second,
+		ClientID: kafkaConfig.ClientId,
+	}
+
+	config := kafka.WriterConfig{
+		Brokers:          brokers,
+		Topic:            kafkaConfig.Topic,
+		Balancer:         &kafka.LeastBytes{},
+		Dialer:           dialer,
+		WriteTimeout:     10 * time.Second,
+		ReadTimeout:      10 * time.Second,
+		CompressionCodec: snappy.NewCompressionCodec(),
+	}
+	return kafka.NewWriter(config)
+}
+
+func KafkaPush(writer *kafka.Writer, parent context.Context, key, value []byte) (err error) {
+	message := kafka.Message{
+		Key:   key,
+		Value: value,
+		Time:  time.Now(),
+	}
+	log.Printf("Send new message on topic '%s', value =%s\n", "book-confirmation", value)
+	return writer.WriteMessages(parent, message)
+}
+

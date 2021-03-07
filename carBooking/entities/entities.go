@@ -1,6 +1,8 @@
 package entities
 
-import "time"
+import (
+	"time"
+)
 
 type WishBooked struct {
 	WishId           string        `json:"wishId"`
@@ -14,4 +16,9 @@ type CarBook struct {
 	CarId				int				`json:"carId"`
 	BeginBookedDate  	time.Time 		`json:"dateDeparture"`
 	EndingBookedDate 	time.Time 		`json:"dateArrival"`
+}
+
+type BookConfirmation struct {
+	WishId				string 			`json:"wishId"`
+	Result				string			`json:"result"`
 }

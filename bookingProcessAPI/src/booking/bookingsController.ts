@@ -9,10 +9,9 @@ export class BookingsController {
     }
     
     @EventPattern("book-confirmation")
-    bookValidationResultHandler(@Payload() data) {
-        //TODO
+    bookConfirmationResultHandler(@Payload() data) {
         Logger.log(`Book validation result received. Processing validity...`);
-        this.bookingsService.handleBookValidation(data)
+        this.bookingsService.handleBookConfirmation(data.value)
     }
 
     @Post('payment')

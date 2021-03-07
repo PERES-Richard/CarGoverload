@@ -1,9 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {Inject, Injectable, Logger} from '@nestjs/common';
 import { ClientKafka } from "@nestjs/microservices";
 import {WishPaymentDTO} from "../models/wish_payment_dto";
 
 @Injectable()
 export class BookingsService {
+    validationsResult: Map<string, string> = new Map();
+
     constructor(@Inject("BOOKINGPROCESS_SERVICE") private readonly kafkaClient: ClientKafka) { }
 
     payAndBookById(wishPayment: WishPaymentDTO): boolean {
@@ -11,10 +13,9 @@ export class BookingsService {
         return true
     }
 
-    handleBookValidation(result) {
-        // TODO
-        // Get Offer
-        // Compare offer
-        // Create booking
+    handleBookConfirmation(result: any) {
+        Logger.log("Booking confirmation received : " + result);
+        console.dir(result)
+        this.validationsResult[result.wishId] = result.result;
     }
 }
