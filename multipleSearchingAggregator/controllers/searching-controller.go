@@ -6,12 +6,15 @@ import (
 	"log"
 	. "multipleSearchingAggregator/entities"
 	"multipleSearchingAggregator/tools"
+	"strings"
+	"sync"
 )
 
 const RAW_WISH_RESULT_TOPIC_WRITER_ID = 0
 
 // key = WishId
 var searchArrayList = make(map[string]*SearchData)
+var m sync.Mutex
 
 // Custom error to return in case of a JSON parsing error
 type JSONError struct {
@@ -20,19 +23,24 @@ type JSONError struct {
 
 func SearchResultHandler(parsedMessage SearchResultMessage) {
 	log.Println("Search received for seardhId : ", parsedMessage.SearchId)
-	var keyToUse string
+	/*var keyToUse string
 	for key := range searchArrayList {
 		for j := range searchArrayList[key].SearchIds {
 			if searchArrayList[key].SearchIds[j] == parsedMessage.SearchId {
 				keyToUse = key
 			}
 		}
-	}
-	searchArrayList[keyToUse].SearchWithOffers[parsedMessage.SearchId] = parsedMessage.Offers
-	searchArrayList[keyToUse].SearchesRemaining = searchArrayList[keyToUse].SearchesRemaining - 1
-	log.Println("Test nombre search restantes : ", searchArrayList[keyToUse].SearchesRemaining)
-	if searchArrayList[keyToUse].SearchesRemaining == 0 {
-		FinishAggregatingResults(*searchArrayList[keyToUse])
+	}*/
+
+	s := strings.Split(parsedMessage.SearchId, "_")
+	keyToUse := s[0]
+	if searchArrayList[keyToUse] != nil {
+		searchArrayList[keyToUse].SearchWithOffers[parsedMessage.SearchId] = parsedMessage.Offers
+		searchArrayList[keyToUse].SearchesRemaining = searchArrayList[keyToUse].SearchesRemaining - 1
+		log.Println("Test nombre search restantes : ", searchArrayList[keyToUse].SearchesRemaining)
+		if searchArrayList[keyToUse].SearchesRemaining == 0 {
+			FinishAggregatingResults(*searchArrayList[keyToUse])
+		}
 	}
 }
 
@@ -48,21 +56,21 @@ func NewWishHandler(parsedMessage NewWishMessageResult) {
 func FinishAggregatingResults(searchData SearchData) {
 	log.Println("Entering finish aggregate")
 	removeDuplicates(searchData)
-
+	m.Lock()
 	delete(searchArrayList, searchData.WishId)
-
+	m.Unlock()
 	rawWishResults := make([]RawWishResult, 0)
 	for key, value := range searchData.SearchWithOffers {
 		offers := make([]Offer, 0)
 		for i := range value {
 			offer := value[i]
 			offers = append(offers, Offer{
-				DateDeparture:  offer.DateDeparture,
-				Arrival:	offer.Arrival,
-				Departure:	offer.Departure,
-				CarType:	offer.CarType,
-				Car: 		offer.Car,
-				Distance:	offer.Distance,
+				DateDeparture: offer.DateDeparture,
+				Arrival:       offer.Arrival,
+				Departure:     offer.Departure,
+				CarType:       offer.CarType,
+				Car:           offer.Car,
+				Distance:      offer.Distance,
 			})
 		}
 		rawWishResults = append(rawWishResults, RawWishResult{

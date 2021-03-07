@@ -6,12 +6,14 @@ import (
 	"log"
 	. "searchingAggregator/entities"
 	"searchingAggregator/tools"
+	"sync"
 )
 
 const SEARCH_RESULT_TOPIC_WRITER_ID = 0
 const VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID = 1
 
 var searchMap = make(map[string]*SearchData)
+var m sync.Mutex
 
 // Custom error to return in case of a JSON parsing error
 type JSONError struct {
@@ -115,7 +117,7 @@ func endSearch(searchId string) {
 		Offers:   offers,
 		SearchId: searchId,
 	}
-	
+
 	resultJSON, err := json.Marshal(result)
 	if err != nil {
 		log.Fatal("failed to marshal result:", err)
@@ -133,7 +135,11 @@ func endSearch(searchId string) {
 		log.Panic("failed to write message:", kafkaErr)
 	}
 
-	searchMap[searchId] = nil
+	//searchMap[searchId] = nil
+	m.Lock()
+
+	delete(searchMap, searchId)
+	m.Unlock()
 }
 
 func removeCar(carList *[]TrackedCar, car Car) {
