@@ -1,6 +1,6 @@
-import {Inject, Injectable, Logger} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ClientKafka } from "@nestjs/microservices";
-import {WishPaymentDTO} from "../models/wish_payment_dto";
+import { WishPaymentDTO } from "../models/wish_payment_dto";
 
 @Injectable()
 export class BookingsService {
@@ -16,6 +16,6 @@ export class BookingsService {
     handleBookConfirmation(result: any) {
         Logger.log("Booking confirmation received : " + result);
         console.dir(result)
-        this.validationsResult[result.wishId] = result.result;
+        this.validationsResult.set(result.wishId, result.result);
     }
 }

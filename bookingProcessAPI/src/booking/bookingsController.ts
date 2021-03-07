@@ -1,13 +1,13 @@
-import { Body, Controller, Post, Logger } from '@nestjs/common';
+import { Body, Controller, Post, Logger, Get, Param } from '@nestjs/common';
 import { EventPattern, Payload } from "@nestjs/microservices";
 import { BookingsService } from "./bookings.service";
-import {WishPaymentDTO} from "../models/wish_payment_dto";
+import { WishPaymentDTO } from "../models/wish_payment_dto";
 
 @Controller('booking-process/booking/')
 export class BookingsController {
     constructor(private readonly bookingsService: BookingsService) {
     }
-    
+
     @EventPattern("book-confirmation")
     bookConfirmationResultHandler(@Payload() data) {
         Logger.log(`Book validation result received. Processing validity...`);
@@ -20,5 +20,10 @@ export class BookingsController {
         console.dir(wishPayment)
         this.bookingsService.payAndBookById(wishPayment);
         return "Waiting for payment";
+    }
+
+    @Get(':wishId/status')
+    getBookingStatus(@Param('wishId') wishId: string) {
+        return this.bookingsService.validationsResult.get(wishId) ? this.bookingsService.validationsResult.get(wishId) : null
     }
 }
