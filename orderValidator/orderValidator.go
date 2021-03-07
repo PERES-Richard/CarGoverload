@@ -19,6 +19,7 @@ const VALIDATION_SEARCH_RESULT_READER_ID = 0
 const BOOK_VALIDATION_TOPIC_READER_ID = 1
 const BOOK_REGISTER_WRITER_ID = 0
 const VALIDATION_SEARCH_WRITER_ID = 1
+const BOOK_CONFIRMATION_SEARCH_WRITER_ID = 2
 
 var readers = make([]*kafka.Reader, 2)
 var wg sync.WaitGroup
@@ -42,6 +43,13 @@ func setupKafkaWriters() {
 		ClientId:  "orderValidator",
 	}
 	tools.SetUpWriter(BOOK_REGISTER_WRITER_ID, configWriter)
+
+	configWriter = tools.KafkaConfig{
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "book-confirmation",
+		ClientId:  "orderValidator",
+	}
+	tools.SetUpWriter(BOOK_CONFIRMATION_SEARCH_WRITER_ID, configWriter)
 }
 
 func setupKafkaReaders() {
@@ -92,7 +100,7 @@ func messageHandlers(readerId int, m kafka.Message) {
 			if err != nil {
 				log.Panic("Error unmarshaling search message:", err)
 			}
-			controller.ValidationSearchResultHandler(parsedMessage, BOOK_REGISTER_WRITER_ID)
+			controller.ValidationSearchResultHandler(parsedMessage, BOOK_CONFIRMATION_SEARCH_WRITER_ID, BOOK_REGISTER_WRITER_ID)
 		}
 	}
 }

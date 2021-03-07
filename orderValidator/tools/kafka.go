@@ -11,7 +11,7 @@ import (
 	"github.com/segmentio/kafka-go/snappy"
 )
 
-var writer = make([]*kafka.Writer, 2)
+var writer = make([]*kafka.Writer, 3)
 
 func SetUpWriter(readerId int, kafkaConfig KafkaConfig) {
 	brokers := strings.Split(kafkaConfig.BrokerUrl, ",")

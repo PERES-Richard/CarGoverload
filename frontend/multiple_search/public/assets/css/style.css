@@ -81,7 +81,7 @@ body{
 label{
     color: rgba(0, 0, 0, 0.75);
 }
-#loading-big-container{
+#loading-big-container, #loading-bit-container-payment{
     display: flex;
     justify-content: center;
     flex-wrap: wrap;

@@ -21,3 +21,7 @@ type Wish struct {
 	CarId			int			`json:"carId"`
 }
 
+type BookConfirmation struct {
+	WishId				string 			`json:"wishId"`
+	Result				string			`json:"result"`
+}

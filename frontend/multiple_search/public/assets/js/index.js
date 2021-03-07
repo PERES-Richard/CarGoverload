@@ -12,6 +12,7 @@ const carTypes = [
 ];
 
 let loadingBigContainer = null;
+let loadingBigContainerPayment = null;
 
 let mainContainer = null;
 let formSubmitButton = null;
@@ -106,15 +107,18 @@ class WishPossibilities{
     mainContainer = document.getElementById('main-container');
     formSubmitButton = document.getElementById('middle-form-submit');
     loadingBigContainer = document.getElementById('loading-big-container');
+    loadingBigContainerPayment = document.getElementById('loading-bit-container-payment');
     buttonPay = document.getElementById('button-pay');
     buttonPay.addEventListener('click', function() {
+        addLoaderPayment();
+        window.scrollTo(0,document.body.scrollHeight);
         let payRequest = new XMLHttpRequest();
         payRequest.open('POST', 'http://localhost/booking-process/booking/payment', true);
         payRequest.addEventListener('readystatechange', function() {
             if(this.readyState === 4 && this.status === 201) {
                 const response = this.responseText;
-                if (response === "OK") {
-                    alert("Merci d'avoir fait confiance à CarGoverload");
+                if (response === "Waiting for payment") {
+                    launchCheckPaymentResult(wishId);
                 }
             }
         });
@@ -339,10 +343,7 @@ function createNumberCarsInput() {
 }
 
 function addLoader(){
-    let loadingContainer = document.getElementById('loading-container');
-    if(loadingContainer !== null)
-        return;
-    loadingContainer = document.createElement('div');
+    const loadingContainer = document.createElement('div');
     loadingContainer.id = 'loading-container';
     const loader = document.createElement('div');
     loader.classList.add('loader');
@@ -378,6 +379,42 @@ function launchCheckSearchResult(wishId){
 		searchRequest.setRequestHeader('Content-Type', 'application/json');
 		searchRequest.send();
 	}, 1000);
+}
+
+function launchCheckPaymentResult(wishId) {
+    let checkSearch = setInterval(()=>{
+        let searchRequest = new XMLHttpRequest();
+        searchRequest.open('GET', 'http://localhost/booking-process/booking/' + wishId + '/status', true);
+        searchRequest.addEventListener('readystatechange', function() {
+            if(this.readyState === 4 && this.status === 200) {
+                if(this.responseText != null && this.responseText.length > 0){
+                    removeLoaderPayment();
+                    clearInterval(checkSearch);
+                    console.log(this.responseText)
+                    if (this.responseText === 'true') {
+                        alert("Super, votre réservation a bien été prise en compte !");
+                    } else {
+                        alert("Une erreur est survenue durant le paiement, avez vous les sous ?");
+                    }
+                }
+            }
+        });
+        searchRequest.setRequestHeader('Content-Type', 'application/json');
+        searchRequest.send();
+    }, 1000);
+}
+
+function addLoaderPayment(){
+    const loadingContainer = document.createElement('div');
+    loadingContainer.id = 'loading-container';
+    const loader = document.createElement('div');
+    loader.classList.add('loader');
+    loadingContainer.appendChild(loader);
+    loadingBigContainerPayment.appendChild(loadingContainer);
+}
+
+function removeLoaderPayment(){
+    loadingBigContainerPayment.innerHTML = '';
 }
 
 function launchSearch(searches){
