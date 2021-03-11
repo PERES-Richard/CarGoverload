@@ -1,4 +1,5 @@
-# Current flag : Week 09 - GREEN
+# Current flag : Week 10 - GREEN
+# Lien de la video : https://drive.google.com/file/d/1ThotvlYBpLKcvIsblH7pB3gF-F2RIvuI/view?usp=sharing
 
 
 # Week 04: GREEN
@@ -114,3 +115,10 @@
 - Faire de l'injection de charge pour tester les performances à partir du script locust
 
 ## Les blocages et risques
+
+
+# Week 10: GREEN
+
+## Ce que l'on a fait
+- Présentation
+- Vidéo : https://drive.google.com/file/d/1ThotvlYBpLKcvIsblH7pB3gF-F2RIvuI/view?usp=sharing
