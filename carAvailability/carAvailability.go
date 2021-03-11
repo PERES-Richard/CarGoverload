@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"os"
 	"sync"
+
+	"github.com/segmentio/kafka-go"
 
 	controller "carAvailability/controllers"
 	. "carAvailability/entities"
@@ -17,6 +18,7 @@ import (
 const NEW_SEARCH_READER_ID = 0
 const VALIDATION_SEARCH_READER_ID = 1
 const CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID = 0
+const VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID = 1
 
 var readers = make([]*kafka.Reader, 2)
 var wg sync.WaitGroup
@@ -29,7 +31,7 @@ func listenKafka(readerId int) {
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		messageHandlers(readerId, m)
+		go messageHandlers(readerId, m)
 	}
 	wg.Done()
 }
@@ -46,6 +48,13 @@ func setupKafkaWriters() {
 		ClientId:  "car-availability",
 	}
 	tools.SetUpWriter(CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID, configWriter)
+
+	configWriter = tools.KafkaConfig{
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "validation-search-result",
+		ClientId:  "car-availability",
+	}
+	tools.SetUpWriter(VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID, configWriter)
 }
 
 func setupKafkaReaders() {
@@ -77,12 +86,12 @@ func messageHandlers(readerId int, m kafka.Message) {
 		}
 	case VALIDATION_SEARCH_READER_ID:
 		{
-			var parsedMessage SearchMessage
+			var parsedMessage BookValidationMessage
 			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling validation search message:", err)
 			}
-			go controller.NewValidationSearchHandler(parsedMessage, CAR_AVAILABILITY_RESULT_TOPIC_WRITER_ID)
+			go controller.NewValidationSearchHandler(parsedMessage, VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID)
 		}
 	}
 }

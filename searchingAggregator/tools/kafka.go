@@ -7,7 +7,6 @@ import (
 	"log"
 	"strings"
 	"time"
-
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/snappy"
 )

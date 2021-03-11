@@ -2,23 +2,26 @@ package entities
 
 import "time"
 
-type BookMessage struct {
-	Data          Wish
-	OfferSelected Offer
+type BookValidationResult struct {
+	WishId		string		`json:"wishId"`
+	IsValid		bool		`json:"isValid"`
 }
 
-type SearchResultMessage struct {
-	OffersAvailable []Offer
+type BookValidationMessage struct {
+	Wishes		[]Wish	`json:"wishes"`
+	WishId		string	`json:"wishId"`
 }
 
 type Wish struct {
-	DepartureNode string    `json:"departureNode"`
-	ArrivalNode   string    `json:"arrivalNode"`
-	DateDeparture time.Time `json:"dateDeparture"`
-	CarType       string    `json:"carType"`
-	NumberOfCars  int       `json:"numberOfCars"`
+	SearchId		string		`json:"searchId"`
+	DepartureNode 	string    	`json:"departureNode"`
+	ArrivalNode   	string    	`json:"arrivalNode"`
+	DateDeparture 	time.Time 	`json:"dateDeparture"`
+	DateArrival 	time.Time 	`json:"dateArrival"`
+	CarId			int			`json:"carId"`
 }
 
-type Offer struct {
-	// TODO OFFER STRUCT
+type BookConfirmation struct {
+	WishId				string 			`json:"wishId"`
+	Result				string			`json:"result"`
 }

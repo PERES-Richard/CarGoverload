@@ -14,7 +14,8 @@ import (
 	"sync"
 )
 
-var reader *kafka.Reader
+var kafkaReader *kafka.Reader
+var kafkaWriter *kafka.Writer
 var wg sync.WaitGroup
 
 var redisDB, _ = strconv.Atoi(os.Getenv("REDIS_DB"))
@@ -26,71 +27,114 @@ var rdb = redis.NewClient(&redis.Options{
 
 var ctx = context.Background()
 
-func BookRegisterHandler(carsBooked []CarBooked) {
-	for _, book := range carsBooked {
+func BookRegisterHandler(wishBooked WishBooked) {
+	log.Println("Storing in redis for book : ", wishBooked)
+	bookByDay := make(map[string]string)
+	for _, book := range wishBooked.CarsBooked {
 		begin := book.BeginBookedDate.YearDay()
 		end := book.EndingBookedDate.YearDay()
 
-		for i := 0; i < end-begin; i++ {
-			go lockCar(begin+i, book.Id)
+		log.Println("Begin : ", begin)
+		log.Println("End : ", end)
+
+		if bookByDay[strconv.Itoa(begin)] == "" {
+			bookByDay[strconv.Itoa(begin)] =strconv.Itoa(book.CarId)
+		} else {
+			bookByDay[strconv.Itoa(begin)] = bookByDay[strconv.Itoa(begin)] + "," + strconv.Itoa(book.CarId)
 		}
+
+		if end != begin {
+			if bookByDay[strconv.Itoa(end)] == "" {
+				bookByDay[strconv.Itoa(end)] = strconv.Itoa(book.CarId)
+			} else {
+				bookByDay[strconv.Itoa(end)] = bookByDay[strconv.Itoa(end)] + "," + strconv.Itoa(book.CarId)
+			}
+		}
+	}
+
+	for key, value := range bookByDay {
+		go lockCar(key, value)
+	}
+
+	bookConfirmation := BookConfirmation {
+		WishId: wishBooked.WishId,
+		Result: "true",
+	}
+	resultJSON, err := json.Marshal(bookConfirmation)
+	if err != nil {
+		log.Fatal("failed to marshal result:", err)
+		return
+	}
+
+	kafkaErr := tools.KafkaPush(kafkaWriter, context.Background(), []byte("value"), resultJSON)
+	if kafkaErr != nil {
+		log.Panic("failed to write message:", kafkaErr)
 	}
 }
 
-func lockCar(yearDay int, carId int) {
-	var cars, adding string
-	val, err := rdb.Get(ctx, string(yearDay)).Result()
+func lockCar(yearDay string, carIds string) {
+	var cars string
+	val, err := rdb.Get(ctx, yearDay).Result()
 	if err == redis.Nil {
-		// No cars previously booked
-		adding = string(rune(carId))
+		log.Println("No car already booked")
+		cars = carIds
+		log.Println("Need to store : ", cars)
 	} else if err != nil {
 		panic(err)
 	} else {
+		log.Println("Some cars already booked")
 		// Add the cars to the list
-		cars = val
-		adding = "," + string(rune(carId))
+		cars = val + "," + carIds
+		log.Println("Need to store : ", val, "and", carIds)
 	}
-	err = rdb.Set(ctx, string(yearDay), cars+adding, 0).Err()
+	log.Println("Adding to database : ", cars, "for key", yearDay)
+	err = rdb.Set(ctx, yearDay, cars, 0).Err()
 	if err != nil {
 		panic(err)
 	}
 }
 
-//func arrayToString(a []int) string {
-//	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", ",", -1), "[]")
-//}
-
 func listenKafka() {
 	for {
-		m, err := reader.ReadMessage(context.Background())
+		m, err := kafkaReader.ReadMessage(context.Background())
 		if err != nil {
 			log.Fatalln(err)
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		var parsedMessage []CarBooked
-		err = json.Unmarshal(m.Value, parsedMessage)
+		var parsedMessage WishBooked
+		err = json.Unmarshal(m.Value, &parsedMessage)
 		if err != nil {
 			log.Panic("Error unmarshaling search message:", err)
 		}
 
-		BookRegisterHandler(parsedMessage)
+		go BookRegisterHandler(parsedMessage)
 	}
 	wg.Done()
 }
 
-func setUpKafka() {
+func setUpKafkaReader() {
 	configReader := tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
 		Topic:     "book-register",
 		ClientId:  "car-booking",
 	}
-	reader = tools.GetUpKafkaReader(configReader)
+	kafkaReader = tools.GetUpKafkaReader(configReader)
+}
+
+func setupKafkaWriter() {
+	configWriter := tools.KafkaConfig{
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "book-confirmation",
+		ClientId:  "car-booking",
+	}
+	kafkaWriter = tools.GetKafkaWriter(configWriter)
 }
 
 func main() {
 	// Setup readers & writers
-	setUpKafka()
+	setUpKafkaReader()
+	setupKafkaWriter()
 
 	wg.Add(1)
 	go listenKafka()

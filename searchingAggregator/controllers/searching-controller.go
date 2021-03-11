@@ -3,16 +3,17 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"log"
 	. "searchingAggregator/entities"
 	"searchingAggregator/tools"
+	"sync"
 )
 
 const SEARCH_RESULT_TOPIC_WRITER_ID = 0
 const VALIDATION_SEARCH_RESULT_TOPIC_WRITER_ID = 1
 
-var searchArrayList []SearchData
+var searchMap = make(map[string]*SearchData)
+var m sync.Mutex
 
 // Custom error to return in case of a JSON parsing error
 type JSONError struct {
@@ -20,64 +21,48 @@ type JSONError struct {
 }
 
 func AvailabilityResultHandler(parsedMessage AvailabilityResultMessage) {
-	log.Println("Received availability results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
-	if isSearchWaited(parsedMessage.SearchId) {
-		for i, _ := range searchArrayList {
-			if searchArrayList[i].SearchId == parsedMessage.SearchId {
-				searchArrayList[i].AvailabilityResult = parsedMessage.Cars
-				checkResults(searchArrayList[i].SearchId)
-			}
-		}
-	} else {
-		//TODO: produce compensation message
+	//log.Println("Received availability results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
+	log.Println("Received availability results for search : ", parsedMessage.SearchId)
+	if searchMap[parsedMessage.SearchId] == nil {
+		searchMap[parsedMessage.SearchId] = &SearchData{}
 	}
+	searchMap[parsedMessage.SearchId].AvailabilityResult = &parsedMessage.Cars
+	checkResults(parsedMessage.SearchId)
 }
 
 func LocationResultHandler(parsedMessage LocationResultMessage) {
-	log.Println("Received location results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
-	if isSearchWaited(parsedMessage.SearchId) {
-		for i, _ := range searchArrayList {
-			if searchArrayList[i].SearchId == parsedMessage.SearchId {
-				searchArrayList[i].LocationResult = parsedMessage.Cars
-				checkResults(searchArrayList[i].SearchId)
-			}
-		}
-	} else {
-		//TODO: produce compensation message
+	//log.Println("Received location results : ", parsedMessage.SearchId, "\nresults : ", parsedMessage.Cars)
+	log.Println("Received location results for search : ", parsedMessage.SearchId)
+	if searchMap[parsedMessage.SearchId] == nil {
+		searchMap[parsedMessage.SearchId] = &SearchData{}
 	}
+	searchMap[parsedMessage.SearchId].LocationResult = &parsedMessage.Cars
+	checkResults(parsedMessage.SearchId)
 }
 
 func NewSearchHandler(parsedMessage NewSearchMessage) {
-	log.Println("Received new message : ", parsedMessage)
-	searchArrayList = append(searchArrayList, SearchData{
-		SearchId: parsedMessage.SearchId,
-		SearchTime: parsedMessage.Date,
-		Validation: false,
-	})
+	log.Println("Received new search : ", parsedMessage.SearchId)
+	if searchMap[parsedMessage.SearchId] == nil {
+		searchMap[parsedMessage.SearchId] = &SearchData{}
+	}
+	searchMap[parsedMessage.SearchId].SearchTime = &parsedMessage.Date
+	checkResults(parsedMessage.SearchId)
 }
 
 func NewValidationSearchHandler(parsedMessage NewSearchMessage) {
-	searchArrayList = append(searchArrayList, SearchData{
-		SearchId: parsedMessage.SearchId,
-		SearchTime: parsedMessage.Date,
-		Validation: true,
-	})
-}
-
-func isSearchWaited(searchId string) bool {
-	for _, s := range searchArrayList {
-		if s.SearchId == searchId {
-			return true
-		}
+	log.Println("Received new validation search : ", parsedMessage.SearchId)
+	if searchMap[parsedMessage.SearchId] == nil {
+		searchMap[parsedMessage.SearchId] = &SearchData{}
 	}
-	return false
+	searchMap[parsedMessage.SearchId].SearchTime = &parsedMessage.Date
+	searchMap[parsedMessage.SearchId].Validation = true
+	checkResults(parsedMessage.SearchId)
 }
 
 func checkResults(searchId string) {
 	log.Println("Checking results for searchId : ", searchId)
-	for _, s := range searchArrayList {
-		log.Println(s, " - ", searchId)
-		if s.SearchId == searchId && len(s.AvailabilityResult) > 0 && len(s.LocationResult) > 0 {
+	if searchMap[searchId] != nil {
+		if searchMap[searchId].SearchTime != nil && searchMap[searchId].LocationResult != nil && searchMap[searchId].AvailabilityResult != nil {
 			endSearch(searchId)
 		}
 	}
@@ -87,57 +72,55 @@ func endSearch(searchId string) {
 	log.Println("Ending search for searchId : ", searchId)
 
 	var sd SearchData
-	found := false
-
-	for _,s := range searchArrayList {
-		if s.SearchId == searchId {
-			sd = s
-			found = true
-		}
-	}
 
 	// if the parameter searchId does not correspond to an existing searchId we are waiting for
-	if !found {
+	if searchMap[searchId] == nil {
 		return
 	}
+
+	sd = *searchMap[searchId]
 
 	locationResults := sd.LocationResult
 	availabilityResults := sd.AvailabilityResult
 
 	// TODO: Enhance with multiple dates
 
-	for _, car := range locationResults {
+	for _, car := range *locationResults {
 		booked := false
-		for _, bookedCar := range availabilityResults {
+		for _, bookedCar := range *availabilityResults {
 			if bookedCar == car.Car.Id {
 				booked = true
 			}
 		}
 		if booked {
 			log.Println("Car ", car.Car.Id, " is booked !")
-			locationResults, _ = removeCar(locationResults, car.Car)
+			removeCar(locationResults, car.Car)
 		}
 	}
 
-	if len(locationResults) <= 0 {
+	if len(*locationResults) <= 0 {
 		//TODO: relaunch request for compensation with another book date
 	}
 
 	offers := make([]Offer, 0)
-	for _, car := range locationResults {
+	for _, car := range *locationResults {
 		offers = append(offers, Offer{
-			BookDate:  sd.SearchTime,
+			BookDate:  *sd.SearchTime,
 			Arrival:   car.DestNode,
 			Departure: car.Node,
 			Car:       car.Car,
+			Distance:  car.Distance,
 		})
 	}
 
-	searchArrayList, _ = removeSearchData(sd.SearchId)
+	result := ResultMessage{
+		Offers:   offers,
+		SearchId: searchId,
+	}
 
-	resultJSON, err := json.Marshal(offers)
+	resultJSON, err := json.Marshal(result)
 	if err != nil {
-		log.Fatal("failed to marshal offers:", err)
+		log.Fatal("failed to marshal result:", err)
 		return
 	}
 
@@ -151,32 +134,22 @@ func endSearch(searchId string) {
 	if kafkaErr != nil {
 		log.Panic("failed to write message:", kafkaErr)
 	}
+
+	//searchMap[searchId] = nil
+	m.Lock()
+
+	delete(searchMap, searchId)
+	m.Unlock()
 }
 
-func removeCar(carList []TrackedCar, car Car) ([]TrackedCar, error) {
-	err := errors.New("Remove error: car not found")
+func removeCar(carList *[]TrackedCar, car Car) {
 	var result []TrackedCar
-	for _, c := range carList {
+	for _, c := range *carList {
 		if c.Car.Id != car.Id {
 			result = append(result, c)
-		} else {
-			err = errors.New("")
 		}
 	}
-	return result, err
-}
-
-func removeSearchData(searchId string) ([]SearchData, error) {
-	err := errors.New("Remove error: car not found")
-	var result []SearchData
-	for _, s := range searchArrayList {
-		if s.SearchId != searchId {
-			result = append(result, s)
-		} else {
-			err = errors.New("")
-		}
-	}
-	return result, err
+	*carList = result
 }
 
 //func calculateDistance(lat1 float64, lng1 float64, lat2 float64, lng2 float64, unit ...string) float64 {

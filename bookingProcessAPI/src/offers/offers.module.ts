@@ -3,6 +3,7 @@ import { OffersController } from './offers.controller';
 import { OffersService } from './offers.service';
 import { ClientsModule, Transport } from "@nestjs/microservices";
 import { KAFKA } from "../env_variable";
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
   imports: [ClientsModule.register([
@@ -19,7 +20,7 @@ import { KAFKA } from "../env_variable";
         }
       }
     },
-  ]),],
+  ]), RedisModule],
   controllers: [OffersController],
   providers: [OffersService]
 })

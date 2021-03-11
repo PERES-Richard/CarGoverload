@@ -17,8 +17,8 @@ var cars = make([]Car, 100)
 // Instantiate new service
 func NewService() *TrackingService {
 	// Mock the cars
-	cars = append(cars, generateMockedCars(0, 50, "Solid", 1)...)
-	cars = append(cars, generateMockedCars(50, 50, "Liquid", 2)...)
+	cars = append(cars, generateMockedCars(0, 10, "Solid", 1)...)
+	cars = append(cars, generateMockedCars(50, 10, "Liquid", 2)...)
 
 	return &TrackingService{
 		Cars: cars,

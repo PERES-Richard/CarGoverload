@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"orderValidator/tools"
 	"os"
 	"sync"
+
+	"github.com/segmentio/kafka-go"
 
 	controller "orderValidator/controllers"
 	. "orderValidator/entities"
@@ -16,8 +17,9 @@ import (
 
 const VALIDATION_SEARCH_RESULT_READER_ID = 0
 const BOOK_VALIDATION_TOPIC_READER_ID = 1
-const BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID = 0
+const BOOK_REGISTER_WRITER_ID = 0
 const VALIDATION_SEARCH_WRITER_ID = 1
+const BOOK_CONFIRMATION_SEARCH_WRITER_ID = 2
 
 var readers = make([]*kafka.Reader, 2)
 var wg sync.WaitGroup
@@ -30,17 +32,24 @@ func setUpKafka() {
 func setupKafkaWriters() {
 	configWriter := tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
-		Topic:     "validation-search-requested",
+		Topic:     "validation-search",
 		ClientId:  "orderValidator",
 	}
 	tools.SetUpWriter(VALIDATION_SEARCH_WRITER_ID, configWriter)
 
 	configWriter = tools.KafkaConfig{
 		BrokerUrl: os.Getenv("KAFKA"),
-		Topic:     "book-validation-result",
+		Topic:     "book-register",
 		ClientId:  "orderValidator",
 	}
-	tools.SetUpWriter(BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID, configWriter)
+	tools.SetUpWriter(BOOK_REGISTER_WRITER_ID, configWriter)
+
+	configWriter = tools.KafkaConfig{
+		BrokerUrl: os.Getenv("KAFKA"),
+		Topic:     "book-confirmation",
+		ClientId:  "orderValidator",
+	}
+	tools.SetUpWriter(BOOK_CONFIRMATION_SEARCH_WRITER_ID, configWriter)
 }
 
 func setupKafkaReaders() {
@@ -68,7 +77,7 @@ func listenKafka(readerId int) {
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		messageHandlers(readerId, m)
+		go messageHandlers(readerId, m)
 	}
 	wg.Done()
 }
@@ -77,8 +86,8 @@ func messageHandlers(readerId int, m kafka.Message) {
 	switch readerId {
 	case BOOK_VALIDATION_TOPIC_READER_ID:
 		{
-			var parsedMessage BookMessage
-			err := json.Unmarshal(m.Value, parsedMessage)
+			var parsedMessage BookValidationMessage
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling book validation message:", err)
 			}
@@ -86,12 +95,12 @@ func messageHandlers(readerId int, m kafka.Message) {
 		}
 	case VALIDATION_SEARCH_RESULT_READER_ID:
 		{
-			var parsedMessage SearchResultMessage
-			err := json.Unmarshal(m.Value, parsedMessage)
+			var parsedMessage BookValidationResult
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling search message:", err)
 			}
-			controller.ValidationSearchResultHandler(parsedMessage, BOOK_VALIDATION_RESULT_TOPIC_WRITER_ID)
+			controller.ValidationSearchResultHandler(parsedMessage, BOOK_CONFIRMATION_SEARCH_WRITER_ID, BOOK_REGISTER_WRITER_ID)
 		}
 	}
 }

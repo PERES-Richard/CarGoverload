@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common';
 import { EventPattern, Payload } from "@nestjs/microservices";
 import { WishDTO } from 'src/models/wish_dto';
 import { OffersService } from "./offers.service";
@@ -7,21 +7,25 @@ import { OffersService } from "./offers.service";
 export class OffersController {
     constructor(private readonly offersService: OffersService) {
     }
+
     @EventPattern("wish-result")
     wishResultHandler(@Payload() data) {
-        Logger.log(`The wish result is ${data.value}`);
+        Logger.log(`The wish result is ${data.value.wishId} has been received, saving...`);
+        this.offersService.saveWishResult(data.value);
     }
 
-    @Get()
+    @Get('/:wishId')
+    async offersResult(@Param('wishId') wishId: string) {
+        return await this.offersService.getOffersSubjectOf(wishId);
+    }
+
+    @Post()
     getOffers(@Body() wishes: WishDTO[]): string {
-        Logger.log(`Searching request`);
-        console.dir(wishes);
-        this.offersService.startSearchingProcess(wishes);
-        return `Search initiated`;
-    }
-
-    @Get('/payment')
-    payOffer() {
-        return true;
+        Logger.log(`Starting new search request`);
+        const startedWish = this.offersService.startSearchingProcess(wishes);
+        const res = {
+            wishId: startedWish
+        };
+        return JSON.stringify(res);
     }
 }

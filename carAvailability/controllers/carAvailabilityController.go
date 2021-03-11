@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const MAX_SUPP_DURATION = 3
+const MAX_SUPP_DURATION = 2
 
 var redisDB, _ = strconv.Atoi(os.Getenv("REDIS_DB"))
 var rdb = redis.NewClient(&redis.Options{
@@ -22,24 +22,24 @@ var rdb = redis.NewClient(&redis.Options{
 	DB:       redisDB, // use default DB
 })
 
-func readCarLockedByDay(yearDay int) []Car {
-	val, err := rdb.Get(context.Background(), string(rune(yearDay))).Result()
-	if err != nil {
-		//log.Panic("Error getting locked cars: ", err)
+func readCarLockedByDay(yearDay int) []int {
+	val, err := rdb.Get(context.Background(), strconv.Itoa(yearDay)).Result()
+	log.Println("Checking car booked for day :", yearDay)
+	log.Println("Value : ", val)
+	if err == redis.Nil {
 		log.Println("No cars booked for this date")
-		return []Car{}
+		return []int{}
+	} else if err != nil {
+		panic(err)
 	}
 
-	var carsLocked []Car
+	var carsLocked []int
 
 	a := strings.Split(val, ",")
 	for _, v := range a {
 		var id int
 		id, err = strconv.Atoi(v)
-		carsLocked = append(carsLocked, Car{
-			Id:             id,
-			BookedYearDate: yearDay,
-		})
+		carsLocked = append(carsLocked, id)
 		if err != nil {
 			log.Fatal("Error from redis: ", err)
 		}
@@ -48,8 +48,8 @@ func readCarLockedByDay(yearDay int) []Car {
 	return carsLocked
 }
 
-func getNonAvailableCars(date time.Time) []Car {
-	carsAggregate := make([]Car, 0)
+func getNonAvailableCars(date time.Time) []int {
+	carsAggregate := make([]int, 0)
 
 	for i := 0; i < MAX_SUPP_DURATION; i++ {
 		carsAggregate = append(readCarLockedByDay(date.YearDay()+i), carsAggregate...)
@@ -58,8 +58,39 @@ func getNonAvailableCars(date time.Time) []Car {
 	return carsAggregate
 }
 
-func NewValidationSearchHandler(message SearchMessage, topic int) {
-	NewSearchHandler(message, topic)
+func checkIfCarsAreAvailable(cars []Car) bool {
+	for _, car := range cars {
+		log.Println("Car to check : ", car)
+		log.Println("Day to check : ", car.DateDeparture.YearDay())
+		bookedCarIds := readCarLockedByDay(car.DateDeparture.YearDay())
+		for _, bookedCarId := range bookedCarIds {
+			if bookedCarId == car.Id {
+				return false
+			}
+		}
+	}
+
+	return true
+}
+
+func NewValidationSearchHandler(bookValidation BookValidationMessage, topic int) {
+	result := checkIfCarsAreAvailable(bookValidation.Wishes)
+
+	finalResult := BookValidationResult {
+		WishId: bookValidation.WishId,
+		IsValid: result,
+	}
+
+	resultJSON, err := json.Marshal(finalResult)
+	if err != nil {
+		log.Fatal("failed to marshal cars available:", err)
+		return
+	}
+
+	kafkaErr := tools.KafkaPush(context.Background(), topic, []byte("value"), resultJSON) // TODO Set key ?
+	if kafkaErr != nil {
+		log.Panic("failed to write message:", kafkaErr)
+	}
 }
 
 // Return the list of all car unavailable with given filters
@@ -67,6 +98,7 @@ func NewSearchHandler(message SearchMessage, topic int) {
 	//date, err = time.Parse(time.RFC3339, dateParam[0])
 
 	carsId := getNonAvailableCars(message.Date)
+	log.Println("Booked cars : ", carsId)
 
 	result := SearchResult{
 		SearchId:     message.SearchId,

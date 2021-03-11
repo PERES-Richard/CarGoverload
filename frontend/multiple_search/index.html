@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr" class="page-fill-height">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="theme-color" content="#1d4761">
+    <title>CarGoverload</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="<?= $title ?>" />
+    <meta property="og:description" content="CarGoverload - Book your trains" />
+    <meta name="description" content="CarGoverload - Book your train" />
+
+    <link rel="stylesheet" media="all" href="./public/assets/css/style.css" />
+    <script async src="https://kit.fontawesome.com/ed252388d4.js" crossorigin="anonymous"></script>
+</head>
+<body class="background-main-color page-fill-height">
+    <div id="page" class="page-fill-height">
+        <form id="middle-form" class="background-secondary-color">
+            <div class="input-container">
+                <label for="node-departure-select" class="color-grey">Noeud de départ</label>
+                <div class="no-margin">
+                    <select class="background-main-color color-grey" title="Noeud de départ" name="node-departure-select" id="node-departure-select">
+                    </select>
+                </div>
+            </div>
+            <div class="input-container">
+                <label for="date-departure" class="color-grey">Date et heure de départ</label>
+                <div class="no-margin">
+                    <input type="datetime-local"  name="date-departure" id="date-departure">
+                </div>
+            </div>
+
+            <div class="input-container">
+                <label for="supplier" class="color-grey">Fournisseur</label>
+                <div class="no-margin">
+                    <input type="text" name="supplier" placeholder="Nom de l'entreprise" id="supplier">
+                </div>
+            </div>
+
+            <div class="flex-center width-full">
+                <div id="plus"></div>
+            </div>
+
+            <div id="main-container" class="width-full"></div>
+            <div id="middle-form-submit-container">
+                <input type="submit" disabled value="Rechercher des offres" id="middle-form-submit" class="button-form"/>
+            </div>
+        </form>
+        <div id="loading-big-container">
+
+        </div>
+        <div id="offers-result-container">
+
+        </div>
+        <div id="total-price" class="flex-center">
+            <button disabled id="button-pay" class="button-form">Payer</button>
+        </div>
+        <div id="loading-bit-container-payment">
+
+        </div>
+    </div>
+    <script type="text/javascript" src="./public/assets/js/index.js"></script>
+</body>
+</html>

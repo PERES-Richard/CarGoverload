@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/segmentio/kafka-go"
 	"log"
 	"offersCreator/tools"
 	"os"
 	"sync"
+
+	"github.com/segmentio/kafka-go"
 
 	controller "offersCreator/controllers"
 	. "offersCreator/entities"
@@ -60,7 +61,7 @@ func listenKafka(readerId int) {
 		}
 		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 
-		messageHandlers(readerId, m)
+		go messageHandlers(readerId, m)
 	}
 	wg.Done()
 }
@@ -69,9 +70,8 @@ func messageHandlers(readerId int, m kafka.Message) {
 	switch readerId {
 	case WISH_REQUESTED_TOPIC_READER_ID:
 		{
-		// TODO
-			var parsedMessage Wish
-			err := json.Unmarshal(m.Value, parsedMessage)
+			var parsedMessage InitialWishRequest
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
 				log.Panic("Error unmarshaling book validation message:", err)
 			}
@@ -79,13 +79,12 @@ func messageHandlers(readerId int, m kafka.Message) {
 		}
 	case RAW_WISH_RESULT_TOPIC_READER_ID:
 		{
-		// TODO
-			var parsedMessage Wish
-			err := json.Unmarshal(m.Value, parsedMessage)
+			var parsedMessage WishWithPossibilities
+			err := json.Unmarshal(m.Value, &parsedMessage)
 			if err != nil {
-				log.Panic("Error unmarshaling search message:", err)
+				log.Panic("Error unmarshaling offer possibilities search message:", err)
 			}
-			controller.RawWishhandler(parsedMessage, WISH_RESULT_TOPIC_WRITER_ID)
+			controller.RawWishHandler(&parsedMessage, WISH_RESULT_TOPIC_WRITER_ID)
 		}
 	}
 }

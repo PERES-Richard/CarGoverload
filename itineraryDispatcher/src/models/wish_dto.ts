@@ -1,3 +1,8 @@
+export class wishRequest {
+    wishId: string;
+    wishes: WishDTO[];
+}
+
 export class WishDTO {
     carType: string;
     numberOfCars: number;
